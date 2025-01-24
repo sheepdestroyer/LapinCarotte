@@ -8,6 +8,7 @@ import math
 from asset_manager import AssetManager
 from game_entities import Player, Bullet, Carrot, Vampire, Explosion, Collectible
 from game_state import GameState
+from config import MAX_HEALTH, MAX_GARLIC, ITEM_SCALE
 
 def get_asset_path(relative_path):
     """Get absolute path to resource, works for dev and for PyInstaller"""
