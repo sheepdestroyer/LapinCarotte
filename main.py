@@ -136,17 +136,7 @@ rabbit_flipped = False  # Initial value set to false
 # Variable to store the last direction (up, down, left, right)
 last_direction = "right"
 
-# Lists to store bullets
-bullets = []
-
-# Explosion variables
-explosion_x = 0
-explosion_y = 0
-explosion_start_time = 0
-explosion_duration = 0.1  # in seconds
-explosion_active = False
-drop_hp_item = False # Flag to indicate if the HP item should be dropped
-explosion_flash_count = 0  # Counter for the number of flashes
+# Game timing constants
 explosion_flash_interval = 0.1  # Time in seconds between flashes
 max_explosion_flashes = 3  # Number of times the explosion will flash
 #Respawn timer variables
@@ -305,15 +295,20 @@ while running:
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
-                    # Create new bullet at rabbit's center
-                    bullet_x = player.rect.centerx - bullet_width/2
-                    bullet_y = player.rect.centery - bullet_height/2
-
-                    # Store the bullet position and get direction based on mouse
-                    mouse_x, mouse_y = pygame.mouse.get_pos()
-                    bullet_dx = mouse_x - player.rect.centerx + game_state.scroll[0]
-                    bullet_dy = mouse_y - player.rect.centery + game_state.scroll[1]
-                    bullets.append([bullet_x, bullet_y, bullet_dx, bullet_dy])
+                    mouse_pos = pygame.mouse.get_pos()
+                    world_mouse = (
+                        mouse_pos[0] + game_state.scroll[0],
+                        mouse_pos[1] + game_state.scroll[1]
+                    )
+                    game_state.bullets.append(
+                        Bullet(
+                            player.rect.centerx,
+                            player.rect.centery,
+                            world_mouse[0],
+                            world_mouse[1],
+                            asset_manager.images['bullet']
+                        )
+                    )
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 3 and player.garlic_count > 0 and garlic_shot is None:
@@ -436,44 +431,29 @@ while running:
                 carrot.rect.x = max(0, min(world_width - carrot.rect.width, carrot.rect.x))
                 carrot.rect.y = max(0, min(world_height - carrot.rect.height, carrot.rect.y))
 
-        # Update the bullet positions and handle removal
-        for bullet in bullets[:]:  # Iterate over a copy to safely delete
-            bullet_x = bullet[0]
-            bullet_y = bullet[1]
-            bullet_dx = bullet[2]
-            bullet_dy = bullet[3]
-            # Normalize the direction and move using the normalized direction
-            bullet_dist = distance(0, 0, bullet_dx, bullet_dy)
-            if bullet_dist > 0:
-                bullet_x += bullet_dx / bullet_dist * bullet_speed
-                bullet_y += bullet_dy / bullet_dist * bullet_speed
-
-                bullet[0] = bullet_x
-                bullet[1] = bullet_y
-
-            # Check for a collision between the carrot and the bullets
+        # Update bullets and handle collisions
+        for bullet in game_state.bullets[:]:
+            bullet.update()
+            
+            # Remove off-screen bullets
+            if (bullet.rect.right < 0 or bullet.rect.left > game_state.world_size[0] or
+                bullet.rect.bottom < 0 or bullet.rect.top > game_state.world_size[1]):
+                game_state.bullets.remove(bullet)
+                continue
+            
+            # Check collisions with carrots
             for carrot in game_state.carrots:
-                if carrot.active:
-                    bullet_rect = pygame.Rect(bullet[0], bullet[1], bullet_width, bullet_height)
-                    if carrot.rect.colliderect(bullet_rect):
-                        # Set variables to render the explosion
-                        explosion_x = carrot.rect.x - (explosion_width - carrot_width) / 2  # Center the image
-                        explosion_y = carrot.rect.y - (explosion_height - carrot_height) / 2
-                        explosion_start_time = current_time
-                        explosion_active = True
-                        drop_hp_item = True
-                        explosion_flash_count = 0
-                        if bullet in bullets:  # Prevent trying to remove the bullet when it has already been removed
-                            bullets.remove(bullet)  # Remove the bullet
-                        
-                        carrot.active = False  # Set that the carrot has been "destroyed"
-                        asset_manager.sounds['explosion'].play()  # Play the explosion
-                        
-                        carrot.respawn_timer = current_time  # Start the respawn timer
-                else:  # Remove bullets that are off the screen
-                    if bullet[0] > world_width or bullet[0] < 0 or bullet[1] > world_height or bullet[1] < 0:
-                        if bullet in bullets:
-                          bullets.remove(bullet)
+                if carrot.active and bullet.rect.colliderect(carrot.rect):
+                    game_state.explosions.append(Explosion(
+                        carrot.rect.centerx,
+                        carrot.rect.centery,
+                        asset_manager.images['explosion']
+                    ))
+                    carrot.active = False
+                    carrot.respawn_timer = current_time
+                    asset_manager.sounds['explosion'].play()
+                    game_state.bullets.remove(bullet)
+                    break
 
         # Respawn carrots after delay
         for i, carrot in enumerate(game_state.carrots):
@@ -545,21 +525,13 @@ while running:
         # Draw the rabbit using blit
         screen.blit(player.image, (player.rect.x - game_state.scroll[0], player.rect.y - game_state.scroll[1]))
 
-        # Draw the bullets
-        for bullet in bullets:
-            bullet_x = bullet[0]
-            bullet_y = bullet[1]
-            bullet_dx = bullet[2]
-            bullet_dy = bullet[3]
-            bullet_dist = distance(0, 0, bullet_dx, bullet_dy)
-
-            # Calculate the angle of the bullet
-            angle = math.degrees(math.atan2(bullet_dy, bullet_dx))
-
-            # Rotate the bullet
-            rotated_bullet = pygame.transform.rotate(original_bullet_image, -angle)
-            bullet_rect = rotated_bullet.get_rect(center=(bullet_x, bullet_y))  # We need to also fix the center of the sprite to be where the x and y coordinates are
-            screen.blit(rotated_bullet, (bullet_rect.x - game_state.scroll[0], bullet_rect.y - game_state.scroll[1]))
+        # Draw bullets
+        for bullet in game_state.bullets:
+            screen.blit(
+                bullet.rotated_image,
+                (bullet.rect.x - game_state.scroll[0],
+                 bullet.rect.y - game_state.scroll[1])
+            )
 
         # Draw the garlic shot
         if garlic_shot and garlic_shot["active"]:
@@ -569,34 +541,24 @@ while running:
             screen.blit(rotated_garlic, (rotated_rect.x - game_state.scroll[0], 
                                        rotated_rect.y - game_state.scroll[1]))
 
-        # Check and draw explosion
-        if explosion_active:
-            time_since_flash_start = current_time - explosion_start_time
-            if int(time_since_flash_start / explosion_flash_interval) % 2 == 0:
-                screen.blit(explosion_image, (explosion_x - game_state.scroll[0], explosion_y - game_state.scroll[1]))            
-            # Drop HP item after the last explosion flash
-            if drop_hp_item and explosion_flash_count == max_explosion_flashes -1 and time_since_flash_start > explosion_flash_interval:
-                if random.choice([True, False]):  # Randomly drop either HP or Garlic
-                    hp_items.append({
-                        "x": explosion_x + explosion_width / 2 - item_width / 2,
-                        "y": explosion_y + explosion_height / 2 - item_height / 2
-                    })
-                    drop_hp_item = False
+        # Update and draw explosions
+        for explosion in game_state.explosions[:]:
+            if explosion.update(current_time):
+                # Handle item drop
+                if random.choice([True, False]):
+                    game_state.items.append(Collectible(
+                        explosion.rect.centerx,
+                        explosion.rect.centery,
+                        asset_manager.images['hp']
+                    ))
                 else:
-                    garlic_items.append({
-                        "x": explosion_x + explosion_width / 2 - item_width / 2,
-                        "y": explosion_y + explosion_height / 2 - item_height / 2
-                    })
-                    drop_hp_item = False
-
-            
-            # Increment flash count
-            if time_since_flash_start > explosion_flash_interval:
-                explosion_flash_count += 1
-                explosion_start_time = current_time  # Reset start time for the next flash
-
-            if explosion_flash_count >= max_explosion_flashes:
-                explosion_active = False  # Stop displaying after 3 flashes
+                    game_state.items.append(Collectible(
+                        explosion.rect.centerx,
+                        explosion.rect.centery,
+                        asset_manager.images['garlic']
+                    ))
+                game_state.explosions.remove(explosion)
+            explosion.draw(screen, game_state.scroll)
         
         # Draw vampire
         game_state.vampire.draw(screen, game_state.scroll, current_time)
