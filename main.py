@@ -24,31 +24,28 @@ def get_asset_path(relative_path):
     
     return os.path.join(base_path, relative_path)
 
-# Initialize Pygame and set a minimal display mode first
+# Initialize Pygame
 pygame.init()
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
-# Set a minimal display mode before loading assets
-pygame.display.set_mode((1, 1))
+# Create maximized window immediately
+screen = pygame.display.set_mode((0, 0), pygame.WINDOWMAXIMIZED)
+screen_width, screen_height = screen.get_size()
 
-# Now initialize game systems
+# Initialize game systems
 asset_manager = AssetManager()
 asset_manager.load_assets()
 game_state = GameState(asset_manager)
 
-# Set a temporary display mode to get the start screen dimensions
-temp_screen = pygame.display.set_mode((0, 0))  # Set a small, temporary display
-
-# Load start screen image
+# Load start screen image and calculate centered position
 try:
     start_screen_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'start_screen.png'))).convert()
-    screen_width, screen_height = start_screen_image.get_size()
+    img_width = start_screen_image.get_width()
+    img_height = start_screen_image.get_height()
+    start_screen_pos = ((screen_width - img_width) // 2, (screen_height - img_height) // 2)
 except pygame.error as e:
     print(f"Error loading start screen image: {e}")
     sys.exit(1)
-
-# Now, set the actual display mode using the loaded image dimensions
-screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("LapinCarotte")
 
 # Initialize game state
@@ -218,13 +215,8 @@ def reset_game():
 
 # Function to start the game
 def start_game():
-    global game_started, screen_width, screen_height, screen
+    global game_started
     game_started = True
-    # Create maximized window
-    screen = pygame.display.set_mode((0, 0), pygame.WINDOWMAXIMIZED)
-    # Get actual screen dimensions
-    screen_width, screen_height = screen.get_size()
-    asset_manager.sounds['intro'].stop()  # Stop the intro music
     asset_manager.sounds['background'].play(-1)  # -1 makes the music loop continuously
 
 # Game loop
@@ -241,12 +233,14 @@ while running:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 # Start button
-                if 787 <= mouse_x <= 787 + start_button_width and 742 <= mouse_y <= 742 + start_button_height:
+                if (787 <= mouse_x - start_screen_pos[0] <= 787 + start_button_width and 
+                    742 <= mouse_y - start_screen_pos[1] <= 742 + start_button_height):
                     asset_manager.sounds['intro'].stop()
                     asset_manager.sounds['press_start'].play()
                     start_game()
                 # Exit button
-                elif 787 <= mouse_x <= 787 + exit_button_width and 827 <= mouse_y <= 827 + exit_button_height:
+                elif (787 <= mouse_x - start_screen_pos[0] <= 787 + exit_button_width and 
+                      827 <= mouse_y - start_screen_pos[1] <= 827 + exit_button_height):
                     running = False
         elif not game_over:
             # Handle shooting with space bar or left mouse button
@@ -339,11 +333,10 @@ while running:
                   running = False
 
     if not game_started:
-        screen.blit(start_screen_image, (0, 0))
-        # Draw start button
-        screen.blit(asset_manager.images['start'], (787, 742))
-        # Draw exit button
-        screen.blit(asset_manager.images['exit'], (787, 827))
+        screen.blit(start_screen_image, start_screen_pos)
+        # Draw buttons relative to centered image position
+        screen.blit(asset_manager.images['start'], (start_screen_pos[0] + 787, start_screen_pos[1] + 742))
+        screen.blit(asset_manager.images['exit'], (start_screen_pos[0] + 787, start_screen_pos[1] + 827))
     elif not game_over:
         # Handle keyboard input for player movement
         keys = pygame.key.get_pressed()
