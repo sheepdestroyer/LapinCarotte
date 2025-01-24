@@ -243,7 +243,7 @@ def reset_game():
     scroll_y = 0
 
     # Reset health points
-    health_points = max_health_points
+    player.health = max_health_points
 
     # Reset vampire
     vampire_active = False
@@ -267,7 +267,7 @@ def reset_game():
     
     # Reset garlic items
     garlic_items = []
-    garlic_count = 0
+    player.garlic_count = 0
 
 
 # Function to start the game
@@ -550,14 +550,14 @@ while running:
             rabbit_rect = player.rect.copy()
             vampire_rect = pygame.Rect(vampire_x, vampire_y, vampire_width, vampire_height)
             if rabbit_rect.colliderect(vampire_rect):
-                health_points -= 1  # Decrease health points
+                player.health -= 1  # Decrease health points
                 asset_manager.sounds['hurt'].play()  # Play hurt sound
                 vampire_active = False
                 vampire_respawn_timer = current_time
                 vampire_death_effect_active = False
                 vampire_death_flash_count = 0
 
-                if health_points == 0:
+                if player.health <= 0:
                     game_over = True
                     asset_manager.sounds['death'].play()  # Play death sound
                     asset_manager.sounds['background'].stop()
@@ -570,8 +570,8 @@ while running:
         for i, hp_item in enumerate(hp_items[:]):
             hp_item_rect = pygame.Rect(hp_item["x"], hp_item["y"], item_width, item_height)
             if rabbit_rect.colliderect(hp_item_rect):
-                if health_points < max_health_points:
-                    health_points += 1
+                if player.health < max_health_points:
+                    player.health += 1
                     asset_manager.sounds['get_hp'].play()  # Play the sound effect
                 hp_items.pop(i)  # Remove the collected HP item
 
@@ -677,7 +677,7 @@ while running:
                 screen.blit(vampire_image, (vampire_x - scroll_x, vampire_y - scroll_y))
 
         # Draw health points UI
-        for i in range(health_points):
+        for i in range(player.health):
             screen.blit(hp_image, (10 + i * (hp_width + 5), 10))  # 5 pixels spacing
         
         # Check for collisions between rabbit and Garlic items
@@ -690,9 +690,9 @@ while running:
                 garlic_items.pop(i)  # Remove the collected Garlic item
 
         # Draw Garlic count UI
-        if garlic_count > 0:  # Only display if player has garlic
+        if player.garlic_count > 0:  # Only display if player has garlic
             garlic_ui_x = screen_width - 10 - max_garlic_count * (garlic_width + 5)
-            for i in range(garlic_count):
+            for i in range(player.garlic_count):
                 screen.blit(garlic_image, (garlic_ui_x + i * (garlic_width + 5), 10))  # 5 pixels spacing
 
         # Draw the HP items
