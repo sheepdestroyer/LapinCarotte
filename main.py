@@ -51,9 +51,6 @@ player = Player(200, 200, asset_manager.images['rabbit'])
 # Play intro music
 asset_manager.sounds['intro'].play(-1)
 
-# play the intro music 
-intro_music.play(-1)  # Play the intro music on loop
-
 # Carrot speed
 carrot_speed = 3  # Base carrot speed
 bullet_speed = 10
@@ -63,54 +60,54 @@ max_speed_multiplier = 3  # Max speed when rabbit is close
 def distance(x1, y1, x2, y2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-# Get the image size for boundary detection
-carrot_rect = carrot_image.get_rect()
-carrot_width = carrot_rect.width # Initialize carrot_width
-carrot_height = carrot_rect.height # Initialize carrot_height
+# Get the image sizes for boundary detection
+carrot_rect = asset_manager.images['carrot'].get_rect()
+carrot_width = carrot_rect.width
+carrot_height = carrot_rect.height
 
 # Get the rabbit size for boundary detection and calculations
-rabbit_rect = rabbit_image.get_rect()
+rabbit_rect = asset_manager.images['rabbit'].get_rect()
 rabbit_width = rabbit_rect.width
 rabbit_height = rabbit_rect.height
 
 # Get the bullet size for calculations
-bullet_rect = bullet_image.get_rect()
+bullet_rect = asset_manager.images['bullet'].get_rect()
 bullet_width = bullet_rect.width
 bullet_height = bullet_rect.height
 
 # Get the explosion size
-explosion_rect = explosion_image.get_rect()
+explosion_rect = asset_manager.images['explosion'].get_rect()
 explosion_width = explosion_rect.width
 explosion_height = explosion_rect.height
 
 # Get the vampire size for boundary detection and calculations
-vampire_rect = vampire_image.get_rect()
+vampire_rect = asset_manager.images['vampire'].get_rect()
 vampire_width = vampire_rect.width
 vampire_height = vampire_rect.height
 
 # Get the HP image size
-hp_rect = hp_image.get_rect()
+hp_rect = asset_manager.images['hp'].get_rect()
 hp_width = hp_rect.width
 hp_height = hp_rect.height
 
 # Get the Garlic image size
-garlic_rect = garlic_image.get_rect()
+garlic_rect = asset_manager.images['garlic'].get_rect()
 garlic_width = garlic_rect.width
 garlic_height = garlic_rect.height
 
 # Get the GameOver image size
-game_over_rect = game_over_image.get_rect()
+game_over_rect = asset_manager.images['game_over'].get_rect()
 game_over_width = game_over_rect.width
 game_over_height = game_over_rect.height
 
 # Get the button image sizes
-restart_button_rect = restart_button_image.get_rect()
+restart_button_rect = asset_manager.images['restart'].get_rect()
 restart_button_width = restart_button_rect.width
 restart_button_height = restart_button_rect.height
-exit_button_rect = exit_button_image.get_rect()
+exit_button_rect = asset_manager.images['exit'].get_rect()
 exit_button_width = exit_button_rect.width
 exit_button_height = exit_button_rect.height
-start_button_rect = start_button_image.get_rect()
+start_button_rect = asset_manager.images['start'].get_rect()
 start_button_width = start_button_rect.width
 start_button_height = start_button_rect.height
 
