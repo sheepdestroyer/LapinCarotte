@@ -5,6 +5,9 @@ import time
 import sys
 import random
 import math
+from asset_manager import AssetManager
+from game_entities import Player, Bullet, Carrot
+from game_state import GameState
 
 def get_asset_path(relative_path):
     """Get absolute path to resource, works for dev and for PyInstaller"""
@@ -17,12 +20,14 @@ def get_asset_path(relative_path):
     
     return os.path.join(base_path, relative_path)
 
-# Initialize Pygame
+# Initialize Pygame and managers
 pygame.init()
-
-# Set the environment variable to center the window
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
+# Initialize game systems
+asset_manager = AssetManager()
+asset_manager.load_assets()
+game_state = GameState()
 
 
 # Set a temporary display mode to get the start screen dimensions
@@ -40,45 +45,11 @@ except pygame.error as e:
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("LapinCarotte")
 
-# Initial rabbit position
-rabbit_x = 200
-rabbit_y = 200
+# Initialize player
+player = Player(200, 200, asset_manager.images['rabbit'])
 
-# Image loading and scaling
-try:
-    grass_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'grass.png'))).convert_alpha()
-    carrot_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'carrot.png'))).convert_alpha()
-    original_rabbit_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'rabbit.png'))).convert_alpha()
-    rabbit_image = original_rabbit_image  # Default direction is right
-    original_bullet_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'bullet.png'))).convert_alpha()
-    bullet_image = original_bullet_image
-    explosion_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'explosion.png'))).convert_alpha()
-    vampire_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'vampire.png'))).convert_alpha()
-    hp_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'HP.png'))).convert_alpha()
-    garlic_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'garlic.png'))).convert_alpha()
-    game_over_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'GameOver.png'))).convert_alpha()  # Game Over image
-    restart_button_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'restart.png'))).convert_alpha()  # Restart button
-    exit_button_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'exit.png'))).convert_alpha()  # Exit button
-    start_button_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'start.png'))).convert_alpha()
-except pygame.error as e:
-    print(f"Error loading image: {e}")
-    sys.exit(1)  # If we can't load the image, stop the game
-
-# Sound loading
-try:
-    pygame.mixer.init()  # Init the mixer before loading
-    intro_music = pygame.mixer.Sound(get_asset_path(os.path.join('Assets', 'intro.mp3')))  # Load intro music
-    background_music = pygame.mixer.Sound(get_asset_path(os.path.join('Assets', 'Pixel_Power.mp3')))  # Load background music 
-    explosion_sound = pygame.mixer.Sound(get_asset_path(os.path.join('Assets', 'explosion.mp3')))  # Load explosion sound
-    press_start_sound = pygame.mixer.Sound(get_asset_path(os.path.join('Assets', 'PressStart.mp3')))  # Load Press Start sound
-    hurt_sound = pygame.mixer.Sound(get_asset_path(os.path.join('Assets', 'hurt.mp3')))  # Load hurt sound
-    get_hp_sound = pygame.mixer.Sound(get_asset_path(os.path.join('Assets', 'item_hp.mp3')))  # Load item_hp sound
-    get_garlic_sound = pygame.mixer.Sound(get_asset_path(os.path.join('Assets', 'item_garlic.mp3')))  # Load item_garlic sound
-    get_death_sound = pygame.mixer.Sound(get_asset_path(os.path.join('Assets', 'death.mp3')))  # Load death sound
-    vampire_death_sound = pygame.mixer.Sound(get_asset_path(os.path.join('Assets', 'VampireDeath.mp3')))  # Load vampire death sound
-except pygame.error as e:
-    print(f"Error loading sound: {e}")
-    sys.exit(1)  # if we can't load the sound, exit
+# Play intro music
+asset_manager.sounds['intro'].play(-1)
 
 # play the intro music 
 intro_music.play(-1)  # Play the intro music on loop
