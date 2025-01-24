@@ -248,7 +248,7 @@ def reset_game():
 
     # Reset game over state
     game_over = False
-    background_music.play(-1)  # Restart the background music
+    asset_manager.sounds['background'].play(-1)  # Restart the background music
 
     # Reset HP items
     hp_items = []
@@ -266,8 +266,8 @@ def start_game():
     screen_width = 1280
     screen_height = 1024
     screen = pygame.display.set_mode((screen_width, screen_height))
-    intro_music.stop()  # Stop the intro music
-    background_music.play(-1)  # -1 makes the music loop continuously
+    asset_manager.sounds['intro'].stop()  # Stop the intro music
+    asset_manager.sounds['background'].play(-1)  # -1 makes the music loop continuously
 
 # Game loop
 running = True
@@ -284,8 +284,8 @@ while running:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 # Start button
                 if 787 <= mouse_x <= 787 + start_button_width and 742 <= mouse_y <= 742 + start_button_height:
-                    intro_music.stop()
-                    press_start_sound.play()
+                    asset_manager.sounds['intro'].stop()
+                    asset_manager.sounds['press_start'].play()
                     start_game()
                 # Exit button
                 elif 787 <= mouse_x <= 787 + exit_button_width and 827 <= mouse_y <= 827 + exit_button_height:
@@ -344,7 +344,7 @@ while running:
             # Check if restart button is clicked
               if (restart_button_x <= mouse_x <= restart_button_x + restart_button_width and \
                    restart_button_y <= mouse_y <= restart_button_y + restart_button_height):
-                  press_start_sound.play()  # Play the sound effect
+                  asset_manager.sounds['press_start'].play()  # Play the sound effect
                   reset_game()
 
               # Check if exit button is clicked
