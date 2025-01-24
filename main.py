@@ -499,15 +499,16 @@ while running:
                 asset_manager.sounds['death'].play()
                 asset_manager.sounds['background'].stop()
         
-        # Check for collisions between rabbit and HP items
-        rabbit_rect = player.rect.copy()
-        for i, hp_item in enumerate(hp_items[:]):
-            hp_item_rect = pygame.Rect(hp_item["x"], hp_item["y"], item_width, item_height)
-            if rabbit_rect.colliderect(hp_item_rect):
-                if player.health < max_health_points:
+        # Check item collisions
+        for item in game_state.items[:]:
+            if player.rect.colliderect(item.rect):
+                if item.image == asset_manager.images['hp'] and player.health < MAX_HEALTH:
                     player.health += 1
-                    asset_manager.sounds['get_hp'].play()  # Play the sound effect
-                hp_items.pop(i)  # Remove the collected HP item
+                    asset_manager.sounds['get_hp'].play()
+                elif item.image == asset_manager.images['garlic'] and player.garlic_count < MAX_GARLIC:
+                    player.garlic_count += 1
+                    asset_manager.sounds['get_garlic'].play()
+                game_state.items.remove(item)
 
 
         # Screen tiling code (fill the entire world_width x world_height area)
@@ -544,19 +545,17 @@ while running:
         # Update and draw explosions
         for explosion in game_state.explosions[:]:
             if explosion.update(current_time):
-                # Handle item drop
-                if random.choice([True, False]):
-                    game_state.items.append(Collectible(
+                # Create collectible item
+                is_garlic = random.choice([True, False])
+                item_image = asset_manager.images['garlic'] if is_garlic else asset_manager.images['hp']
+                game_state.items.append(
+                    Collectible(
                         explosion.rect.centerx,
                         explosion.rect.centery,
-                        asset_manager.images['hp']
-                    ))
-                else:
-                    game_state.items.append(Collectible(
-                        explosion.rect.centerx,
-                        explosion.rect.centery,
-                        asset_manager.images['garlic']
-                    ))
+                        item_image,
+                        ITEM_SCALE
+                    )
+                )
                 game_state.explosions.remove(explosion)
             explosion.draw(screen, game_state.scroll)
         
@@ -582,13 +581,12 @@ while running:
             for i in range(player.garlic_count):
                 screen.blit(garlic_image, (garlic_ui_x + i * (garlic_width + 5), 10))  # 5 pixels spacing
 
-        # Draw the HP items
-        item_image_small = pygame.transform.scale(hp_image, (item_width, item_height))
-        for hp_item in hp_items:
-            screen.blit(pygame.transform.scale(hp_image, (item_width, item_height)), (hp_item["x"] - game_state.scroll[0], hp_item["y"] - game_state.scroll[1]))
-        for garlic_item in garlic_items:
-            item_image_small = pygame.transform.scale(garlic_image, (item_width, item_height))
-            screen.blit(item_image_small, (garlic_item["x"] - game_state.scroll[0], garlic_item["y"] - game_state.scroll[1]))
+        # Draw all collectible items
+        for item in game_state.items:
+            if item.active:
+                screen.blit(item.image, 
+                           (item.rect.x - game_state.scroll[0],
+                            item.rect.y - game_state.scroll[1]))
 
     else: # Game is over, display the game over screen
       # Fill the screen with black (or your background color)
