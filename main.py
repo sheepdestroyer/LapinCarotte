@@ -316,23 +316,39 @@ while running:
                     bullets.append([bullet_x, bullet_y, bullet_dx, bullet_dy])
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 3 and player.garlic_count > 0 and garlic_shot is None:  # Right mouse button and have garlic
+                if event.button == 3 and player.garlic_count > 0 and garlic_shot is None:
                     player.garlic_count -= 1
                     garlic_shot_start_time = current_time
                     garlic_shot_travel = 0
 
-                    # Initial position of the garlic shot
-                    garlic_shot_angle = 0  # Initialize angle for garlic shot
-                    garlic_shot_x = player.rect.centerx
-                    garlic_shot_y = player.rect.centery
+                    # Get world coordinates of mouse at time of firing
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    world_mouse_x = mouse_x + game_state.scroll[0]
+                    world_mouse_y = mouse_y + game_state.scroll[1]
 
-                    # Store the garlic shot data
+                    # Calculate direction vector once at firing
+                    start_x = player.rect.centerx
+                    start_y = player.rect.centery
+                    dx = world_mouse_x - start_x
+                    dy = world_mouse_y - start_y
+                    dist = math.hypot(dx, dy)
+                    
+                    if dist > 0:
+                        dx_normalized = dx/dist
+                        dy_normalized = dy/dist
+                    else:
+                        dx_normalized = 0
+                        dy_normalized = 0
+
+                    # Calculate initial rotation angle
+                    angle = math.degrees(math.atan2(-dy, dx))
+
                     garlic_shot = {
-                        "x": garlic_shot_x,
-                        "y": garlic_shot_y,
-                        "start_x": garlic_shot_x,
-                        "start_y": garlic_shot_y,
-                        "angle": garlic_shot_angle,  # Store the initial angle
+                        "x": start_x,
+                        "y": start_y,
+                        "dx": dx_normalized,
+                        "dy": dy_normalized,
+                        "angle": angle,
                         "active": True
                     }
 
@@ -466,18 +482,14 @@ while running:
         # Garlic shot logic
         if garlic_shot and garlic_shot["active"]:
             if garlic_shot_travel < garlic_shot_max_travel:
-                # Calculate direction based on mouse position at the time of the shot
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                garlic_dx = mouse_x - garlic_shot["start_x"] + scroll_x
-                garlic_dy = mouse_y - garlic_shot["start_y"] + scroll_y
-                garlic_dist = distance(0, 0, garlic_dx, garlic_dy)
-                garlic_shot["x"] += garlic_dx / garlic_dist * garlic_shot_speed
-                garlic_shot["y"] += garlic_dy / garlic_dist * garlic_shot_speed
+                # Move in the pre-calculated direction
+                garlic_shot["x"] += garlic_shot["dx"] * garlic_shot_speed
+                garlic_shot["y"] += garlic_shot["dy"] * garlic_shot_speed
                 garlic_shot_travel += garlic_shot_speed
             else:
                 if current_time - garlic_shot_start_time > garlic_shot_duration:
                     garlic_shot["active"] = False
-                    garlic_shot = None  # Reset garlic shot
+                    garlic_shot = None
 
             # Update garlic rotation
             garlic_rotation_angle = (garlic_rotation_angle + garlic_rotation_speed) % 360
@@ -552,15 +564,11 @@ while running:
 
         # Draw the garlic shot
         if garlic_shot and garlic_shot["active"]:
-            # Calculate the angle of the garlic shot
-            garlic_center_x = garlic_shot["x"] + garlic_width/2
-            garlic_center_y = garlic_shot["y"] + garlic_height/2
-            garlic_dx = mouse_x - garlic_center_x + game_state.scroll[0]
-            garlic_dy = mouse_y - garlic_center_y + game_state.scroll[1]
-            angle = math.degrees(math.atan2(garlic_dy, garlic_dx))
-            rotated_garlic = pygame.transform.rotate(garlic_image, garlic_rotation_angle)            
-            rotated_garlic_rect = rotated_garlic.get_rect(center = (garlic_shot["x"], garlic_shot["y"]))
-            screen.blit(rotated_garlic, (garlic_shot["x"] - game_state.scroll[0], garlic_shot["y"] - game_state.scroll[1]))
+            # Draw rotated garlic using pre-calculated angle
+            rotated_garlic = pygame.transform.rotate(garlic_image, garlic_shot["angle"])
+            rotated_rect = rotated_garlic.get_rect(center=(garlic_shot["x"], garlic_shot["y"]))
+            screen.blit(rotated_garlic, (rotated_rect.x - game_state.scroll[0], 
+                                       rotated_rect.y - game_state.scroll[1]))
 
         # Check and draw explosion
         if explosion_active:
