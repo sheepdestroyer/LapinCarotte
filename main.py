@@ -209,8 +209,9 @@ def create_carrot():
             return Carrot(new_x, new_y, asset_manager.images['carrot'])
 
 # Initialize carrots
+game_state.carrots = []
 for _ in range(num_carrots):
-    carrots.append(create_carrot())
+    game_state.carrots.append(create_carrot())
 
 # Function to respawn the vampire
 def respawn_vampire():
@@ -385,51 +386,36 @@ while running:
                                      player.rect.y - screen_height*(1-scroll_trigger) + player.rect.height)
 
         # Update carrot logic
-        for carrot in carrots:
-          if carrot["active"]:
-            # Calculate direction away from the rabbit (avoidance)
-            rabbit_center_x = player.rect.centerx
-            rabbit_center_y = player.rect.centery
-            carrot_center_x = carrot["x"] + carrot_width/2
-            carrot_center_y = carrot["y"] + carrot_height/2
-            dx = carrot_center_x - rabbit_center_x
-            dy = carrot_center_y - rabbit_center_y
-            dist = distance(rabbit_center_x, rabbit_center_y, carrot_center_x, carrot_center_y)
-
-            # Calculate the speed multiplier based on distance
-            max_distance = 200  # Define a maximum distance where the carrot will reach max speed
-            carrot["speed_multiplier"] = min(max(1, 1 + (max_distance - dist) / max_distance * (max_speed_multiplier - 1)),
-                                   max_speed_multiplier)  # between 1 and max_speed_multiplier
-
-            # Check for border proximity and change direction if necessary
-            if carrot["x"] < 10:
-              carrot["move_x"] = random.uniform(0.1, 1)
-            if carrot["x"] > world_width - carrot_width - 10:
-              carrot["move_x"] = random.uniform(-1, -0.1)
-            if carrot["y"] < 10:
-              carrot["move_y"] = random.uniform(0.1, 1)
-            if carrot["y"] > world_height - carrot_height - 10:
-              carrot["move_y"] = random.uniform(-1, -0.1)
-
-            # Carrot movement behavior based on distance
-            if dist < 100: # Move away from the rabbit
-              if dist > 0:
-                carrot["move_x"] = dx / dist
-                carrot["move_y"] = dy / dist
-            else: # Move randomly
-              if carrot["move_x"] == 0 or carrot["move_y"] == 0: # Initialize with random movement
-                 carrot["move_x"] = random.uniform(-1, 1)
-                 carrot["move_y"] = random.uniform(-1, 1)
-              else: # Keep moving in the same general direction, but add some randomness
-                 carrot["move_x"] += random.uniform(-0.2, 0.2)
-                 carrot["move_y"] += random.uniform(-0.2, 0.2)
-            # Update carrot position based on movement variables
-            carrot["x"] += carrot["move_x"] * carrot_speed * carrot["speed_multiplier"]
-            carrot["y"] += carrot["move_y"] * carrot_speed * carrot["speed_multiplier"]
-
-            # Keep carrot within world bounds
-            carrot["x"] = max(0, min(world_width - carrot_width, carrot["x"]))
-            carrot["y"] = max(0, min(world_height - carrot_height, carrot["y"]))
+        for carrot in game_state.carrots:
+            if carrot.active:
+                # Calculate direction using vector
+                rabbit_center = pygame.math.Vector2(player.rect.center)
+                carrot_center = pygame.math.Vector2(carrot.rect.center)
+                direction = carrot_center - rabbit_center
+                dist = direction.length()
+                
+                # Calculate speed multiplier
+                max_distance = 200
+                speed_multiplier = min(max(1, 1 + (max_distance - dist)/max_distance * (max_speed_multiplier - 1)), max_speed_multiplier)
+                
+                # Update movement vector
+                if dist < 100:
+                    if dist > 0:
+                        direction.normalize_ip()
+                        carrot.direction = direction
+                else:
+                    # Add random wander
+                    carrot.direction += pygame.math.Vector2(random.uniform(-0.2, 0.2), random.uniform(-0.2, 0.2))
+                    carrot.direction.normalize_ip()
+                
+                # Apply movement
+                movement = carrot.direction * carrot.speed * speed_multiplier
+                carrot.rect.x += movement.x
+                carrot.rect.y += movement.y
+                
+                # Keep within world bounds
+                carrot.rect.x = max(0, min(world_width - carrot.rect.width, carrot.rect.x))
+                carrot.rect.y = max(0, min(world_height - carrot.rect.height, carrot.rect.y))
 
         # Update the bullet positions and handle removal
         for bullet in bullets[:]:  # Iterate over a copy to safely delete
@@ -447,11 +433,10 @@ while running:
                 bullet[1] = bullet_y
 
             # Check for a collision between the carrot and the bullets
-            for carrot in carrots:
-              if carrot["active"]:
-                carrot_rect = pygame.Rect(carrot["x"], carrot["y"], carrot_width, carrot_height)
-                bullet_rect = pygame.Rect(bullet[0], bullet[1], bullet_width, bullet_height)
-                if carrot_rect.colliderect(bullet_rect):
+            for carrot in game_state.carrots:
+                if carrot.active:
+                    bullet_rect = pygame.Rect(bullet[0], bullet[1], bullet_width, bullet_height)
+                    if carrot.rect.colliderect(bullet_rect):
                     # Set variables to render the explosion
                     explosion_x = carrot["x"] - (explosion_width - carrot_width) / 2  # Center the image
                     explosion_y = carrot["y"] - (explosion_height - carrot_height) / 2
@@ -473,11 +458,9 @@ while running:
                           bullets.remove(bullet)
 
         # Respawn carrots after delay
-        for carrot in carrots:
-          if not carrot["active"]:
-            if current_time - carrot["respawn_timer"] > carrot_respawn_delay:
-              new_carrot = create_carrot()
-              carrot.update(new_carrot)
+        for i, carrot in enumerate(game_state.carrots):
+            if not carrot.active and current_time - carrot.respawn_timer > carrot_respawn_delay:
+                game_state.carrots[i] = create_carrot()
         
         # Garlic shot logic
         if garlic_shot and garlic_shot["active"]:
@@ -543,9 +526,9 @@ while running:
                 screen.blit(grass_image, (x - game_state.scroll[0], y - game_state.scroll[1]))
 
         # Draw the carrots
-        for carrot in carrots:
-          if carrot["active"]:
-            screen.blit(carrot_image, (carrot["x"] - game_state.scroll[0], carrot["y"] - game_state.scroll[1]))
+        for carrot in game_state.carrots:
+            if carrot.active:
+                screen.blit(carrot.image, (carrot.rect.x - game_state.scroll[0], carrot.rect.y - game_state.scroll[1]))
 
         # Draw the rabbit using blit
         screen.blit(player.image, (player.rect.x - game_state.scroll[0], player.rect.y - game_state.scroll[1]))
