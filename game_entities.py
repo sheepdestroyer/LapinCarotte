@@ -58,8 +58,8 @@ class Vampire:
         self.active = False
         self.respawn_timer = 0
         self.death_effect_active = False
-        self.death_flash_count = 0
         self.death_effect_start_time = 0
+        self.death_effect_duration = 2  # 2 second death effect
         self.speed = 4
 
     def update(self, player, world_bounds, current_time):
@@ -77,9 +77,13 @@ class Vampire:
             self.rect.x = max(0, min(world_bounds[0] - self.rect.width, self.rect.x))
             self.rect.y = max(0, min(world_bounds[1] - self.rect.height, self.rect.y))
         
-        elif current_time - self.respawn_timer > 5:  # 5 second respawn delay
-            self.respawn(random.randint(0, world_bounds[0] - self.rect.width), 
-                        random.randint(0, world_bounds[1] - self.rect.height))
+            # Update death effect duration check
+            if self.death_effect_active and current_time - self.death_effect_start_time >= self.death_effect_duration:
+                self.death_effect_active = False
+            
+            elif current_time - self.respawn_timer > 5:  # 5 second respawn delay
+                self.respawn(random.randint(0, world_bounds[0] - self.rect.width), 
+                           random.randint(0, world_bounds[1] - self.rect.height))
 
     def respawn(self, x, y):
         self.rect.topleft = (x, y)
@@ -90,10 +94,11 @@ class Vampire:
     def draw(self, screen, scroll):
         if self.death_effect_active:
             time_since_flash = time.time() - self.death_effect_start_time
-            if int(time_since_flash / 0.1) % 2 == 0:  # Flash interval
-                # Create green-tinted version
-                tinted_image = self.image.copy()
-                tinted_image.fill((0, 255, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
-                screen.blit(tinted_image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
+            if time_since_flash <= self.death_effect_duration:  # Only draw during duration
+                if int(time_since_flash / 0.1) % 2 == 0:  # Flash interval
+                    # Create green-tinted version
+                    tinted_image = self.image.copy()
+                    tinted_image.fill((0, 255, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
+                    screen.blit(tinted_image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
         elif self.active:
             screen.blit(self.image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
