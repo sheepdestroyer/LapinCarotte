@@ -530,9 +530,9 @@ while running:
         # Vampire logic
         if vampire_active:
             # Calculate direction towards the rabbit
-            vampire_dx = (rabbit_x + rabbit_width / 2) - (vampire_x + vampire_width / 2)
-            vampire_dy = (rabbit_y + rabbit_height / 2) - (vampire_y + vampire_height / 2)
-            vampire_dist = distance(rabbit_x, rabbit_y, vampire_x, vampire_y)
+            vampire_dx = player.rect.centerx - (vampire_x + vampire_width / 2)
+            vampire_dy = player.rect.centery - (vampire_y + vampire_height / 2)
+            vampire_dist = distance(player.rect.x, player.rect.y, vampire_x, vampire_y)
 
             if vampire_dist > 0:
                 vampire_dx /= vampire_dist
