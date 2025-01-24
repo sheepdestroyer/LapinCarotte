@@ -184,14 +184,6 @@ vampire_death_effect_active = False
 vampire_death_flash_count = 0
 vampire_death_flash_interval = 0.1  # Time in seconds between flashes
 
-# Health Points variables
-max_health_points = 3
-health_points = max_health_points
-
-# Garlic count variables
-max_garlic_count = 3
-garlic_count = 0
-
 # Garlic shooting variables
 garlic_shot = None
 garlic_shot_duration = 3  # seconds
