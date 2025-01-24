@@ -417,9 +417,10 @@ while running:
                     break
 
         # Respawn carrots after delay
-        for i, carrot in enumerate(game_state.carrots):
-            if not carrot.active and current_time - carrot.respawn_timer > carrot_respawn_delay:
-                game_state.create_carrot(asset_manager)
+        for carrot in game_state.carrots:
+            if not carrot.active and current_time - carrot.respawn_timer > CARROT_RESPAWN_DELAY:
+                carrot.respawn_timer = 0  # Reset timer
+                carrot.respawn(game_state.world_size, game_state.player.rect)
         
         # Garlic shot logic
         if garlic_shot and garlic_shot["active"]:

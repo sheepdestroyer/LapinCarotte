@@ -68,11 +68,20 @@ class Bullet:
 class Carrot:
     def __init__(self, x, y, image):
         self.image = image
-        self.rect = image.get_rect(center=(x, y))  # Center-based position
+        self.rect = image.get_rect(center=(x, y))
         self.speed = 3
         self.active = True
         self.respawn_timer = 0
-        self.direction = pygame.math.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
+        self.direction = pygame.math.Vector2(random.uniform(-1, 1), 
+                                           random.uniform(-1, 1)).normalize()
+        self.spawn_position = (x, y)  # Store initial spawn position
+
+    def respawn(self, world_size, player_rect):
+        """Reset carrot to initial position and state"""
+        self.rect.center = self.spawn_position
+        self.active = True
+        self.direction = pygame.math.Vector2(random.uniform(-1, 1), 
+                                           random.uniform(-1, 1)).normalize()
 
     def update(self, player_rect, world_bounds):
         if self.active:
