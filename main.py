@@ -437,21 +437,20 @@ while running:
                 if carrot.active:
                     bullet_rect = pygame.Rect(bullet[0], bullet[1], bullet_width, bullet_height)
                     if carrot.rect.colliderect(bullet_rect):
-                    # Set variables to render the explosion
-                    explosion_x = carrot["x"] - (explosion_width - carrot_width) / 2  # Center the image
-                    explosion_y = carrot["y"] - (explosion_height - carrot_height) / 2
-                    explosion_start_time = current_time
-                    explosion_active = True
-                    drop_hp_item = True
-                    explosion_flash_count = 0
-                    if bullet in bullets: # Prevent trying to remove the bullet when it has already been removed
-                      bullets.remove(bullet)  # Remove the bullet
-                    
-                    
-                    carrot["active"] = False  # Set that the carrot has been "destroyed"
-                    asset_manager.sounds['explosion'].play()  # Play the explosion
-                    
-                    carrot["respawn_timer"] = current_time  # Start the respawn timer
+                        # Set variables to render the explosion
+                        explosion_x = carrot.rect.x - (explosion_width - carrot_width) / 2  # Center the image
+                        explosion_y = carrot.rect.y - (explosion_height - carrot_height) / 2
+                        explosion_start_time = current_time
+                        explosion_active = True
+                        drop_hp_item = True
+                        explosion_flash_count = 0
+                        if bullet in bullets:  # Prevent trying to remove the bullet when it has already been removed
+                            bullets.remove(bullet)  # Remove the bullet
+                        
+                        carrot.active = False  # Set that the carrot has been "destroyed"
+                        asset_manager.sounds['explosion'].play()  # Play the explosion
+                        
+                        carrot.respawn_timer = current_time  # Start the respawn timer
                 else:  # Remove bullets that are off the screen
                     if bullet[0] > world_width or bullet[0] < 0 or bullet[1] > world_height or bullet[1] < 0:
                         if bullet in bullets:
