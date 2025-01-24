@@ -142,6 +142,13 @@ class Explosion:
                 return True
         return False
 
+    def draw(self, screen, scroll):
+        """Draw the explosion with scrolling offset"""
+        if self.active and (self.flash_count % 2 == 0):
+            screen.blit(self.image, 
+                       (self.rect.x - scroll[0], 
+                        self.rect.y - scroll[1]))
+
 class Collectible:
     def __init__(self, x, y, image, scale=0.5):
         self.image = pygame.transform.scale(image, 
