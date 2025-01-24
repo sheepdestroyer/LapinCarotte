@@ -177,10 +177,11 @@ garlic_items = []  # List to store the dropped Garlic items
 
 # Initialize vampire
 game_state.vampire = Vampire(
-    world_width - vampire_width - 100,
+    random.randint(0, world_width - vampire_width),
     random.randint(0, world_height - vampire_height),
     asset_manager.images['vampire']
 )
+game_state.vampire.active = True  # Force initial activation
 
 # Garlic shooting variables
 garlic_shot = None
@@ -222,7 +223,7 @@ def respawn_vampire():
 
 # Function to reset the game state
 def reset_game():
-    global rabbit_x, rabbit_y, health_points, vampire_active, vampire_x, vampire_y, bullets, carrots, game_over, hp_items, garlic_count
+    global rabbit_x, rabbit_y, health_points, bullets, carrots, game_over, hp_items, garlic_count
     # Reset rabbit position and scrolling
     player.rect.x = 200
     player.rect.y = 200
@@ -231,10 +232,11 @@ def reset_game():
     # Reset health points
     player.health = max_health_points
 
-    # Reset vampire
-    game_state.vampire.active = False
-    vampire_x = world_width - vampire_width - 100
-    vampire_y = random.randint(0, world_height - vampire_height)
+    # Reset vampire properly
+    game_state.vampire.respawn(
+        random.randint(0, world_width - vampire_width),
+        random.randint(0, world_height - vampire_height)
+    )
 
     # Reset bullets
     bullets = []

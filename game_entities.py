@@ -64,7 +64,7 @@ class Vampire:
 
     def update(self, player, world_bounds, current_time):
         if self.active:
-            # Calculate direction towards player
+            # Movement logic
             dx = player.rect.centerx - self.rect.centerx
             dy = player.rect.centery - self.rect.centery
             distance = math.hypot(dx, dy)
@@ -72,18 +72,21 @@ class Vampire:
             if distance > 0:
                 self.rect.x += dx/distance * self.speed
                 self.rect.y += dy/distance * self.speed
-            
-            # Keep within world bounds
+
+            # Boundary check
             self.rect.x = max(0, min(world_bounds[0] - self.rect.width, self.rect.x))
             self.rect.y = max(0, min(world_bounds[1] - self.rect.height, self.rect.y))
-        
-            # Update death effect duration check
-            if self.death_effect_active and current_time - self.death_effect_start_time >= self.death_effect_duration:
+
+            # Death effect check
+            if self.death_effect_active and (current_time - self.death_effect_start_time >= self.death_effect_duration):
                 self.death_effect_active = False
-            
-            elif current_time - self.respawn_timer > 5:  # 5 second respawn delay
-                self.respawn(random.randint(0, world_bounds[0] - self.rect.width), 
-                           random.randint(0, world_bounds[1] - self.rect.height))
+        else:
+            # Respawn check when NOT active
+            if (current_time - self.respawn_timer > 5):
+                self.respawn(
+                    random.randint(0, world_bounds[0] - self.rect.width),
+                    random.randint(0, world_bounds[1] - self.rect.height)
+                )
 
     def respawn(self, x, y):
         self.rect.topleft = (x, y)
