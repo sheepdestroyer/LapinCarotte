@@ -6,7 +6,7 @@ import sys
 import random
 import math
 from asset_manager import AssetManager
-from game_entities import Player, Bullet, Carrot, Vampire
+from game_entities import Player, Bullet, Carrot, Vampire, Explosion, Collectible
 from game_state import GameState
 
 def get_asset_path(relative_path):
