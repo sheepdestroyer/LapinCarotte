@@ -51,6 +51,58 @@ class Carrot:
         self.respawn_timer = 0
         self.direction = pygame.math.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
 
+class GarlicShot:
+    def __init__(self, start_x, start_y, target_x, target_y, image):
+        self.image = image
+        self.rect = image.get_rect(center=(start_x, start_y))
+        dx = target_x - start_x
+        dy = target_y - start_y
+        dist = math.hypot(dx, dy)
+        self.direction = pygame.math.Vector2(dx/dist, dy/dist) if dist > 0 else pygame.math.Vector2(0, 0)
+        self.rotation_angle = 0
+        self.speed = 5
+        self.max_travel = 250
+        self.traveled = 0
+        self.active = True
+
+    def update(self):
+        if self.active:
+            self.rect.x += self.direction.x * self.speed
+            self.rect.y += self.direction.y * self.speed
+            self.traveled += self.speed
+            self.rotation_angle = (self.rotation_angle + 5) % 360
+            if self.traveled >= self.max_travel:
+                self.active = False
+
+class Explosion:
+    def __init__(self, x, y, image):
+        self.image = image
+        self.rect = image.get_rect(center=(x, y))
+        self.start_time = time.time()
+        self.flash_count = 0
+        self.max_flashes = 3
+        self.flash_interval = 0.1
+        self.active = True
+
+    def update(self, current_time):
+        if self.active:
+            elapsed = current_time - self.start_time
+            if elapsed > self.flash_interval:
+                self.flash_count += 1
+                self.start_time = current_time
+            if self.flash_count >= self.max_flashes:
+                self.active = False
+                return True
+        return False
+
+class Collectible:
+    def __init__(self, x, y, image, scale=0.5):
+        self.image = pygame.transform.scale(image, 
+            (int(image.get_width() * scale), 
+             int(image.get_height() * scale)))
+        self.rect = self.image.get_rect(center=(x, y))
+        self.active = True
+
 class Vampire:
     def __init__(self, x, y, image):
         self.image = image
