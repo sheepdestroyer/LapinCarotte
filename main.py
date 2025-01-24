@@ -311,24 +311,24 @@ while running:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     # Create new bullet at rabbit's center
-                    bullet_x = rabbit_x + rabbit_width / 2 - bullet_width / 2  # Middle of the rabbit
-                    bullet_y = rabbit_y + rabbit_height / 2 - bullet_height / 2
+                    bullet_x = player.rect.centerx - bullet_width/2
+                    bullet_y = player.rect.centery - bullet_height/2
                     # Store the bullet position and direction for that shot
                     mouse_x, mouse_y = pygame.mouse.get_pos()
-                    bullet_dx = mouse_x - rabbit_x - rabbit_width/2 + scroll_x
-                    bullet_dy = mouse_y - rabbit_y - rabbit_height/2 + scroll_y
+                    bullet_dx = mouse_x - player.rect.centerx + game_state.scroll[0]
+                    bullet_dy = mouse_y - player.rect.centery + game_state.scroll[1]
                     bullets.append([bullet_x, bullet_y, bullet_dx, bullet_dy])
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
                     # Create new bullet at rabbit's center
-                    bullet_x = rabbit_x + rabbit_width / 2 - bullet_width / 2  # Middle of the rabbit
-                    bullet_y = rabbit_y + rabbit_height / 2 - bullet_height / 2
+                    bullet_x = player.rect.centerx - bullet_width/2
+                    bullet_y = player.rect.centery - bullet_height/2
 
                     # Store the bullet position and get direction based on mouse
                     mouse_x, mouse_y = pygame.mouse.get_pos()
-                    bullet_dx = mouse_x - rabbit_x - rabbit_width/2 + scroll_x
-                    bullet_dy = mouse_y - rabbit_y - rabbit_height/2 + scroll_y
+                    bullet_dx = mouse_x - player.rect.centerx + game_state.scroll[0]
+                    bullet_dy = mouse_y - player.rect.centery + game_state.scroll[1]
                     bullets.append([bullet_x, bullet_y, bullet_dx, bullet_dy])
 
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -570,7 +570,7 @@ while running:
             respawn_vampire()
         
         # Check for collisions between rabbit and HP items
-        rabbit_rect = pygame.Rect(rabbit_x, rabbit_y, rabbit_width, rabbit_height)
+        rabbit_rect = player.rect.copy()
         for i, hp_item in enumerate(hp_items[:]):
             hp_item_rect = pygame.Rect(hp_item["x"], hp_item["y"], item_width, item_height)
             if rabbit_rect.colliderect(hp_item_rect):
