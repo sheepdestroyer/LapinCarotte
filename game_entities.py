@@ -51,6 +51,30 @@ class Carrot:
         self.respawn_timer = 0
         self.direction = pygame.math.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
 
+    def update(self, player_rect, world_bounds):
+        if self.active:
+            player_center = pygame.math.Vector2(player_rect.center)
+            carrot_center = pygame.math.Vector2(self.rect.center)
+            direction = carrot_center - player_center
+            dist = direction.length()
+            
+            max_distance = 200
+            speed_multiplier = min(max(1, 1 + (max_distance - dist)/max_distance * (3 - 1)), 3)
+            
+            if dist < 100 and dist > 0:
+                direction.normalize_ip()
+                self.direction = direction
+            else:
+                self.direction += pygame.math.Vector2(random.uniform(-0.2, 0.2), random.uniform(-0.2, 0.2))
+                self.direction.normalize_ip()
+            
+            movement = self.direction * self.speed * speed_multiplier
+            self.rect.x += movement.x
+            self.rect.y += movement.y
+            
+            self.rect.x = max(0, min(world_bounds[0] - self.rect.width, self.rect.x))
+            self.rect.y = max(0, min(world_bounds[1] - self.rect.height, self.rect.y))
+
 class GarlicShot:
     def __init__(self, start_x, start_y, target_x, target_y, image):
         self.image = image
