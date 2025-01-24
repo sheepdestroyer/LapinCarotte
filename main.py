@@ -503,10 +503,10 @@ while running:
         # Check item collisions
         for item in game_state.items[:]:
             if player.rect.colliderect(item.rect):
-                if item.image == asset_manager.images['hp'] and player.health < MAX_HEALTH:
+                if item.item_type == 'hp' and player.health < MAX_HEALTH:
                     player.health += 1
                     asset_manager.sounds['get_hp'].play()
-                elif item.image == asset_manager.images['garlic'] and player.garlic_count < MAX_GARLIC:
+                elif item.item_type == 'garlic' and player.garlic_count < MAX_GARLIC:
                     player.garlic_count += 1
                     asset_manager.sounds['get_garlic'].play()
                 game_state.items.remove(item)
@@ -554,6 +554,7 @@ while running:
                         explosion.rect.centerx,
                         explosion.rect.centery,
                         item_image,
+                        'garlic' if is_garlic else 'hp',
                         ITEM_SCALE
                     )
                 )
@@ -567,14 +568,6 @@ while running:
         for i in range(player.health):
             screen.blit(hp_image, (10 + i * (hp_width + 5), 10))  # 5 pixels spacing
         
-        # Check for collisions between rabbit and Garlic items
-        for i, garlic_item in enumerate(garlic_items[:]):
-            garlic_item_rect = pygame.Rect(garlic_item["x"], garlic_item["y"], item_width, item_height)
-            if rabbit_rect.colliderect(garlic_item_rect):
-                if player.garlic_count < max_garlic_count:
-                    player.garlic_count += 1
-                    asset_manager.sounds['get_garlic'].play()  # Play the sound effect
-                garlic_items.pop(i)  # Remove the collected Garlic item
 
         # Draw Garlic count UI
         if player.garlic_count > 0:  # Only display if player has garlic

@@ -150,12 +150,13 @@ class Explosion:
                         self.rect.y - scroll[1]))
 
 class Collectible:
-    def __init__(self, x, y, image, scale=0.5):
+    def __init__(self, x, y, image, item_type, scale=0.5):
         self.image = pygame.transform.scale(image, 
             (int(image.get_width() * scale), 
              int(image.get_height() * scale)))
         self.rect = self.image.get_rect(center=(x, y))
         self.active = True
+        self.item_type = item_type
 
 class Vampire:
     def __init__(self, x, y, image):
