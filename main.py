@@ -5,6 +5,7 @@ import time
 import sys
 import random
 import math
+import config
 from asset_manager import AssetManager
 from game_entities import Player, Bullet, Carrot, Vampire, Explosion, Collectible
 from game_state import GameState
