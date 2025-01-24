@@ -355,9 +355,9 @@ while running:
     if not game_started:
         screen.blit(start_screen_image, (0, 0))
         # Draw start button
-        screen.blit(start_button_image, (787, 742))
+        screen.blit(asset_manager.images['start'], (787, 742))
         # Draw exit button
-        screen.blit(exit_button_image, (787, 827))
+        screen.blit(asset_manager.images['exit'], (787, 827))
     elif not game_over:
         # Handle keyboard input for rabbit movement
         keys = pygame.key.get_pressed()
@@ -365,14 +365,14 @@ while running:
             rabbit_x -= 5
             # Flip the image only when moving left
             if not rabbit_flipped:  # Only flip the image once
-                rabbit_image = pygame.transform.flip(original_rabbit_image, True, False)
+                rabbit_image = pygame.transform.flip(asset_manager.images['rabbit'], True, False)
                 rabbit_flipped = True
             last_direction = "left"  # set the last direction
         elif keys[pygame.K_RIGHT] or keys[pygame.K_d]: # Check for both right arrow and 'd' key
             rabbit_x += 5
             # Unflip the image when moving right (or stopping)
             if rabbit_flipped:  # Only unflip if the image is flipped
-                rabbit_image = original_rabbit_image
+                rabbit_image = asset_manager.images['rabbit']
                 rabbit_flipped = False
             last_direction = "right"  # set the last direction
         if keys[pygame.K_UP] or keys[pygame.K_z]: # Check for both up arrow and 'z' key
@@ -477,7 +477,7 @@ while running:
                     
                     
                     carrot["active"] = False  # Set that the carrot has been "destroyed"
-                    explosion_sound.play()  # Play the explosion
+                    asset_manager.sounds['explosion'].play()  # Play the explosion
                     
                     carrot["respawn_timer"] = current_time  # Start the respawn timer
                 else:  # Remove bullets that are off the screen
@@ -522,8 +522,8 @@ while running:
                     vampire_active = False
                     vampire_respawn_timer = current_time
                     vampire_death_effect_start_time = current_time
-                    vampire_death_sound.play()
-                    vampire_death_sound.play()  # Play vampire death sound
+                    asset_manager.sounds['vampire_death'].play()
+                    asset_manager.sounds['vampire_death'].play()  # Play vampire death sound
                     garlic_shot = None
         # Vampire logic
         if vampire_active:
