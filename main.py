@@ -45,13 +45,14 @@ except pygame.error as e:
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("LapinCarotte")
 
-# Initialize player
+# Initialize game state and player
+game_state = GameState()
 player = Player(200, 200, asset_manager.images['rabbit'])
 
 # Play intro music
 asset_manager.sounds['intro'].play(-1)
 
-# Carrot speed
+# Movement constants
 carrot_speed = 3  # Base carrot speed
 bullet_speed = 10
 max_speed_multiplier = 3  # Max speed when rabbit is close
@@ -359,43 +360,27 @@ while running:
         # Draw exit button
         screen.blit(asset_manager.images['exit'], (787, 827))
     elif not game_over:
-        # Handle keyboard input for rabbit movement
+        # Handle keyboard input for player movement
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT] or keys[pygame.K_q]: # Check for both left arrow and 'q' key
-            rabbit_x -= 5
-            # Flip the image only when moving left
-            if not rabbit_flipped:  # Only flip the image once
-                rabbit_image = pygame.transform.flip(asset_manager.images['rabbit'], True, False)
-                rabbit_flipped = True
-            last_direction = "left"  # set the last direction
-        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]: # Check for both right arrow and 'd' key
-            rabbit_x += 5
-            # Unflip the image when moving right (or stopping)
-            if rabbit_flipped:  # Only unflip if the image is flipped
-                rabbit_image = asset_manager.images['rabbit']
-                rabbit_flipped = False
-            last_direction = "right"  # set the last direction
-        if keys[pygame.K_UP] or keys[pygame.K_z]: # Check for both up arrow and 'z' key
-            rabbit_y -= 5
-            last_direction = "up"  # set the last direction
-        if keys[pygame.K_DOWN] or keys[pygame.K_s]: # Check for both down arrow and 's' key
-            rabbit_y += 5
-            last_direction = "down"  # set the last direction
+        dx, dy = 0, 0
+        if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 5
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 5
+        if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 5
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 5
+        player.move(dx, dy, game_state.world_size)
             
         # Scrolling logic
-        if rabbit_x < scroll_x + screen_width * scroll_trigger:
-            scroll_x = max(0, rabbit_x - screen_width * scroll_trigger) # keep scrolling in the world boundaries
-        elif rabbit_x + rabbit_width > scroll_x + screen_width * (1 - scroll_trigger):
-          scroll_x = min(world_width - screen_width, rabbit_x - screen_width*(1-scroll_trigger) + rabbit_width) # keep scrolling in the world boundaries
+        if player.rect.x < game_state.scroll[0] + screen_width * scroll_trigger:
+            game_state.scroll[0] = max(0, player.rect.x - screen_width * scroll_trigger)
+        elif player.rect.x + player.rect.width > game_state.scroll[0] + screen_width * (1 - scroll_trigger):
+            game_state.scroll[0] = min(game_state.world_size[0] - screen_width,
+                                     player.rect.x - screen_width*(1-scroll_trigger) + player.rect.width)
 
-        if rabbit_y < scroll_y + screen_height * scroll_trigger:
-            scroll_y = max(0, rabbit_y - screen_height * scroll_trigger)
-        elif rabbit_y + rabbit_height > scroll_y + screen_height * (1 - scroll_trigger):
-            scroll_y = min(world_height - screen_height, rabbit_y - screen_height*(1-scroll_trigger) + rabbit_height)
-
-        # Update coordinates to be inside world bounds
-        rabbit_x = max(0, min(world_width - rabbit_width, rabbit_x))
-        rabbit_y = max(0, min(world_height - rabbit_height, rabbit_y))
+        if player.rect.y < game_state.scroll[1] + screen_height * scroll_trigger:
+            game_state.scroll[1] = max(0, player.rect.y - screen_height * scroll_trigger)
+        elif player.rect.y + player.rect.height > game_state.scroll[1] + screen_height * (1 - scroll_trigger):
+            game_state.scroll[1] = min(game_state.world_size[1] - screen_height,
+                                     player.rect.y - screen_height*(1-scroll_trigger) + player.rect.height)
 
         # Update carrot logic
         for carrot in carrots:
