@@ -170,12 +170,11 @@ class Vampire:
         self.death_effect_active = False
         self.death_flash_count = 0
 
-    def draw(self, screen, scroll):
+    def draw(self, screen, scroll, current_time):
         if self.death_effect_active:
-            time_since_flash = time.time() - self.death_effect_start_time
-            if time_since_flash <= self.death_effect_duration:  # Only draw during duration
-                if int(time_since_flash / 0.1) % 2 == 0:  # Flash interval
-                    # Create green-tinted version
+            time_since_flash = current_time - self.death_effect_start_time
+            if time_since_flash <= self.death_effect_duration:
+                if int(time_since_flash / 0.1) % 2 == 0:
                     tinted_image = self.image.copy()
                     tinted_image.fill((0, 255, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
                     screen.blit(tinted_image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))

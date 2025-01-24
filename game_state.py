@@ -40,7 +40,7 @@ class GameState:
         for _ in range(CARROT_COUNT):
             self.create_carrot()
 
-    def create_carrot(self):
+    def create_carrot(self, asset_manager):
         """Create a new carrot away from the player"""
         while True:
             x = random.randint(0, self.world_size[0])
@@ -48,5 +48,5 @@ class GameState:
             if not self.player or \
                ((x - self.player.rect.centerx)**2 + 
                 (y - self.player.rect.centery)**2 > (min(self.world_size)/3)**2):
-                self.carrots.append(Carrot(x, y, None))  # Image will be set elsewhere
+                self.carrots.append(Carrot(x, y, asset_manager.images['carrot']))
                 break

@@ -499,10 +499,9 @@ while running:
                 garlic_rect = pygame.Rect(garlic_shot["x"], garlic_shot["y"], garlic_width, garlic_height)
                 if garlic_rect.colliderect(game_state.vampire.rect):
                     game_state.vampire.death_effect_active = True
-                    game_state.vampire.death_flash_count = 0
+                    game_state.vampire.death_effect_start_time = current_time
                     game_state.vampire.active = False
                     game_state.vampire.respawn_timer = current_time
-                    game_state.vampire.death_effect_start_time = current_time
                     asset_manager.sounds['vampire_death'].play()
                     garlic_shot = None
         # Update vampire
@@ -600,7 +599,7 @@ while running:
                 explosion_active = False  # Stop displaying after 3 flashes
         
         # Draw vampire
-        game_state.vampire.draw(screen, game_state.scroll)
+        game_state.vampire.draw(screen, game_state.scroll, current_time)
 
         # Draw health points UI
         for i in range(player.health):
