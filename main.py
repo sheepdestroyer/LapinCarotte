@@ -235,12 +235,11 @@ def respawn_vampire():
 
 # Function to reset the game state
 def reset_game():
-    global rabbit_x, rabbit_y, scroll_x, scroll_y, health_points, vampire_active, vampire_x, vampire_y, bullets, carrots, game_over, hp_items, garlic_count
+    global rabbit_x, rabbit_y, health_points, vampire_active, vampire_x, vampire_y, bullets, carrots, game_over, hp_items, garlic_count
     # Reset rabbit position and scrolling
     player.rect.x = 200
     player.rect.y = 200
-    scroll_x = 0
-    scroll_y = 0
+    game_state.scroll = [0, 0]
 
     # Reset health points
     player.health = max_health_points
@@ -581,15 +580,15 @@ while running:
         grass_height = grass_image.get_height()
         for x in range(0, world_width, grass_width):
             for y in range(0, world_height, grass_height):
-                screen.blit(grass_image, (x - scroll_x, y - scroll_y))
+                screen.blit(grass_image, (x - game_state.scroll[0], y - game_state.scroll[1]))
 
         # Draw the carrots
         for carrot in carrots:
           if carrot["active"]:
-            screen.blit(carrot_image, (carrot["x"] - scroll_x, carrot["y"] - scroll_y))
+            screen.blit(carrot_image, (carrot["x"] - game_state.scroll[0], carrot["y"] - game_state.scroll[1]))
 
         # Draw the rabbit using blit
-        screen.blit(player.image, (player.rect.x - scroll_x, player.rect.y - scroll_y))
+        screen.blit(player.image, (player.rect.x - game_state.scroll[0], player.rect.y - game_state.scroll[1]))
 
         # Draw the bullets
         for bullet in bullets:
@@ -605,7 +604,7 @@ while running:
             # Rotate the bullet
             rotated_bullet = pygame.transform.rotate(original_bullet_image, -angle)
             bullet_rect = rotated_bullet.get_rect(center=(bullet_x, bullet_y))  # We need to also fix the center of the sprite to be where the x and y coordinates are
-            screen.blit(rotated_bullet, (bullet_rect.x - scroll_x, bullet_rect.y - scroll_y))
+            screen.blit(rotated_bullet, (bullet_rect.x - game_state.scroll[0], bullet_rect.y - game_state.scroll[1]))
 
         # Draw the garlic shot
         if garlic_shot and garlic_shot["active"]:
@@ -615,13 +614,13 @@ while running:
             angle = math.degrees(math.atan2(garlic_dy, garlic_dx))
             rotated_garlic = pygame.transform.rotate(garlic_image, garlic_rotation_angle)            
             rotated_garlic_rect = rotated_garlic.get_rect(center = (garlic_shot["x"], garlic_shot["y"]))
-            screen.blit(rotated_garlic, (garlic_shot["x"] - scroll_x, garlic_shot["y"] - scroll_y))
+            screen.blit(rotated_garlic, (garlic_shot["x"] - game_state.scroll[0], garlic_shot["y"] - game_state.scroll[1]))
 
         # Check and draw explosion
         if explosion_active:
             time_since_flash_start = current_time - explosion_start_time
             if int(time_since_flash_start / explosion_flash_interval) % 2 == 0:
-                screen.blit(explosion_image, (explosion_x - scroll_x, explosion_y - scroll_y))            
+                screen.blit(explosion_image, (explosion_x - game_state.scroll[0], explosion_y - game_state.scroll[1]))            
             # Drop HP item after the last explosion flash
             if drop_hp_item and explosion_flash_count == max_explosion_flashes -1 and time_since_flash_start > explosion_flash_interval:
                 if random.choice([True, False]):  # Randomly drop either HP or Garlic
@@ -661,9 +660,9 @@ while running:
 
                 # Flashing effect
                 if int(time_since_flash_start / vampire_death_flash_interval) % 2 == 0:
-                    screen.blit(vampire_surface, (vampire_x - scroll_x, vampire_y - scroll_y))
+                    screen.blit(vampire_surface, (vampire_x - game_state.scroll[0], vampire_y - game_state.scroll[1]))
                 else:
-                    screen.blit(vampire_image, (vampire_x - scroll_x, vampire_y - scroll_y))
+                    screen.blit(vampire_image, (vampire_x - game_state.scroll[0], vampire_y - game_state.scroll[1]))
 
                 if time_since_flash_start > vampire_death_flash_interval:
                     vampire_death_flash_count += 1
@@ -698,10 +697,10 @@ while running:
         # Draw the HP items
         item_image_small = pygame.transform.scale(hp_image, (item_width, item_height))
         for hp_item in hp_items:
-            screen.blit(pygame.transform.scale(hp_image, (item_width, item_height)), (hp_item["x"] - scroll_x, hp_item["y"] - scroll_y))
+            screen.blit(pygame.transform.scale(hp_image, (item_width, item_height)), (hp_item["x"] - game_state.scroll[0], hp_item["y"] - game_state.scroll[1]))
         for garlic_item in garlic_items:
             item_image_small = pygame.transform.scale(garlic_image, (item_width, item_height))
-            screen.blit(item_image_small, (garlic_item["x"] - scroll_x, garlic_item["y"] - scroll_y))
+            screen.blit(item_image_small, (garlic_item["x"] - game_state.scroll[0], garlic_item["y"] - game_state.scroll[1]))
 
     else: # Game is over, display the game over screen
       # Fill the screen with black (or your background color)
