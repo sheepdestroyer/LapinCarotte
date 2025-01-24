@@ -673,7 +673,7 @@ while running:
                     vampire_active = False
                     vampire_respawn_timer = current_time
             else:
-                screen.blit(vampire_image, (vampire_x - scroll_x, vampire_y - scroll_y))
+                screen.blit(vampire_image, (vampire_x - game_state.scroll[0], vampire_y - game_state.scroll[1]))
 
         # Draw health points UI
         for i in range(player.health):
