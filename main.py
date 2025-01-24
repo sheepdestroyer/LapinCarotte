@@ -585,7 +585,7 @@ while running:
             screen.blit(carrot_image, (carrot["x"] - scroll_x, carrot["y"] - scroll_y))
 
         # Draw the rabbit using blit
-        screen.blit(rabbit_image, (rabbit_x - scroll_x, rabbit_y - scroll_y))
+        screen.blit(player.image, (player.rect.x - scroll_x, player.rect.y - scroll_y))
 
         # Draw the bullets
         for bullet in bullets:
