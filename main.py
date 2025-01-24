@@ -202,19 +202,11 @@ game_started = False
 # Function to create a new carrot
 def create_carrot():
     while True:
-        new_x = random.randint(0, world_width - carrot_width)
-        new_y = random.randint(0, world_height - carrot_height)
-        if distance(new_x + carrot_width/2, new_y + carrot_height/2, 
-                   player.rect.centerx, player.rect.centery) > min(screen_width, screen_height)/3:
-            return {
-                "x": new_x,
-                "y": new_y,
-                "move_x": 0,
-                "move_y": 0,
-                "speed_multiplier": 1, # initialize speed
-                "active": True, # initialize the carrot as being active
-                "respawn_timer": 0
-            }
+        # Create at center coordinates
+        new_x = random.randint(carrot_width//2, world_width - carrot_width//2)
+        new_y = random.randint(carrot_height//2, world_height - carrot_height//2)
+        if distance(new_x, new_y, player.rect.centerx, player.rect.centery) > min(screen_width, screen_height)/3:
+            return Carrot(new_x, new_y, asset_manager.images['carrot'])
 
 # Initialize carrots
 for _ in range(num_carrots):
@@ -300,8 +292,8 @@ while running:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     # Create new bullet at rabbit's center
-                    bullet_x = player.rect.centerx - bullet_width/2
-                    bullet_y = player.rect.centery - bullet_height/2
+                    bullet_x = player.rect.centerx
+                    bullet_y = player.rect.centery
                     # Store the bullet position and direction for that shot
                     mouse_x, mouse_y = pygame.mouse.get_pos()
                     bullet_dx = mouse_x - player.rect.centerx + game_state.scroll[0]
@@ -328,8 +320,8 @@ while running:
 
                     # Initial position of the garlic shot
                     garlic_shot_angle = 0  # Initialize angle for garlic shot
-                    garlic_shot_x = player.rect.centerx - garlic_width/2
-                    garlic_shot_y = player.rect.y
+                    garlic_shot_x = player.rect.centerx
+                    garlic_shot_y = player.rect.centery
 
                     # Store the garlic shot data
                     garlic_shot = {
@@ -577,8 +569,10 @@ while running:
         # Draw the garlic shot
         if garlic_shot and garlic_shot["active"]:
             # Calculate the angle of the garlic shot
-            garlic_dx = mouse_x - garlic_shot["start_x"] + scroll_x
-            garlic_dy = mouse_y - garlic_shot["start_y"] + scroll_y
+            garlic_center_x = garlic_shot["x"] + garlic_width/2
+            garlic_center_y = garlic_shot["y"] + garlic_height/2
+            garlic_dx = mouse_x - garlic_center_x + game_state.scroll[0]
+            garlic_dy = mouse_y - garlic_center_y + game_state.scroll[1]
             angle = math.degrees(math.atan2(garlic_dy, garlic_dx))
             rotated_garlic = pygame.transform.rotate(garlic_image, garlic_rotation_angle)            
             rotated_garlic_rect = rotated_garlic.get_rect(center = (garlic_shot["x"], garlic_shot["y"]))

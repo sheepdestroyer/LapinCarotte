@@ -45,7 +45,7 @@ class Bullet:
 class Carrot:
     def __init__(self, x, y, image):
         self.image = image
-        self.rect = image.get_rect(topleft=(x, y))
+        self.rect = image.get_rect(center=(x, y))  # Center-based position
         self.speed = 3
         self.active = True
         self.respawn_timer = 0
@@ -54,7 +54,7 @@ class Carrot:
 class Vampire:
     def __init__(self, x, y, image):
         self.image = image
-        self.rect = image.get_rect(topleft=(x, y))
+        self.rect = image.get_rect(center=(x, y))  # Center-based position
         self.active = False
         self.respawn_timer = 0
         self.death_effect_active = False
