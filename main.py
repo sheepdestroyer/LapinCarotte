@@ -175,18 +175,12 @@ garlic_items = []  # List to store the dropped Garlic items
 
 
 
-# Vampire and Garlic variables
-vampire_x = world_width - vampire_width - 100  # Start from the right edge
-vampire_y = random.randint(0, world_height - vampire_height)
-vampire_speed = 4
-vampire_active = False # the vampire will spawn after the start
-vampire_respawn_delay = 5 # delay in seconds before the vampire respawns
-vampire_respawn_timer = 0
-
-# Vampire death effect variables
-vampire_death_effect_active = False
-vampire_death_flash_count = 0
-vampire_death_flash_interval = 0.1  # Time in seconds between flashes
+# Initialize vampire
+game_state.vampire = Vampire(
+    world_width - vampire_width - 100,
+    random.randint(0, world_height - vampire_height),
+    asset_manager.images['vampire']
+)
 
 # Garlic shooting variables
 garlic_shot = None
@@ -515,54 +509,28 @@ while running:
             # Check for collision with vampire
             if garlic_shot and vampire_active:
                 garlic_rect = pygame.Rect(garlic_shot["x"], garlic_shot["y"], garlic_width, garlic_height)
-                if garlic_rect.colliderect(vampire_rect):
-                    #vampire_active = False
-                    #vampire_respawn_timer = current_time
-                    vampire_death_effect_active = True
-                    vampire_death_flash_count = 0
-                    vampire_active = False
-                    vampire_respawn_timer = current_time
-                    vampire_death_effect_start_time = current_time
+                if garlic_rect.colliderect(game_state.vampire.rect):
+                    game_state.vampire.death_effect_active = True
+                    game_state.vampire.death_flash_count = 0
+                    game_state.vampire.active = False
+                    game_state.vampire.respawn_timer = current_time
+                    game_state.vampire.death_effect_start_time = current_time
                     asset_manager.sounds['vampire_death'].play()
-                    asset_manager.sounds['vampire_death'].play()  # Play vampire death sound
                     garlic_shot = None
-        # Vampire logic
-        if vampire_active:
-            # Calculate direction towards the rabbit
-            vampire_dx = player.rect.centerx - (vampire_x + vampire_width / 2)
-            vampire_dy = player.rect.centery - (vampire_y + vampire_height / 2)
-            vampire_dist = distance(player.rect.x, player.rect.y, vampire_x, vampire_y)
+        # Update vampire
+        game_state.vampire.update(player, game_state.world_size, current_time)
 
-            if vampire_dist > 0:
-                vampire_dx /= vampire_dist
-                vampire_dy /= vampire_dist
-
-            # Move the vampire
-            vampire_x += vampire_dx * vampire_speed
-            vampire_y += vampire_dy * vampire_speed
-
-            # Keep vampire within world bounds
-            vampire_x = max(0, min(world_width - vampire_width, vampire_x))
-            vampire_y = max(0, min(world_height - vampire_height, vampire_y))
-
-            # Check for collision with rabbit
-            rabbit_rect = player.rect.copy()
-            vampire_rect = pygame.Rect(vampire_x, vampire_y, vampire_width, vampire_height)
-            if rabbit_rect.colliderect(vampire_rect):
-                player.health -= 1  # Decrease health points
-                asset_manager.sounds['hurt'].play()  # Play hurt sound
-                vampire_active = False
-                vampire_respawn_timer = current_time
-                vampire_death_effect_active = False
-                vampire_death_flash_count = 0
-
-                if player.health <= 0:
-                    game_over = True
-                    asset_manager.sounds['death'].play()  # Play death sound
-                    asset_manager.sounds['background'].stop()
-        else: # Respawn the vampire after a delay if it is not active
-          if current_time - vampire_respawn_timer > vampire_respawn_delay:
-            respawn_vampire()
+        # Check collision with player
+        if game_state.vampire.active and player.rect.colliderect(game_state.vampire.rect):
+            player.health -= 1
+            asset_manager.sounds['hurt'].play()
+            game_state.vampire.active = False
+            game_state.vampire.respawn_timer = current_time
+            
+            if player.health <= 0:
+                game_over = True
+                asset_manager.sounds['death'].play()
+                asset_manager.sounds['background'].stop()
         
         # Check for collisions between rabbit and HP items
         rabbit_rect = player.rect.copy()
@@ -645,35 +613,8 @@ while running:
             if explosion_flash_count >= max_explosion_flashes:
                 explosion_active = False  # Stop displaying after 3 flashes
         
-        # Draw the vampire
-        if vampire_active or vampire_death_effect_active:
-            if vampire_death_effect_active:
-                time_since_flash_start = current_time - vampire_death_effect_start_time
-
-                # Apply dark green alpha layer
-                vampire_surface = vampire_image.copy()
-                dark_green = (0, 100, 0, 128)  # Dark green with alpha (RGBA)
-                for x in range(vampire_surface.get_width()):
-                    for y in range(vampire_surface.get_height()):
-                        if vampire_surface.get_at((x, y))[3] > 0:  # Check if pixel is not transparent
-                            vampire_surface.set_at((x, y), dark_green)
-
-                # Flashing effect
-                if int(time_since_flash_start / vampire_death_flash_interval) % 2 == 0:
-                    screen.blit(vampire_surface, (vampire_x - game_state.scroll[0], vampire_y - game_state.scroll[1]))
-                else:
-                    screen.blit(vampire_image, (vampire_x - game_state.scroll[0], vampire_y - game_state.scroll[1]))
-
-                if time_since_flash_start > vampire_death_flash_interval:
-                    vampire_death_flash_count += 1
-                    vampire_death_effect_start_time = current_time
-
-                if vampire_death_flash_count >= 3:
-                    vampire_death_effect_active = False
-                    vampire_active = False
-                    vampire_respawn_timer = current_time
-            else:
-                screen.blit(vampire_image, (vampire_x - game_state.scroll[0], vampire_y - game_state.scroll[1]))
+        # Draw vampire
+        game_state.vampire.draw(screen, game_state.scroll)
 
         # Draw health points UI
         for i in range(player.health):

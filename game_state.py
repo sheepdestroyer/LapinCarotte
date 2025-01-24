@@ -4,8 +4,7 @@ class GameState:
         self.world_size = (3000, 3000)
         self.game_over = False
         self.started = False
-        self.vampire_active = False
-        self.vampire_position = (0, 0)
+        self.vampire = None  # Will hold Vampire instance
         self.bullets = []
         self.carrots = []
         self.hp_items = []
