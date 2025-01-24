@@ -239,7 +239,7 @@ def reset_game():
     player.health = max_health_points
 
     # Reset vampire
-    vampire_active = False
+    game_state.vampire.active = False
     vampire_x = world_width - vampire_width - 100
     vampire_y = random.randint(0, world_height - vampire_height)
 
@@ -507,7 +507,7 @@ while running:
             garlic_rotation_angle = (garlic_rotation_angle + garlic_rotation_speed) % 360
 
             # Check for collision with vampire
-            if garlic_shot and vampire_active:
+            if garlic_shot and game_state.vampire.active:
                 garlic_rect = pygame.Rect(garlic_shot["x"], garlic_shot["y"], garlic_width, garlic_height)
                 if garlic_rect.colliderect(game_state.vampire.rect):
                     game_state.vampire.death_effect_active = True
