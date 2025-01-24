@@ -15,7 +15,7 @@ class Player:
         self.garlic_count = 0
 
     def move(self, dx, dy, world_bounds):
-        speed = config.PLAYER_SPEED
+        speed = PLAYER_SPEED
         self.rect.x = max(0, min(world_bounds[0] - self.rect.width, self.rect.x + dx * speed))
         self.rect.y = max(0, min(world_bounds[1] - self.rect.height, self.rect.y + dy * speed))
         
@@ -178,7 +178,7 @@ class Vampire:
         self.death_effect_active = False
         self.death_effect_start_time = 0
         self.death_effect_duration = 2  # 2 second death effect
-        self.speed = config.VAMPIRE_SPEED
+        self.speed = VAMPIRE_SPEED
 
     def update(self, player, world_bounds, current_time):
         if self.active:
