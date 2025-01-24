@@ -1,6 +1,6 @@
-from game_entities import Carrot, Vampire, Player
+from game_entities import Carrot, Vampire, Player, Bullet, GarlicShot, Explosion, Collectible
 import random
-from config import WORLD_SIZE, CARROT_COUNT
+from config import WORLD_SIZE, CARROT_COUNT, ITEM_SCALE
 
 class GameState:
     def __init__(self):
@@ -39,6 +39,22 @@ class GameState:
         self.carrots = []
         for _ in range(CARROT_COUNT):
             self.create_carrot()
+
+    def add_bullet(self, start_x, start_y, target_x, target_y, image):
+        """Create and add a new bullet"""
+        self.bullets.append(Bullet(start_x, start_y, target_x, target_y, image))
+
+    def add_garlic_shot(self, start_x, start_y, target_x, target_y, image):
+        """Create and add a new garlic shot"""
+        self.garlic_shots.append(GarlicShot(start_x, start_y, target_x, target_y, image))
+
+    def add_explosion(self, x, y, image):
+        """Create and add a new explosion"""
+        self.explosions.append(Explosion(x, y, image))
+
+    def add_collectible(self, x, y, image, is_garlic=False):
+        """Create and add a new collectible item"""
+        self.items.append(Collectible(x, y, image, ITEM_SCALE))
 
     def create_carrot(self, asset_manager):
         """Create a new carrot away from the player"""
