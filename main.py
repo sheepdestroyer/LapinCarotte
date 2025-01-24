@@ -8,7 +8,10 @@ import math
 from asset_manager import AssetManager
 from game_entities import Player, Bullet, Carrot, Vampire, Explosion, Collectible
 from game_state import GameState
-from config import MAX_HEALTH, MAX_GARLIC, ITEM_SCALE
+from config import (
+    MAX_HEALTH, MAX_GARLIC, ITEM_SCALE, CARROT_COUNT,
+    WORLD_SIZE, SCROLL_TRIGGER, CARROT_RESPAWN_DELAY
+)
 
 def get_asset_path(relative_path):
     """Get absolute path to resource, works for dev and for PyInstaller"""
@@ -174,19 +177,22 @@ game_over = False
 game_started = False
 
 # Initialize carrots
-for _ in range(config.CARROT_COUNT):
+for _ in range(CARROT_COUNT):
     game_state.create_carrot(asset_manager)
+
+# Get commonly used images
+grass_image = asset_manager.images['grass']
+garlic_image = asset_manager.images['garlic']
+hp_image = asset_manager.images['hp']
+game_over_image = asset_manager.images['game_over']
+restart_button_image = asset_manager.images['restart']
+exit_button_image = asset_manager.images['exit']
 
 # Function to reset the game state
 def reset_game():
-    global rabbit_x, rabbit_y, health_points, bullets, carrots, game_over, hp_items, garlic_count
-    # Reset rabbit position and scrolling
-    player.rect.x = 200
-    player.rect.y = 200
+    # Reset game state
+    game_state.player.reset()
     game_state.scroll = [0, 0]
-
-    # Reset health points
-    player.health = max_health_points
 
     # Reset vampire properly
     game_state.vampire.respawn(
@@ -197,21 +203,17 @@ def reset_game():
     # Reset bullets
     bullets = []
 
-    # Reset carrots
-    carrots = []
-    for _ in range(num_carrots):
-        carrots.append(create_carrot())
-
-    # Reset game over state
-    game_over = False
+    # Reset game state
+    game_state.game_over = False
     asset_manager.sounds['background'].play(-1)  # Restart the background music
-
-    # Reset HP items
-    hp_items = []
     
-    # Reset garlic items
-    garlic_items = []
-    player.garlic_count = 0
+    # Clear all items
+    game_state.items.clear()
+    
+    # Recreate carrots
+    game_state.carrots.clear()
+    for _ in range(CARROT_COUNT):
+        game_state.create_carrot(asset_manager)
 
 
 # Function to start the game
