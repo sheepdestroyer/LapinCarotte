@@ -47,6 +47,10 @@ except pygame.error as e:
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("LapinCarotte")
 
+# Game constants
+max_health_points = 3
+max_garlic_count = 3
+
 # Initialize game state and player
 game_state = GameState()
 player = Player(200, 200, asset_manager.images['rabbit'])
@@ -231,7 +235,7 @@ def respawn_vampire():
 
 # Function to reset the game state
 def reset_game():
-    global rabbit_x, rabbit_y, scroll_x, scroll_y, health_points, vampire_active, vampire_x, vampire_y, bullets, carrots, game_over, hp_items
+    global rabbit_x, rabbit_y, scroll_x, scroll_y, health_points, vampire_active, vampire_x, vampire_y, bullets, carrots, game_over, hp_items, garlic_count
     # Reset rabbit position and scrolling
     player.rect.x = 200
     player.rect.y = 200
