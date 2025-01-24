@@ -91,6 +91,9 @@ class Vampire:
         if self.death_effect_active:
             time_since_flash = time.time() - self.death_effect_start_time
             if int(time_since_flash / 0.1) % 2 == 0:  # Flash interval
-                screen.blit(self.image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
+                # Create green-tinted version
+                tinted_image = self.image.copy()
+                tinted_image.fill((0, 255, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
+                screen.blit(tinted_image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
         elif self.active:
             screen.blit(self.image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
