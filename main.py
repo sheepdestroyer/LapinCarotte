@@ -49,6 +49,19 @@ pygame.display.set_caption("LapinCarotte")
 game_state = GameState()
 player = Player(200, 200, asset_manager.images['rabbit'])
 
+# Get all the images we'll need
+grass_image = asset_manager.images['grass']
+carrot_image = asset_manager.images['carrot']
+rabbit_image = asset_manager.images['rabbit']
+original_bullet_image = asset_manager.images['bullet']
+garlic_image = asset_manager.images['garlic']
+explosion_image = asset_manager.images['explosion']
+vampire_image = asset_manager.images['vampire']
+hp_image = asset_manager.images['hp']
+game_over_image = asset_manager.images['game_over']
+restart_button_image = asset_manager.images['restart']
+exit_button_image = asset_manager.images['exit']
+
 # Play intro music
 asset_manager.sounds['intro'].play(-1)
 
@@ -339,6 +352,12 @@ while running:
 
 
         else: # Game is over, check for button clicks
+          # Calculate button positions
+          restart_button_x = screen_width / 2 - restart_button_width - 20
+          restart_button_y = screen_height * 3 / 4 - restart_button_height / 2
+          exit_button_x = screen_width / 2 + 20
+          exit_button_y = screen_height * 3 / 4 - exit_button_height / 2
+          
           mouse_x, mouse_y = pygame.mouse.get_pos()
           if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1: # Left click
@@ -534,7 +553,7 @@ while running:
             vampire_rect = pygame.Rect(vampire_x, vampire_y, vampire_width, vampire_height)
             if rabbit_rect.colliderect(vampire_rect):
                 health_points -= 1  # Decrease health points
-                hurt_sound.play()  # Play hurt sound
+                asset_manager.sounds['hurt'].play()  # Play hurt sound
                 vampire_active = False
                 vampire_respawn_timer = current_time
                 vampire_death_effect_active = False
@@ -542,8 +561,8 @@ while running:
 
                 if health_points == 0:
                     game_over = True
-                    get_death_sound.play()  # Play death sound
-                    background_music.stop()
+                    asset_manager.sounds['death'].play()  # Play death sound
+                    asset_manager.sounds['background'].stop()
         else: # Respawn the vampire after a delay if it is not active
           if current_time - vampire_respawn_timer > vampire_respawn_delay:
             respawn_vampire()
@@ -555,7 +574,7 @@ while running:
             if rabbit_rect.colliderect(hp_item_rect):
                 if health_points < max_health_points:
                     health_points += 1
-                    get_hp_sound.play()  # Play the sound effect
+                    asset_manager.sounds['get_hp'].play()  # Play the sound effect
                 hp_items.pop(i)  # Remove the collected HP item
 
 
@@ -669,7 +688,7 @@ while running:
             if rabbit_rect.colliderect(garlic_item_rect):
                 if garlic_count < max_garlic_count:
                     garlic_count += 1
-                    get_garlic_sound.play()  # Play the sound effect
+                    asset_manager.sounds['get_garlic'].play()  # Play the sound effect
                 garlic_items.pop(i)  # Remove the collected Garlic item
 
         # Draw Garlic count UI
