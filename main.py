@@ -338,10 +338,10 @@ while running:
         # Handle keyboard input for player movement
         keys = pygame.key.get_pressed()
         dx, dy = 0, 0
-        if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 5
-        if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 5
-        if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 5
-        if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 5
+        if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 1
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
+        if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 1
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
         game_state.player.move(dx, dy, game_state.world_size)
             
         # Scrolling logic
