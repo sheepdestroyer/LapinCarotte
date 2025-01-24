@@ -48,26 +48,8 @@ except pygame.error as e:
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("LapinCarotte")
 
-# Game constants
-max_health_points = 3
-max_garlic_count = 3
-
-# Initialize game state and player
+# Initialize game state
 game_state = GameState(asset_manager)
-player = Player(200, 200, asset_manager.images['rabbit'])
-
-# Get all the images we'll need
-grass_image = asset_manager.images['grass']
-carrot_image = asset_manager.images['carrot']
-rabbit_image = asset_manager.images['rabbit']
-original_bullet_image = asset_manager.images['bullet']
-garlic_image = asset_manager.images['garlic']
-explosion_image = asset_manager.images['explosion']
-vampire_image = asset_manager.images['vampire']
-hp_image = asset_manager.images['hp']
-game_over_image = asset_manager.images['game_over']
-restart_button_image = asset_manager.images['restart']
-exit_button_image = asset_manager.images['exit']
 
 # Play intro music
 asset_manager.sounds['intro'].play(-1)
@@ -191,26 +173,9 @@ garlic_rotation_speed = 5  # Degrees per frame
 game_over = False
 game_started = False
 
-# Function to create a new carrot
-def create_carrot():
-    while True:
-        # Create at center coordinates
-        new_x = random.randint(carrot_width//2, world_width - carrot_width//2)
-        new_y = random.randint(carrot_height//2, world_height - carrot_height//2)
-        if distance(new_x, new_y, player.rect.centerx, player.rect.centery) > min(screen_width, screen_height)/3:
-            return Carrot(new_x, new_y, asset_manager.images['carrot'])
-
 # Initialize carrots
-game_state.carrots = []
-for _ in range(num_carrots):
-    game_state.carrots.append(create_carrot())
-
-# Function to respawn the vampire
-def respawn_vampire():
-    global vampire_x, vampire_y, vampire_active, garlic_count
-    vampire_x = random.randint(0, world_width - vampire_width)
-    vampire_y = random.randint(0, world_height - vampire_height)
-    vampire_active = True
+for _ in range(config.CARROT_COUNT):
+    game_state.create_carrot(asset_manager)
 
 # Function to reset the game state
 def reset_game():

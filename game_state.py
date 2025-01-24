@@ -10,6 +10,9 @@ class GameState:
         self.started = False
         self.asset_manager = asset_manager
         self.player = Player(200, 200, asset_manager.images['rabbit'])
+        self.garlic_shot = None
+        self.garlic_shot_start_time = 0
+        self.garlic_shot_travel = 0
         self.vampire = Vampire(
             random.randint(0, WORLD_SIZE[0]), 
             random.randint(0, WORLD_SIZE[1]),
