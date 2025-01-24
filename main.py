@@ -328,8 +328,8 @@ while running:
                     bullets.append([bullet_x, bullet_y, bullet_dx, bullet_dy])
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 3 and garlic_count > 0 and garlic_shot is None:  # Right mouse button and have garlic
-                    garlic_count -= 1
+                if event.button == 3 and player.garlic_count > 0 and garlic_shot is None:  # Right mouse button and have garlic
+                    player.garlic_count -= 1
                     garlic_shot_start_time = current_time
                     garlic_shot_travel = 0
 
