@@ -253,13 +253,13 @@ while running:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     # Create new bullet at rabbit's center
-                    bullet_x = player.rect.centerx
-                    bullet_y = player.rect.centery
+                    bullet_x = game_state.player.rect.centerx
+                    bullet_y = game_state.player.rect.centery
                     # Store the bullet position and direction for that shot
                     mouse_x, mouse_y = pygame.mouse.get_pos()
-                    bullet_dx = mouse_x - player.rect.centerx + game_state.scroll[0]
-                    bullet_dy = mouse_y - player.rect.centery + game_state.scroll[1]
-                    bullets.append([bullet_x, bullet_y, bullet_dx, bullet_dy])
+                    bullet_dx = mouse_x - game_state.player.rect.centerx + game_state.scroll[0]
+                    bullet_dy = mouse_y - game_state.player.rect.centery + game_state.scroll[1]
+                    game_state.bullets.append(Bullet(bullet_x, bullet_y, bullet_dx, bullet_dy, asset_manager.images['bullet']))
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
@@ -270,8 +270,8 @@ while running:
                     )
                     game_state.bullets.append(
                         Bullet(
-                            player.rect.centerx,
-                            player.rect.centery,
+                            game_state.player.rect.centerx,
+                            game_state.player.rect.centery,
                             world_mouse[0],
                             world_mouse[1],
                             asset_manager.images['bullet']
@@ -279,8 +279,8 @@ while running:
                     )
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 3 and player.garlic_count > 0 and garlic_shot is None:
-                    player.garlic_count -= 1
+                if event.button == 3 and game_state.player.garlic_count > 0 and garlic_shot is None:
+                    game_state.player.garlic_count -= 1
                     garlic_shot_start_time = current_time
                     garlic_shot_travel = 0
 
@@ -290,8 +290,8 @@ while running:
                     world_mouse_y = mouse_y + game_state.scroll[1]
 
                     # Calculate direction vector once at firing
-                    start_x = player.rect.centerx
-                    start_y = player.rect.centery
+                    start_x = game_state.player.rect.centerx
+                    start_y = game_state.player.rect.centery
                     dx = world_mouse_x - start_x
                     dy = world_mouse_y - start_y
                     dist = math.hypot(dx, dy)
@@ -352,12 +352,12 @@ while running:
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 5
         if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 5
         if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 5
-        player.move(dx, dy, game_state.world_size)
+        game_state.player.move(dx, dy, game_state.world_size)
             
         # Scrolling logic
-        if player.rect.x < game_state.scroll[0] + screen_width * scroll_trigger:
-            game_state.scroll[0] = max(0, player.rect.x - screen_width * scroll_trigger)
-        elif player.rect.x + player.rect.width > game_state.scroll[0] + screen_width * (1 - scroll_trigger):
+        if game_state.player.rect.x < game_state.scroll[0] + screen_width * SCROLL_TRIGGER:
+            game_state.scroll[0] = max(0, game_state.player.rect.x - screen_width * SCROLL_TRIGGER)
+        elif game_state.player.rect.x + game_state.player.rect.width > game_state.scroll[0] + screen_width * (1 - SCROLL_TRIGGER):
             game_state.scroll[0] = min(game_state.world_size[0] - screen_width,
                                      player.rect.x - screen_width*(1-scroll_trigger) + player.rect.width)
 
