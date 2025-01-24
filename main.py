@@ -30,7 +30,7 @@ pygame.display.set_mode((1, 1))
 # Now initialize game systems
 asset_manager = AssetManager()
 asset_manager.load_assets()
-game_state = GameState()
+game_state = GameState(asset_manager)
 
 # Set a temporary display mode to get the start screen dimensions
 temp_screen = pygame.display.set_mode((0, 0))  # Set a small, temporary display
@@ -52,7 +52,7 @@ max_health_points = 3
 max_garlic_count = 3
 
 # Initialize game state and player
-game_state = GameState()
+game_state = GameState(asset_manager)
 player = Player(200, 200, asset_manager.images['rabbit'])
 
 # Get all the images we'll need
