@@ -359,19 +359,19 @@ while running:
             game_state.scroll[0] = max(0, game_state.player.rect.x - screen_width * SCROLL_TRIGGER)
         elif game_state.player.rect.x + game_state.player.rect.width > game_state.scroll[0] + screen_width * (1 - SCROLL_TRIGGER):
             game_state.scroll[0] = min(game_state.world_size[0] - screen_width,
-                                     player.rect.x - screen_width*(1-scroll_trigger) + player.rect.width)
+                                     game_state.player.rect.x - screen_width*(1-SCROLL_TRIGGER) + game_state.player.rect.width)
 
-        if player.rect.y < game_state.scroll[1] + screen_height * scroll_trigger:
-            game_state.scroll[1] = max(0, player.rect.y - screen_height * scroll_trigger)
-        elif player.rect.y + player.rect.height > game_state.scroll[1] + screen_height * (1 - scroll_trigger):
+        if game_state.player.rect.y < game_state.scroll[1] + screen_height * SCROLL_TRIGGER:
+            game_state.scroll[1] = max(0, game_state.player.rect.y - screen_height * SCROLL_TRIGGER)
+        elif game_state.player.rect.y + game_state.player.rect.height > game_state.scroll[1] + screen_height * (1 - SCROLL_TRIGGER):
             game_state.scroll[1] = min(game_state.world_size[1] - screen_height,
-                                     player.rect.y - screen_height*(1-scroll_trigger) + player.rect.height)
+                                     game_state.player.rect.y - screen_height*(1-SCROLL_TRIGGER) + game_state.player.rect.height)
 
         # Update carrot logic
         for carrot in game_state.carrots:
             if carrot.active:
                 # Calculate direction using vector
-                rabbit_center = pygame.math.Vector2(player.rect.center)
+                rabbit_center = pygame.math.Vector2(game_state.player.rect.center)
                 carrot_center = pygame.math.Vector2(carrot.rect.center)
                 direction = carrot_center - rabbit_center
                 dist = direction.length()
@@ -426,7 +426,7 @@ while running:
         # Respawn carrots after delay
         for i, carrot in enumerate(game_state.carrots):
             if not carrot.active and current_time - carrot.respawn_timer > carrot_respawn_delay:
-                game_state.carrots[i] = create_carrot()
+                game_state.create_carrot(asset_manager)
         
         # Garlic shot logic
         if garlic_shot and garlic_shot["active"]:
@@ -453,28 +453,28 @@ while running:
                     asset_manager.sounds['vampire_death'].play()
                     garlic_shot = None
         # Update vampire
-        game_state.vampire.update(player, game_state.world_size, current_time)
+        game_state.vampire.update(game_state.player, game_state.world_size, current_time)
 
         # Check collision with player
-        if game_state.vampire.active and player.rect.colliderect(game_state.vampire.rect):
-            player.health -= 1
+        if game_state.vampire.active and game_state.player.rect.colliderect(game_state.vampire.rect):
+            game_state.player.health -= 1
             asset_manager.sounds['hurt'].play()
             game_state.vampire.active = False
             game_state.vampire.respawn_timer = current_time
             
-            if player.health <= 0:
+            if game_state.player.health <= 0:
                 game_over = True
                 asset_manager.sounds['death'].play()
                 asset_manager.sounds['background'].stop()
         
         # Check item collisions
         for item in game_state.items[:]:
-            if player.rect.colliderect(item.rect):
-                if item.item_type == 'hp' and player.health < MAX_HEALTH:
-                    player.health += 1
+            if game_state.player.rect.colliderect(item.rect):
+                if item.item_type == 'hp' and game_state.player.health < MAX_HEALTH:
+                    game_state.player.health += 1
                     asset_manager.sounds['get_hp'].play()
-                elif item.item_type == 'garlic' and player.garlic_count < MAX_GARLIC:
-                    player.garlic_count += 1
+                elif item.item_type == 'garlic' and game_state.player.garlic_count < MAX_GARLIC:
+                    game_state.player.garlic_count += 1
                     asset_manager.sounds['get_garlic'].play()
                 game_state.items.remove(item)
 
@@ -492,7 +492,7 @@ while running:
                 screen.blit(carrot.image, (carrot.rect.x - game_state.scroll[0], carrot.rect.y - game_state.scroll[1]))
 
         # Draw the rabbit using blit
-        screen.blit(player.image, (player.rect.x - game_state.scroll[0], player.rect.y - game_state.scroll[1]))
+        screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
 
         # Draw bullets
         for bullet in game_state.bullets:
@@ -532,14 +532,14 @@ while running:
         game_state.vampire.draw(screen, game_state.scroll, current_time)
 
         # Draw health points UI
-        for i in range(player.health):
+        for i in range(game_state.player.health):
             screen.blit(hp_image, (10 + i * (hp_width + 5), 10))  # 5 pixels spacing
         
 
         # Draw Garlic count UI
-        if player.garlic_count > 0:  # Only display if player has garlic
-            garlic_ui_x = screen_width - 10 - max_garlic_count * (garlic_width + 5)
-            for i in range(player.garlic_count):
+        if game_state.player.garlic_count > 0:  # Only display if player has garlic
+            garlic_ui_x = screen_width - 10 - MAX_GARLIC * (garlic_width + 5)
+            for i in range(game_state.player.garlic_count):
                 screen.blit(garlic_image, (garlic_ui_x + i * (garlic_width + 5), 10))  # 5 pixels spacing
 
         # Draw all collectible items
