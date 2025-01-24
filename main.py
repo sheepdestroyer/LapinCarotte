@@ -20,15 +20,17 @@ def get_asset_path(relative_path):
     
     return os.path.join(base_path, relative_path)
 
-# Initialize Pygame and managers
+# Initialize Pygame and set a minimal display mode first
 pygame.init()
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
-# Initialize game systems
+# Set a minimal display mode before loading assets
+pygame.display.set_mode((1, 1))
+
+# Now initialize game systems
 asset_manager = AssetManager()
 asset_manager.load_assets()
 game_state = GameState()
-
 
 # Set a temporary display mode to get the start screen dimensions
 temp_screen = pygame.display.set_mode((0, 0))  # Set a small, temporary display
