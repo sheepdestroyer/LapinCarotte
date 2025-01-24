@@ -220,10 +220,10 @@ def reset_game():
 def start_game():
     global game_started, screen_width, screen_height, screen
     game_started = True
-    # Update screen size for gameplay
-    screen_width = 1280
-    screen_height = 1024
-    screen = pygame.display.set_mode((screen_width, screen_height))
+    # Create maximized window
+    screen = pygame.display.set_mode((0, 0), pygame.WINDOWMAXIMIZED)
+    # Get actual screen dimensions
+    screen_width, screen_height = screen.get_size()
     asset_manager.sounds['intro'].stop()  # Stop the intro music
     asset_manager.sounds['background'].play(-1)  # -1 makes the music loop continuously
 
