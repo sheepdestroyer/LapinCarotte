@@ -214,8 +214,8 @@ def create_carrot():
     while True:
         new_x = random.randint(0, world_width - carrot_width)
         new_y = random.randint(0, world_height - carrot_height)
-        if distance(new_x + carrot_width / 2, new_y + carrot_height / 2, rabbit_x + rabbit_width / 2,
-                    rabbit_y + rabbit_height / 2) > min(screen_width, screen_height) / 3:
+        if distance(new_x + carrot_width/2, new_y + carrot_height/2, 
+                   player.rect.centerx, player.rect.centery) > min(screen_width, screen_height)/3:
             return {
                 "x": new_x,
                 "y": new_y,
@@ -241,8 +241,8 @@ def respawn_vampire():
 def reset_game():
     global rabbit_x, rabbit_y, scroll_x, scroll_y, health_points, vampire_active, vampire_x, vampire_y, bullets, carrots, game_over, hp_items
     # Reset rabbit position and scrolling
-    rabbit_x = 200
-    rabbit_y = 200
+    player.rect.x = 200
+    player.rect.y = 200
     scroll_x = 0
     scroll_y = 0
 
@@ -339,8 +339,8 @@ while running:
 
                     # Initial position of the garlic shot
                     garlic_shot_angle = 0  # Initialize angle for garlic shot
-                    garlic_shot_x = rabbit_x + rabbit_width / 2 - garlic_width / 2
-                    garlic_shot_y = rabbit_y
+                    garlic_shot_x = player.rect.centerx - garlic_width/2
+                    garlic_shot_y = player.rect.y
 
                     # Store the garlic shot data
                     garlic_shot = {
@@ -407,8 +407,8 @@ while running:
         for carrot in carrots:
           if carrot["active"]:
             # Calculate direction away from the rabbit (avoidance)
-            rabbit_center_x = rabbit_x + rabbit_width / 2
-            rabbit_center_y = rabbit_y + rabbit_height / 2
+            rabbit_center_x = player.rect.centerx
+            rabbit_center_y = player.rect.centery
             carrot_center_x = carrot["x"] + carrot_width/2
             carrot_center_y = carrot["y"] + carrot_height/2
             dx = carrot_center_x - rabbit_center_x
@@ -551,7 +551,7 @@ while running:
             vampire_y = max(0, min(world_height - vampire_height, vampire_y))
 
             # Check for collision with rabbit
-            rabbit_rect = pygame.Rect(rabbit_x, rabbit_y, rabbit_width, rabbit_height)
+            rabbit_rect = player.rect.copy()
             vampire_rect = pygame.Rect(vampire_x, vampire_y, vampire_width, vampire_height)
             if rabbit_rect.colliderect(vampire_rect):
                 health_points -= 1  # Decrease health points
