@@ -2,6 +2,7 @@ import pygame
 import math
 import random
 import time
+from config import *
 
 class Player:
     def __init__(self, x, y, image):
@@ -14,8 +15,9 @@ class Player:
         self.garlic_count = 0
 
     def move(self, dx, dy, world_bounds):
-        self.rect.x = max(0, min(world_bounds[0] - self.rect.width, self.rect.x + dx))
-        self.rect.y = max(0, min(world_bounds[1] - self.rect.height, self.rect.y + dy))
+        speed = config.PLAYER_SPEED
+        self.rect.x = max(0, min(world_bounds[0] - self.rect.width, self.rect.x + dx * speed))
+        self.rect.y = max(0, min(world_bounds[1] - self.rect.height, self.rect.y + dy * speed))
         
         if dx < 0 and not self.flipped:
             self.image = pygame.transform.flip(self.original_image, True, False)
@@ -176,7 +178,7 @@ class Vampire:
         self.death_effect_active = False
         self.death_effect_start_time = 0
         self.death_effect_duration = 2  # 2 second death effect
-        self.speed = 4
+        self.speed = config.VAMPIRE_SPEED
 
     def update(self, player, world_bounds, current_time):
         if self.active:

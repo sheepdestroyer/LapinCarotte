@@ -54,10 +54,6 @@ game_state = GameState(asset_manager)
 # Play intro music
 asset_manager.sounds['intro'].play(-1)
 
-# Movement constants
-carrot_speed = 3  # Base carrot speed
-bullet_speed = 10
-max_speed_multiplier = 3  # Max speed when rabbit is close
 
 # Function to calculate distance between objects
 def distance(x1, y1, x2, y2):
@@ -370,8 +366,10 @@ while running:
                 dist = direction.length()
                 
                 # Calculate speed multiplier
-                max_distance = 200
-                speed_multiplier = min(max(1, 1 + (max_distance - dist)/max_distance * (max_speed_multiplier - 1)), max_speed_multiplier)
+                max_distance = config.CARROT_DETECTION_RADIUS
+                speed_multiplier = min(max(1, 1 + (max_distance - dist)/max_distance * 
+                                    (config.MAX_SPEED_MULTIPLIER - 1)), 
+                                    config.MAX_SPEED_MULTIPLIER)
                 
                 # Update movement vector
                 if dist < 100:
@@ -424,9 +422,9 @@ while running:
         
         # Garlic shot logic
         if garlic_shot and garlic_shot["active"]:
-            if garlic_shot_travel < garlic_shot_max_travel:
+            if garlic_shot_travel < config.GARLIC_SHOT_MAX_TRAVEL:
                 # Update rotation angle each frame
-                garlic_shot["rotation_angle"] = (garlic_shot["rotation_angle"] + garlic_rotation_speed) % 360
+                garlic_shot["rotation_angle"] = (garlic_shot["rotation_angle"] + config.GARLIC_ROTATION_SPEED) % 360
                 # Move in the pre-calculated direction
                 garlic_shot["x"] += garlic_shot["dx"] * garlic_shot_speed
                 garlic_shot["y"] += garlic_shot["dy"] * garlic_shot_speed
@@ -563,7 +561,7 @@ while running:
 
     # Update the display
     pygame.display.flip()
-    time.sleep(0.02)
+    time.sleep(config.FRAME_DELAY)
 
 pygame.quit()
 sys.exit()
