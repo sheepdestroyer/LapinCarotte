@@ -3,18 +3,28 @@ import random
 from config import WORLD_SIZE, CARROT_COUNT, ITEM_SCALE
 
 class GameState:
-    def __init__(self):
+    def __init__(self, asset_manager):
         self.scroll = [0, 0]
         self.world_size = WORLD_SIZE
         self.game_over = False
         self.started = False
-        self.vampire = None
-        self.player = None
+        self.asset_manager = asset_manager
+        self.player = Player(200, 200, asset_manager.images['rabbit'])
+        self.vampire = Vampire(
+            random.randint(0, WORLD_SIZE[0]), 
+            random.randint(0, WORLD_SIZE[1]),
+            asset_manager.images['vampire']
+        )
+        self.vampire.active = True
         self.bullets = []
         self.carrots = []
         self.explosions = []
         self.garlic_shots = []
         self.items = []
+        
+        # Initialize carrots
+        for _ in range(CARROT_COUNT):
+            self.create_carrot(asset_manager)
 
     def reset(self):
         """Reset the game state to initial conditions"""

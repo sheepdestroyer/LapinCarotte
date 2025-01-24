@@ -23,6 +23,29 @@ class Player:
         elif dx > 0 and self.flipped:
             self.image = self.original_image
             self.flipped = False
+            
+    def take_damage(self):
+        self.health -= 1
+        
+    def reset(self):
+        self.health = 3
+        self.garlic_count = 0
+        self.rect.x = 200
+        self.rect.y = 200
+        
+    def draw(self, screen, scroll):
+        screen.blit(self.image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
+        
+    def draw_ui(self, screen, hp_image, garlic_image, max_garlic):
+        # Health display
+        for i in range(self.health):
+            screen.blit(hp_image, (10 + i * (32 + 5), 10))
+        
+        # Garlic display
+        if self.garlic_count > 0:
+            garlic_ui_x = screen.get_width() - 10 - max_garlic * (32 + 5)
+            for i in range(self.garlic_count):
+                screen.blit(garlic_image, (garlic_ui_x + i * (32 + 5), 10))
 
 class Bullet:
     def __init__(self, x, y, target_x, target_y, image):
