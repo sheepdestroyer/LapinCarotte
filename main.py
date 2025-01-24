@@ -684,8 +684,8 @@ while running:
         for i, garlic_item in enumerate(garlic_items[:]):
             garlic_item_rect = pygame.Rect(garlic_item["x"], garlic_item["y"], item_width, item_height)
             if rabbit_rect.colliderect(garlic_item_rect):
-                if garlic_count < max_garlic_count:
-                    garlic_count += 1
+                if player.garlic_count < max_garlic_count:
+                    player.garlic_count += 1
                     asset_manager.sounds['get_garlic'].play()  # Play the sound effect
                 garlic_items.pop(i)  # Remove the collected Garlic item
 
