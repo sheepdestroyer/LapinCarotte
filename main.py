@@ -349,7 +349,8 @@ while running:
                         "dx": dx_normalized,
                         "dy": dy_normalized,
                         "angle": angle,
-                        "active": True
+                        "active": True,
+                        "rotation_angle": 0  # Add dedicated rotation property
                     }
 
 
@@ -482,6 +483,8 @@ while running:
         # Garlic shot logic
         if garlic_shot and garlic_shot["active"]:
             if garlic_shot_travel < garlic_shot_max_travel:
+                # Update rotation angle each frame
+                garlic_shot["rotation_angle"] = (garlic_shot["rotation_angle"] + garlic_rotation_speed) % 360
                 # Move in the pre-calculated direction
                 garlic_shot["x"] += garlic_shot["dx"] * garlic_shot_speed
                 garlic_shot["y"] += garlic_shot["dy"] * garlic_shot_speed
@@ -490,9 +493,6 @@ while running:
                 if current_time - garlic_shot_start_time > garlic_shot_duration:
                     garlic_shot["active"] = False
                     garlic_shot = None
-
-            # Update garlic rotation
-            garlic_rotation_angle = (garlic_rotation_angle + garlic_rotation_speed) % 360
 
             # Check for collision with vampire
             if garlic_shot and game_state.vampire.active:
@@ -564,8 +564,8 @@ while running:
 
         # Draw the garlic shot
         if garlic_shot and garlic_shot["active"]:
-            # Draw rotated garlic using pre-calculated angle
-            rotated_garlic = pygame.transform.rotate(garlic_image, garlic_shot["angle"])
+            # Use rotation_angle instead of fixed angle
+            rotated_garlic = pygame.transform.rotate(garlic_image, garlic_shot["rotation_angle"])
             rotated_rect = rotated_garlic.get_rect(center=(garlic_shot["x"], garlic_shot["y"]))
             screen.blit(rotated_garlic, (rotated_rect.x - game_state.scroll[0], 
                                        rotated_rect.y - game_state.scroll[1]))
