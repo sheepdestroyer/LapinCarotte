@@ -24,6 +24,9 @@ class GameState:
         self.explosions = []
         self.garlic_shots = []
         self.items = []
+        self.garlic_shot = None
+        self.garlic_shot_travel = 0
+        self.garlic_shot_start_time = 0
         
         # Initialize carrots
         for _ in range(CARROT_COUNT):

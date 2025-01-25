@@ -116,25 +116,10 @@ rabbit_flipped = False  # Initial value set to false
 # Variable to store the last direction (up, down, left, right)
 last_direction = "right"
 
-# Game timing constants
-explosion_flash_interval = 0.1  # Time in seconds between flashes
-max_explosion_flashes = 3  # Number of times the explosion will flash
-#Respawn timer variables
-carrot_respawn_timer = 0
-carrot_respawn_delay = 3 # respawn delay in seconds
-
 # Scrolling variables
 scroll_x = 0
 scroll_y = 0
 scroll_trigger = 0.1  # 10% of screen width/height from edge
-
-# Total world size (set to whatever size you want your world to be)
-world_width = 3000
-world_height = 3000
-
-# Carrot management
-num_carrots = 5
-carrots = []
 
 # Item management (HP drops)
 item_scale = 0.5
@@ -147,24 +132,11 @@ garlic_items = []  # List to store the dropped Garlic items
 
 # Initialize vampire
 game_state.vampire = Vampire(
-    random.randint(0, world_width - vampire_width),
-    random.randint(0, world_height - vampire_height),
+    random.randint(0, config.WORLD_SIZE[0] - vampire_width),
+    random.randint(0, config.WORLD_SIZE[1] - vampire_height),
     asset_manager.images['vampire']
 )
 game_state.vampire.active = True  # Force initial activation
-
-# Garlic shooting variables
-garlic_shot = None
-garlic_shot_duration = 3  # seconds
-garlic_shot_max_travel = 250  # pixels
-garlic_shot_speed = 5
-garlic_shot_start_time = 0
-garlic_shot_travel = 0
-
-# Garlic rotation variables
-garlic_rotation_angle = 0
-garlic_rotation_speed = 5  # Degrees per frame
-
 
 # Game state
 game_over = False
