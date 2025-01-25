@@ -15,7 +15,7 @@ from config import (
 )
 
 def get_asset_path(relative_path):
-    """Get absolute path to resource, works for dev and for PyInstaller"""
+    # Get absolute path to resource, works for dev and for PyInstaller
     if getattr(sys, 'frozen', False):
         # Running in a PyInstaller bundle
         base_path = sys._MEIPASS
@@ -30,7 +30,8 @@ pygame.init()
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 # Create maximized window immediately
-screen = pygame.display.set_mode((0, 0), pygame.WINDOWMAXIMIZED)
+#screen = pygame.display.set_mode((0, 0), pygame.WINDOWMAXIMIZED)
+screen = pygame.display.set_mode((800, 600), pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
 screen_width, screen_height = screen.get_size()
 
 # Initialize game systems
@@ -51,7 +52,6 @@ game_state = GameState(asset_manager)
 
 # Play intro music
 asset_manager.sounds['intro'].play(-1)
-
 
 # Function to calculate distance between objects
 def distance(x1, y1, x2, y2):
@@ -119,8 +119,6 @@ item_width = int(hp_width * item_scale)  # 50% smaller
 item_height = int(hp_height * item_scale)  # 50% smaller
 hp_items = []  # List to store the dropped HP items
 garlic_items = []  # List to store the dropped Garlic items
-
-
 
 # Initialize vampire
 game_state.vampire = Vampire(
