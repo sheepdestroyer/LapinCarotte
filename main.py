@@ -136,11 +136,6 @@ game_state.vampire = Vampire(
     random.randint(0, config.WORLD_SIZE[1] - vampire_height),
     asset_manager.images['vampire']
 )
-game_state.vampire.active = True  # Force initial activation
-
-# Game state
-game_over = False
-game_started = False
 
 # Initialize carrots
 for _ in range(CARROT_COUNT):
@@ -184,8 +179,7 @@ def reset_game():
 
 # Function to start the game
 def start_game():
-    global game_started
-    game_started = True
+    game_state.started = True
     asset_manager.sounds['background'].play(-1)  # -1 makes the music loop continuously
 
 # Game loop
@@ -197,7 +191,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        if not game_started:
+        if not game_state.started:
             # Check for start screen button clicks
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -211,7 +205,7 @@ while running:
                 elif (787 <= mouse_x - start_screen_pos[0] <= 787 + exit_button_width and 
                       827 <= mouse_y - start_screen_pos[1] <= 827 + exit_button_height):
                     running = False
-        elif not game_over:
+        elif not game_state.game_over:
             # Handle shooting with space bar or left mouse button
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
