@@ -425,7 +425,7 @@ while running:
             game_state.vampire.respawn_timer = current_time
             
             if game_state.player.health <= 0:
-                game_over = True
+                game_state.game_over = True
                 asset_manager.sounds['death'].play()
                 asset_manager.sounds['background'].stop()
         
