@@ -15,3 +15,9 @@ python main.py
 pip install pyinstaller
 python build_exe.py
 ```
+
+# Credits
+Game Design : PixelWarrior9000
+Arts : PixelWarrior9000
+Code & Arts : Random mixe of AIs
+Bugfixes & Management : sheepdestroyer
