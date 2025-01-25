@@ -49,8 +49,11 @@ except pygame.error as e:
     sys.exit(1)
 pygame.display.set_caption("LapinCarotte")
 
-# Initialize game state
+# Initialize game state and variables
 game_state = GameState(asset_manager)
+garlic_shot = None
+garlic_shot_speed = config.GARLIC_SHOT_SPEED
+garlic_shot_duration = config.GARLIC_SHOT_DURATION
 
 # Play intro music
 asset_manager.sounds['intro'].play(-1)
@@ -157,8 +160,8 @@ def reset_game():
 
     # Reset vampire properly
     game_state.vampire.respawn(
-        random.randint(0, world_width - vampire_width),
-        random.randint(0, world_height - vampire_height)
+        random.randint(0, game_state.world_size[0] - vampire_width),
+        random.randint(0, game_state.world_size[1] - vampire_height)
     )
 
     # Reset bullets
@@ -300,7 +303,7 @@ while running:
         # Draw buttons relative to centered image position
         screen.blit(asset_manager.images['start'], (start_screen_pos[0] + 787, start_screen_pos[1] + 742))
         screen.blit(asset_manager.images['exit'], (start_screen_pos[0] + 787, start_screen_pos[1] + 827))
-    elif not game_over:
+    elif not game_state.game_over:
         # Handle keyboard input for player movement
         keys = pygame.key.get_pressed()
         dx, dy = 0, 0
@@ -354,8 +357,8 @@ while running:
                 carrot.rect.y += movement.y
                 
                 # Keep within world bounds
-                carrot.rect.x = max(0, min(world_width - carrot.rect.width, carrot.rect.x))
-                carrot.rect.y = max(0, min(world_height - carrot.rect.height, carrot.rect.y))
+                carrot.rect.x = max(0, min(game_state.world_size[0] - carrot.rect.width, carrot.rect.x))
+                carrot.rect.y = max(0, min(game_state.world_size[1] - carrot.rect.height, carrot.rect.y))
 
         # Update bullets and handle collisions
         for bullet in game_state.bullets[:]:
@@ -441,8 +444,8 @@ while running:
         # Screen tiling code (fill the entire world_width x world_height area)
         grass_width = grass_image.get_width()
         grass_height = grass_image.get_height()
-        for x in range(0, world_width, grass_width):
-            for y in range(0, world_height, grass_height):
+        for x in range(0, game_state.world_size[0], grass_width):
+            for y in range(0, game_state.world_size[1], grass_height):
                 screen.blit(grass_image, (x - game_state.scroll[0], y - game_state.scroll[1]))
 
         # Draw the carrots
