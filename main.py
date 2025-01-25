@@ -11,11 +11,11 @@ from game_entities import Player, Bullet, Carrot, Vampire, Explosion, Collectibl
 from game_state import GameState
 from config import (
     MAX_HEALTH, MAX_GARLIC, ITEM_SCALE, CARROT_COUNT,
-    WORLD_SIZE, SCROLL_TRIGGER, CARROT_RESPAWN_DELAY
+    WORLD_SIZE, CARROT_RESPAWN_DELAY
 )
 
 def get_asset_path(relative_path):
-    """Get absolute path to resource, works for dev and for PyInstaller"""
+    # Get absolute path to resource, works for dev and for PyInstaller
     if getattr(sys, 'frozen', False):
         # Running in a PyInstaller bundle
         base_path = sys._MEIPASS
@@ -30,7 +30,8 @@ pygame.init()
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 # Create maximized window immediately
-screen = pygame.display.set_mode((0, 0), pygame.WINDOWMAXIMIZED)
+#screen = pygame.display.set_mode((0, 0), pygame.WINDOWMAXIMIZED)
+screen = pygame.display.set_mode((800, 600), pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
 screen_width, screen_height = screen.get_size()
 
 # Initialize game systems
@@ -38,15 +39,12 @@ asset_manager = AssetManager()
 asset_manager.load_assets()
 game_state = GameState(asset_manager)
 
-# Load start screen image and calculate centered position
-try:
-    start_screen_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'start_screen.png'))).convert()
-    img_width = start_screen_image.get_width()
-    img_height = start_screen_image.get_height()
-    start_screen_pos = ((screen_width - img_width) // 2, (screen_height - img_height) // 2)
-except pygame.error as e:
-    print(f"Error loading start screen image: {e}")
-    sys.exit(1)
+# Calculate centered position for start screen
+start_screen_image = asset_manager.images['start_screen']
+start_screen_pos = (
+    (screen_width - start_screen_image.get_width()) // 2,
+    (screen_height - start_screen_image.get_height()) // 2
+)
 pygame.display.set_caption("LapinCarotte")
 
 # Initialize game state and variables
@@ -54,7 +52,6 @@ game_state = GameState(asset_manager)
 
 # Play intro music
 asset_manager.sounds['intro'].play(-1)
-
 
 # Function to calculate distance between objects
 def distance(x1, y1, x2, y2):
@@ -116,19 +113,12 @@ rabbit_flipped = False  # Initial value set to false
 # Variable to store the last direction (up, down, left, right)
 last_direction = "right"
 
-# Scrolling variables
-scroll_x = 0
-scroll_y = 0
-scroll_trigger = 0.1  # 10% of screen width/height from edge
-
 # Item management (HP drops)
 item_scale = 0.5
 item_width = int(hp_width * item_scale)  # 50% smaller
 item_height = int(hp_height * item_scale)  # 50% smaller
 hp_items = []  # List to store the dropped HP items
 garlic_items = []  # List to store the dropped Garlic items
-
-
 
 # Initialize vampire
 game_state.vampire = Vampire(
@@ -311,17 +301,17 @@ while running:
         game_state.player.move(dx, dy, game_state.world_size)
             
         # Scrolling logic
-        if game_state.player.rect.x < game_state.scroll[0] + screen_width * SCROLL_TRIGGER:
-            game_state.scroll[0] = max(0, game_state.player.rect.x - screen_width * SCROLL_TRIGGER)
-        elif game_state.player.rect.x + game_state.player.rect.width > game_state.scroll[0] + screen_width * (1 - SCROLL_TRIGGER):
+        if game_state.player.rect.x < game_state.scroll[0] + screen_width * game_state.scroll_trigger:
+            game_state.scroll[0] = max(0, game_state.player.rect.x - screen_width * game_state.scroll_trigger)
+        elif game_state.player.rect.x + game_state.player.rect.width > game_state.scroll[0] + screen_width * (1 - game_state.scroll_trigger):
             game_state.scroll[0] = min(game_state.world_size[0] - screen_width,
-                                     game_state.player.rect.x - screen_width*(1-SCROLL_TRIGGER) + game_state.player.rect.width)
+                                     game_state.player.rect.x - screen_width*(1-game_state.scroll_trigger) + game_state.player.rect.width)
 
-        if game_state.player.rect.y < game_state.scroll[1] + screen_height * SCROLL_TRIGGER:
-            game_state.scroll[1] = max(0, game_state.player.rect.y - screen_height * SCROLL_TRIGGER)
-        elif game_state.player.rect.y + game_state.player.rect.height > game_state.scroll[1] + screen_height * (1 - SCROLL_TRIGGER):
+        if game_state.player.rect.y < game_state.scroll[1] + screen_height * game_state.scroll_trigger:
+            game_state.scroll[1] = max(0, game_state.player.rect.y - screen_height * game_state.scroll_trigger)
+        elif game_state.player.rect.y + game_state.player.rect.height > game_state.scroll[1] + screen_height * (1 - game_state.scroll_trigger):
             game_state.scroll[1] = min(game_state.world_size[1] - screen_height,
-                                     game_state.player.rect.y - screen_height*(1-SCROLL_TRIGGER) + game_state.player.rect.height)
+                                     game_state.player.rect.y - screen_height*(1-game_state.scroll_trigger) + game_state.player.rect.height)
 
         # Update carrot logic
         for carrot in game_state.carrots:
