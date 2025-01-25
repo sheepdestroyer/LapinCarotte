@@ -27,6 +27,8 @@ class GameState:
         self.garlic_shot = None
         self.garlic_shot_travel = 0
         self.garlic_shot_start_time = 0
+        self.garlic_shot_speed = config.GARLIC_SHOT_SPEED
+        self.garlic_shot_duration = config.GARLIC_SHOT_DURATION
         
         # Initialize carrots
         for _ in range(CARROT_COUNT):
