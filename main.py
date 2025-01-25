@@ -11,7 +11,7 @@ from game_entities import Player, Bullet, Carrot, Vampire, Explosion, Collectibl
 from game_state import GameState
 from config import (
     MAX_HEALTH, MAX_GARLIC, ITEM_SCALE, CARROT_COUNT,
-    WORLD_SIZE, SCROLL_TRIGGER, CARROT_RESPAWN_DELAY
+    WORLD_SIZE, CARROT_RESPAWN_DELAY
 )
 
 def get_asset_path(relative_path):
@@ -308,17 +308,17 @@ while running:
         game_state.player.move(dx, dy, game_state.world_size)
             
         # Scrolling logic
-        if game_state.player.rect.x < game_state.scroll[0] + screen_width * SCROLL_TRIGGER:
-            game_state.scroll[0] = max(0, game_state.player.rect.x - screen_width * SCROLL_TRIGGER)
-        elif game_state.player.rect.x + game_state.player.rect.width > game_state.scroll[0] + screen_width * (1 - SCROLL_TRIGGER):
+        if game_state.player.rect.x < game_state.scroll[0] + screen_width * game_state.scroll_trigger:
+            game_state.scroll[0] = max(0, game_state.player.rect.x - screen_width * game_state.scroll_trigger)
+        elif game_state.player.rect.x + game_state.player.rect.width > game_state.scroll[0] + screen_width * (1 - game_state.scroll_trigger):
             game_state.scroll[0] = min(game_state.world_size[0] - screen_width,
-                                     game_state.player.rect.x - screen_width*(1-SCROLL_TRIGGER) + game_state.player.rect.width)
+                                     game_state.player.rect.x - screen_width*(1-game_state.scroll_trigger) + game_state.player.rect.width)
 
-        if game_state.player.rect.y < game_state.scroll[1] + screen_height * SCROLL_TRIGGER:
-            game_state.scroll[1] = max(0, game_state.player.rect.y - screen_height * SCROLL_TRIGGER)
-        elif game_state.player.rect.y + game_state.player.rect.height > game_state.scroll[1] + screen_height * (1 - SCROLL_TRIGGER):
+        if game_state.player.rect.y < game_state.scroll[1] + screen_height * game_state.scroll_trigger:
+            game_state.scroll[1] = max(0, game_state.player.rect.y - screen_height * game_state.scroll_trigger)
+        elif game_state.player.rect.y + game_state.player.rect.height > game_state.scroll[1] + screen_height * (1 - game_state.scroll_trigger):
             game_state.scroll[1] = min(game_state.world_size[1] - screen_height,
-                                     game_state.player.rect.y - screen_height*(1-SCROLL_TRIGGER) + game_state.player.rect.height)
+                                     game_state.player.rect.y - screen_height*(1-game_state.scroll_trigger) + game_state.player.rect.height)
 
         # Update carrot logic
         for carrot in game_state.carrots:
