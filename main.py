@@ -31,7 +31,7 @@ os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 # Create maximized window immediately
 #screen = pygame.display.set_mode((0, 0), pygame.WINDOWMAXIMIZED)
-screen = pygame.display.set_mode((800, 600), pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
+screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
 screen_width, screen_height = screen.get_size()
 
 # Initialize game systems
