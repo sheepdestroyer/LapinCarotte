@@ -38,15 +38,12 @@ asset_manager = AssetManager()
 asset_manager.load_assets()
 game_state = GameState(asset_manager)
 
-# Load start screen image and calculate centered position
-try:
-    start_screen_image = pygame.image.load(get_asset_path(os.path.join('Assets', 'start_screen.png'))).convert()
-    img_width = start_screen_image.get_width()
-    img_height = start_screen_image.get_height()
-    start_screen_pos = ((screen_width - img_width) // 2, (screen_height - img_height) // 2)
-except pygame.error as e:
-    print(f"Error loading start screen image: {e}")
-    sys.exit(1)
+# Calculate centered position for start screen
+start_screen_image = asset_manager.images['start_screen']
+start_screen_pos = (
+    (screen_width - start_screen_image.get_width()) // 2,
+    (screen_height - start_screen_image.get_height()) // 2
+)
 pygame.display.set_caption("LapinCarotte")
 
 # Initialize game state and variables
