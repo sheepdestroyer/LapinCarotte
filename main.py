@@ -113,11 +113,6 @@ rabbit_flipped = False  # Initial value set to false
 # Variable to store the last direction (up, down, left, right)
 last_direction = "right"
 
-# Scrolling variables
-scroll_x = 0
-scroll_y = 0
-scroll_trigger = 0.1  # 10% of screen width/height from edge
-
 # Item management (HP drops)
 item_scale = 0.5
 item_width = int(hp_width * item_scale)  # 50% smaller
