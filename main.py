@@ -295,7 +295,7 @@ while running:
                    exit_button_y <= mouse_y <= exit_button_y + exit_button_height):
                   running = False
 
-    if not game_started:
+    if not game_state.started:
         screen.blit(start_screen_image, start_screen_pos)
         # Draw buttons relative to centered image position
         screen.blit(asset_manager.images['start'], (start_screen_pos[0] + 787, start_screen_pos[1] + 742))
