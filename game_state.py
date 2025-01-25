@@ -1,13 +1,14 @@
 from game_entities import Carrot, Vampire, Player, Bullet, GarlicShot, Explosion, Collectible
 import random
 from config import (
-    WORLD_SIZE, CARROT_COUNT, ITEM_SCALE,
+    WORLD_SIZE, CARROT_COUNT, ITEM_SCALE, SCROLL_TRIGGER,
     GARLIC_SHOT_SPEED, GARLIC_SHOT_DURATION
 )
 
 class GameState:
     def __init__(self, asset_manager):
         self.scroll = [0, 0]
+        self.scroll_trigger = SCROLL_TRIGGER
         self.world_size = WORLD_SIZE
         self.game_over = False
         self.started = False
