@@ -51,9 +51,6 @@ pygame.display.set_caption("LapinCarotte")
 
 # Initialize game state and variables
 game_state = GameState(asset_manager)
-garlic_shot = None
-garlic_shot_speed = config.GARLIC_SHOT_SPEED
-garlic_shot_duration = config.GARLIC_SHOT_DURATION
 
 # Play intro music
 asset_manager.sounds['intro'].play(-1)
@@ -239,10 +236,10 @@ while running:
                     )
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 3 and game_state.player.garlic_count > 0 and garlic_shot is None:
+                if event.button == 3 and game_state.player.garlic_count > 0 and game_state.garlic_shot is None:
                     game_state.player.garlic_count -= 1
-                    garlic_shot_start_time = current_time
-                    garlic_shot_travel = 0
+                    game_state.garlic_shot_start_time = current_time
+                    game_state.garlic_shot_travel = 0
 
                     # Get world coordinates of mouse at time of firing
                     mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -266,7 +263,7 @@ while running:
                     # Calculate initial rotation angle
                     angle = math.degrees(math.atan2(-dy, dx))
 
-                    garlic_shot = {
+                    game_state.garlic_shot = {
                         "x": start_x,
                         "y": start_y,
                         "dx": dx_normalized,
@@ -391,29 +388,29 @@ while running:
                 carrot.respawn(game_state.world_size, game_state.player.rect)
         
         # Garlic shot logic
-        if garlic_shot and garlic_shot["active"]:
-            if garlic_shot_travel < config.GARLIC_SHOT_MAX_TRAVEL:
+        if game_state.garlic_shot and game_state.garlic_shot["active"]:
+            if game_state.garlic_shot_travel < config.GARLIC_SHOT_MAX_TRAVEL:
                 # Update rotation angle each frame
-                garlic_shot["rotation_angle"] = (garlic_shot["rotation_angle"] + config.GARLIC_ROTATION_SPEED) % 360
+                game_state.garlic_shot["rotation_angle"] = (game_state.garlic_shot["rotation_angle"] + config.GARLIC_ROTATION_SPEED) % 360
                 # Move in the pre-calculated direction
-                garlic_shot["x"] += garlic_shot["dx"] * garlic_shot_speed
-                garlic_shot["y"] += garlic_shot["dy"] * garlic_shot_speed
-                garlic_shot_travel += garlic_shot_speed
+                game_state.garlic_shot["x"] += game_state.garlic_shot["dx"] * game_state.garlic_shot_speed
+                game_state.garlic_shot["y"] += game_state.garlic_shot["dy"] * game_state.garlic_shot_speed
+                game_state.garlic_shot_travel += game_state.garlic_shot_speed
             else:
-                if current_time - garlic_shot_start_time > garlic_shot_duration:
-                    garlic_shot["active"] = False
-                    garlic_shot = None
+                if current_time - game_state.garlic_shot_start_time > game_state.garlic_shot_duration:
+                    game_state.garlic_shot["active"] = False
+                    game_state.garlic_shot = None
 
             # Check for collision with vampire
-            if garlic_shot and game_state.vampire.active:
-                garlic_rect = pygame.Rect(garlic_shot["x"], garlic_shot["y"], garlic_width, garlic_height)
+            if game_state.garlic_shot and game_state.vampire.active:
+                garlic_rect = pygame.Rect(game_state.garlic_shot["x"], game_state.garlic_shot["y"], garlic_width, garlic_height)
                 if garlic_rect.colliderect(game_state.vampire.rect):
                     game_state.vampire.death_effect_active = True
                     game_state.vampire.death_effect_start_time = current_time
                     game_state.vampire.active = False
                     game_state.vampire.respawn_timer = current_time
                     asset_manager.sounds['vampire_death'].play()
-                    garlic_shot = None
+                    game_state.garlic_shot = None
         # Update vampire
         game_state.vampire.update(game_state.player, game_state.world_size, current_time)
 
@@ -465,10 +462,10 @@ while running:
             )
 
         # Draw the garlic shot
-        if garlic_shot and garlic_shot["active"]:
+        if game_state.garlic_shot and game_state.garlic_shot["active"]:
             # Use rotation_angle instead of fixed angle
-            rotated_garlic = pygame.transform.rotate(garlic_image, garlic_shot["rotation_angle"])
-            rotated_rect = rotated_garlic.get_rect(center=(garlic_shot["x"], garlic_shot["y"]))
+            rotated_garlic = pygame.transform.rotate(garlic_image, game_state.garlic_shot["rotation_angle"])
+            rotated_rect = rotated_garlic.get_rect(center=(game_state.garlic_shot["x"], game_state.garlic_shot["y"]))
             screen.blit(rotated_garlic, (rotated_rect.x - game_state.scroll[0], 
                                        rotated_rect.y - game_state.scroll[1]))
 
