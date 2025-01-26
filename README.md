@@ -20,7 +20,7 @@ python build_exe.py
 ```
 Game Design : PixelWarrior9000
 Arts : PixelWarrior9000
-Code & Arts : Random mixe of AIs
+Code & Arts : Random mix of AIs
 QA : PixelWarrior9000 & sheepdestroyer
 Bugfixes & Management : sheepdestroyer
 ```
