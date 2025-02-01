@@ -33,7 +33,6 @@ class Player:
         self.health = max(0, self.health - amount)
         if self.health > 0:
             self.asset_manager.sounds['hurt'].play()
-        return self.health > 0  # Returns True if player still alive
         
     def reset(self):
         self.health = START_HEALTH
