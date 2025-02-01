@@ -140,7 +140,7 @@ game_over_image = asset_manager.images['game_over']
 restart_button_image = asset_manager.images['restart']
 exit_button_image = asset_manager.images['exit']
 
-# Function to reset the game state
+# Function to handle the player's death
 def handle_player_death():
     if not game_state.game_over and not game_state.player.death_effect_active:
         # Start death animation
@@ -150,6 +150,7 @@ def handle_player_death():
         pygame.mixer.music.stop()
         asset_manager.sounds['death'].play()
 
+# Function to reset the game state
 def reset_game():
     # Reset game state
     game_state.player.reset()
