@@ -396,7 +396,7 @@ while running:
         if game_state.garlic_shot and game_state.garlic_shot["active"]:
             if game_state.garlic_shot_travel < config.GARLIC_SHOT_MAX_TRAVEL:
                 # Update rotation angle each frame
-                game_state.garlic_shot["rotation_angle"] = (game_state.garlic_shot["rotation_angle"] + config.GARLIC_SHOT_ROTATION_SPEED) % 360
+                game_state.garlic_shot["rotation_angle"] = (game_state.garlic_shot["rotation_angle"] + GARLIC_SHOT_ROTATION_SPEED) % 360
                 # Move in the pre-calculated direction
                 game_state.garlic_shot["x"] += game_state.garlic_shot["dx"] * game_state.garlic_shot_speed
                 game_state.garlic_shot["y"] += game_state.garlic_shot["dy"] * game_state.garlic_shot_speed

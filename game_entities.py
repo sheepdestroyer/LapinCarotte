@@ -97,10 +97,10 @@ class Carrot:
             direction = carrot_center - player_center
             dist = direction.length()
             
-            max_distance = 200
+            max_distance = CARROT_DETECTION_RADIUS
             speed_multiplier = min(max(1, 1 + (max_distance - dist)/max_distance * (3 - 1)), 3)
             
-            if dist < 100 and dist > 0:
+            if dist < CARROT_CHASE_RADIUS and dist > 0:
                 direction.normalize_ip()
                 self.direction = direction
             else:
