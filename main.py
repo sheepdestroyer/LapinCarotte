@@ -415,9 +415,11 @@ while running:
             game_state.vampire.respawn_timer = current_time
             
             if game_state.player.health <= 0:
-                game_state.game_over = True
                 pygame.mixer.music.stop()
-                asset_manager.sounds['death'].play()           
+                asset_manager.sounds['death'].play()
+                time.sleep(2)               
+                game_state.game_over = True
+           
         
         # Check item collisions
         for item in game_state.items[:]:
