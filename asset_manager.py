@@ -31,7 +31,7 @@ class AssetManager:
         # Sound loading
         sound_assets = {
             'intro': 'intro.mp3',
-            'background': 'Pixel_Power.mp3',
+            'background_music': 'Pixel_Power.mp3',
             'explosion': 'explosion.mp3',
             'press_start': 'PressStart.mp3',
             'hurt': 'hurt.mp3',
@@ -39,7 +39,7 @@ class AssetManager:
             'get_garlic': 'item_garlic.mp3',
             'death': 'death.mp3',
             'vampire_death': 'VampireDeath.mp3',
-            'gameover': 'gameover.mp3'
+            'gameover_music': 'gameover.mp3'
         }
         
         for key, path in sound_assets.items():

@@ -156,7 +156,8 @@ def reset_game():
 
     # Reset game state
     game_state.game_over = False
-    asset_manager.sounds['background'].play(-1)  # Restart the background music
+    asset_manager.sounds['gameover_music'].stop()
+    asset_manager.sounds['background_music'].play(-1)  # Restart the background music
     
     # Clear all items
     game_state.items.clear()
@@ -170,7 +171,7 @@ def reset_game():
 # Function to start the game
 def start_game():
     game_state.started = True
-    asset_manager.sounds['background'].play(-1)  # -1 makes the music loop continuously
+    asset_manager.sounds['background_music'].play(-1)  # -1 makes the music loop continuously
 
 # Game loop
 running = True
@@ -413,8 +414,10 @@ while running:
             
             if game_state.player.health <= 0:
                 game_state.game_over = True
+                asset_manager.sounds['background_music'].stop()
                 asset_manager.sounds['death'].play()
-                asset_manager.sounds['background'].stop()
+                asset_manager.sounds['gameover_music'].play(-1)
+
         
         # Check item collisions
         for item in game_state.items[:]:
