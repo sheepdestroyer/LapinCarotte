@@ -11,7 +11,7 @@ class Player:
         self.rect = image.get_rect(topleft=(x, y))
         self.flipped = False
         self.last_direction = "right"
-        self.health = 3
+        self.health = 1
         self.garlic_count = 0
 
     def move(self, dx, dy, world_bounds):
