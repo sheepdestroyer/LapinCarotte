@@ -415,9 +415,7 @@ while running:
             if game_state.player.health <= 0:
                 game_state.game_over = True
                 asset_manager.sounds['background_music'].stop()
-                asset_manager.sounds['death'].play()
-                asset_manager.sounds['gameover_music'].play(-1)
-
+                asset_manager.sounds['death'].play()           
         
         # Check item collisions
         for item in game_state.items[:]:
@@ -518,6 +516,9 @@ while running:
       exit_button_x = screen_width / 2 + 20  # 20 pixels spacing
       exit_button_y = screen_height * 3 / 4 - exit_button_height / 2
       screen.blit(exit_button_image, (exit_button_x, exit_button_y))
+
+      time.sleep(2)
+      asset_manager.sounds['gameover_music'].play(-1)
 
     # Update the display
     pygame.display.flip()
