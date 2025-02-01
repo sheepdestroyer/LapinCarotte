@@ -60,7 +60,7 @@ class Bullet:
         dx = target_x - x
         dy = target_y - y
         dist = math.hypot(dx, dy)
-        self.velocity = (dx/dist * config.BULLET_SPEED, dy/dist * config.BULLET_SPEED) if dist > 0 else (0, 0)
+        self.velocity = (dx/dist * BULLET_SPEED, dy/dist * BULLET_SPEED) if dist > 0 else (0, 0)
         self.angle = math.degrees(math.atan2(-dy, dx))
         
     def update(self):
@@ -122,8 +122,8 @@ class GarlicShot:
         dist = math.hypot(dx, dy)
         self.direction = pygame.math.Vector2(dx/dist, dy/dist) if dist > 0 else pygame.math.Vector2(0, 0)
         self.rotation_angle = 0
-        self.speed = config.GARLIC_SHOT_SPEED
-        self.max_travel = config.GARLIC_SHOT_MAX_TRAVEL
+        self.speed = GARLIC_SHOT_SPEED
+        self.max_travel = GARLIC_SHOT_MAX_TRAVEL
         self.traveled = 0
         self.active = True
 
@@ -142,8 +142,8 @@ class Explosion:
         self.rect = image.get_rect(center=(x, y))
         self.start_time = time.time()
         self.flash_count = 0
-        self.max_flashes = config.EXPLOSION_MAX_FLASHES
-        self.flash_interval = config.EXPLOSION_FLASH_INTERVAL
+        self.max_flashes = EXPLOSION_MAX_FLASHES
+        self.flash_interval = EXPLOSION_FLASH_INTERVAL
         self.active = True
 
     def update(self, current_time):
@@ -181,7 +181,7 @@ class Vampire:
         self.respawn_timer = 0
         self.death_effect_active = False
         self.death_effect_start_time = 0
-        self.death_effect_duration = config.VAMPIRE_DEATH_DURATION
+        self.death_effect_duration = VAMPIRE_DEATH_DURATION
         self.speed = VAMPIRE_SPEED
 
     def update(self, player, world_bounds, current_time):
