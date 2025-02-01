@@ -51,7 +51,8 @@ pygame.display.set_caption("LapinCarotte")
 game_state = GameState(asset_manager)
 
 # Play intro music
-asset_manager.sounds['intro'].play(-1)
+pygame.mixer.music.load(asset_manager._get_path('intro.mp3'))
+pygame.mixer.music.play(-1)  # -1 makes it loop indefinitely
 
 # Function to calculate distance between objects
 def distance(x1, y1, x2, y2):
@@ -191,7 +192,7 @@ while running:
                 # Start button
                 if (787 <= mouse_x - start_screen_pos[0] <= 787 + start_button_width and 
                     742 <= mouse_y - start_screen_pos[1] <= 742 + start_button_height):
-                    asset_manager.sounds['intro'].stop()
+                    pygame.mixer.music.stop()
                     asset_manager.sounds['press_start'].play()
                     start_game()
                 # Exit button
