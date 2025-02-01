@@ -22,7 +22,7 @@ class AssetManager:
             'restart': 'restart.png',
             'exit': 'exit.png',
             'start': 'start.png',
-            'start_screen': 'start_screen.png'
+            'start_screen': 'start_screen_final.png'
         }
         
         for key, path in assets.items():
@@ -38,7 +38,8 @@ class AssetManager:
             'get_hp': 'item_hp.mp3',
             'get_garlic': 'item_garlic.mp3',
             'death': 'death.mp3',
-            'vampire_death': 'VampireDeath.mp3'
+            'vampire_death': 'VampireDeath.mp3',
+            'gameover': 'gameover.mp3'
         }
         
         for key, path in sound_assets.items():
