@@ -4,11 +4,25 @@ import random
 import time
 from config import *
 
-class Player:
-    def __init__(self, x, y, image, asset_manager):
+class GameObject:
+    """Base class for all game entities"""
+    def __init__(self, x, y, image):
         self.original_image = image
         self.image = image
         self.rect = image.get_rect(topleft=(x, y))
+        self.active = True
+        
+    def update(self, *args):
+        """Update logic to be overridden by subclasses"""
+        pass
+        
+    def draw(self, screen, scroll):
+        """Draw the entity with scroll offset"""
+        screen.blit(self.image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
+
+class Player(GameObject):
+    def __init__(self, x, y, image, asset_manager):
+        super().__init__(x, y, image)
         self.flipped = False
         self.last_direction = "right"
         self.health = START_HEALTH
@@ -54,10 +68,9 @@ class Player:
             for i in range(self.garlic_count):
                 screen.blit(garlic_image, (garlic_ui_x + i * (32 + 5), 10))
 
-class Bullet:
+class Bullet(GameObject):
     def __init__(self, x, y, target_x, target_y, image):
-        self.original_image = image
-        self.rect = image.get_rect(center=(x, y))
+        super().__init__(x, y, image)
         dx = target_x - x
         dy = target_y - y
         dist = math.hypot(dx, dy)
@@ -72,10 +85,9 @@ class Bullet:
     def rotated_image(self):
         return pygame.transform.rotate(self.original_image, self.angle)
 
-class Carrot:
+class Carrot(GameObject):
     def __init__(self, x, y, image):
-        self.image = image
-        self.rect = image.get_rect(center=(x, y))
+        super().__init__(x, y, image)
         self.speed = CARROT_SPEED
         self.active = True
         self.respawn_timer = 0
@@ -114,10 +126,9 @@ class Carrot:
             self.rect.x = max(0, min(world_bounds[0] - self.rect.width, self.rect.x))
             self.rect.y = max(0, min(world_bounds[1] - self.rect.height, self.rect.y))
 
-class GarlicShot:
+class GarlicShot(GameObject):
     def __init__(self, start_x, start_y, target_x, target_y, image):
-        self.image = image
-        self.rect = image.get_rect(center=(start_x, start_y))
+        super().__init__(start_x, start_y, image)
         dx = target_x - start_x
         dy = target_y - start_y
         dist = math.hypot(dx, dy)
@@ -165,19 +176,18 @@ class Explosion:
                        (self.rect.x - scroll[0], 
                         self.rect.y - scroll[1]))
 
-class Collectible:
+class Collectible(GameObject):
     def __init__(self, x, y, image, item_type, scale=0.5):
-        self.image = pygame.transform.scale(image, 
+        scaled_image = pygame.transform.scale(image, 
             (int(image.get_width() * scale), 
              int(image.get_height() * scale)))
-        self.rect = self.image.get_rect(center=(x, y))
+        super().__init__(x, y, scaled_image)
         self.active = True
         self.item_type = item_type
 
-class Vampire:
+class Vampire(GameObject):
     def __init__(self, x, y, image):
-        self.image = image
-        self.rect = image.get_rect(center=(x, y))  # Center-based position
+        super().__init__(x, y, image)
         self.active = False
         self.respawn_timer = 0
         self.death_effect_active = False
