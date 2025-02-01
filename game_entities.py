@@ -11,7 +11,7 @@ class Player:
         self.rect = image.get_rect(topleft=(x, y))
         self.flipped = False
         self.last_direction = "right"
-        self.health = 1
+        self.health = START_HEALTH
         self.garlic_count = 0
 
     def move(self, dx, dy, world_bounds):
@@ -31,7 +31,7 @@ class Player:
         return self.health <= 0  # Returns True if player died
         
     def reset(self):
-        self.health = 3
+        self.health = START_HEALTH
         self.garlic_count = 0
         self.rect.x = 200
         self.rect.y = 200
