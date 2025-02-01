@@ -26,8 +26,9 @@ class Player:
             self.image = self.original_image
             self.flipped = False
             
-    def take_damage(self):
-        self.health -= 1
+    def take_damage(self, amount=1):
+        self.health = max(0, self.health - amount)
+        return self.health <= 0  # Returns True if player died
         
     def reset(self):
         self.health = 3

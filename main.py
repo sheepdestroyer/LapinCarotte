@@ -141,6 +141,13 @@ restart_button_image = asset_manager.images['restart']
 exit_button_image = asset_manager.images['exit']
 
 # Function to reset the game state
+def handle_player_death():
+    if not game_state.game_over:
+        pygame.mixer.music.stop()
+        asset_manager.sounds['death'].play()
+        game_state.game_over = True
+        time.sleep(2)  # Keep brief delay for death sound
+
 def reset_game():
     # Reset game state
     game_state.player.reset()
@@ -410,16 +417,10 @@ while running:
 
         # Check collision with player
         if game_state.vampire.active and game_state.player.rect.colliderect(game_state.vampire.rect):
-            game_state.player.health -= 1
-            asset_manager.sounds['hurt'].play()
+            if game_state.player.take_damage():
+                asset_manager.sounds['hurt'].play()
             game_state.vampire.active = False
             game_state.vampire.respawn_timer = current_time
-            
-            if game_state.player.health <= 0:
-                pygame.mixer.music.stop()
-                asset_manager.sounds['death'].play()
-                time.sleep(2)               
-                game_state.game_over = True
            
         
         # Check item collisions
@@ -503,6 +504,10 @@ while running:
                 screen.blit(item.image, 
                            (item.rect.x - game_state.scroll[0],
                             item.rect.y - game_state.scroll[1]))
+                            
+        # Check for player death
+        if game_state.player.health <= 0 and not game_state.game_over:
+            handle_player_death()
 
     else: # Game is over, display the game over screen
       # Fill the screen with black (or your background color)
