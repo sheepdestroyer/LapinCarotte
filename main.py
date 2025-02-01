@@ -211,7 +211,7 @@ while running:
         elif not game_state.game_over:
             # Handle shooting with space bar or left mouse button
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_SPACE and not game_state.player.death_effect_active:
                     # Create new bullet at rabbit's center
                     bullet_x = game_state.player.rect.centerx
                     bullet_y = game_state.player.rect.centery
@@ -222,7 +222,7 @@ while running:
                     game_state.bullets.append(Bullet(bullet_x, bullet_y, bullet_dx, bullet_dy, asset_manager.images['bullet']))
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:  # Left mouse button
+                if event.button == 1 and not game_state.player.death_effect_active:  # Left mouse button
                     mouse_pos = pygame.mouse.get_pos()
                     world_mouse = (
                         mouse_pos[0] + game_state.scroll[0],
@@ -239,7 +239,7 @@ while running:
                     )
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 3 and game_state.player.garlic_count > 0 and game_state.garlic_shot is None:
+                if event.button == 3 and not game_state.player.death_effect_active and game_state.player.garlic_count > 0 and game_state.garlic_shot is None:
                     game_state.player.garlic_count -= 1
                     game_state.garlic_shot_start_time = current_time
                     game_state.garlic_shot_travel = 0
@@ -306,13 +306,14 @@ while running:
     elif not game_state.game_over:
         # Handle keyboard input for player movement (only if not dying)
         if not game_state.player.death_effect_active:
-            keys = pygame.key.get_pressed()
             dx, dy = 0, 0
-            if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 1
-            if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
-            if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 1
-            if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
-            game_state.player.move(dx, dy, game_state.world_size)
+            if not game_state.player.death_effect_active:
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 1
+                if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
+                if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 1
+                if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
+                game_state.player.move(dx, dy, game_state.world_size)
             
         # Scrolling logic
         if game_state.player.rect.x < game_state.scroll[0] + screen_width * game_state.scroll_trigger:
