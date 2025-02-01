@@ -50,4 +50,4 @@ CARROT_SPAWN_SAFE_RATIO = 3  # Minimum distance from player (1/X of world size)
 MUSIC_GAME = 'Pixel_Power.mp3'
 MUSIC_INTRO = 'intro.mp3'
 MUSIC_GAMEOVER = 'gameover.mp3'
-SFX_BUTTON = 'PressStart.mp3'
+SFX_BUTTON = 'press_start.mp3'  # Match asset manager key

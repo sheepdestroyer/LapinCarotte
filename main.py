@@ -205,7 +205,7 @@ while running:
                 if (787 <= mouse_x - start_screen_pos[0] <= 787 + start_button_width and 
                     742 <= mouse_y - start_screen_pos[1] <= 742 + start_button_height):
                     pygame.mixer.music.stop()
-                    asset_manager.sounds[config.SFX_BUTTON.replace('.mp3', '')].play()
+                    asset_manager.sounds['press_start'].play()  # Direct match to loaded sound key
                     start_game()
                 # Exit button
                 elif (787 <= mouse_x - start_screen_pos[0] <= 787 + exit_button_width and 
