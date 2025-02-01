@@ -51,7 +51,7 @@ pygame.display.set_caption("LapinCarotte")
 game_state = GameState(asset_manager)
 
 # Play intro music
-pygame.mixer.music.load(asset_manager._get_path('intro.mp3'))
+pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_INTRO))
 pygame.mixer.music.play(-1)  # -1 makes it loop indefinitely
 
 # Function to calculate distance between objects
@@ -169,7 +169,7 @@ def reset_game():
     # Reset game state
     game_state.game_over = False
     pygame.mixer.music.stop()
-    pygame.mixer.music.load(asset_manager._get_path('Pixel_Power.mp3'))
+    pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAME))
     pygame.mixer.music.play(-1)
     
     # Clear all items
@@ -184,7 +184,7 @@ def reset_game():
 # Function to start the game
 def start_game():
     game_state.started = True
-    pygame.mixer.music.load(asset_manager._get_path('Pixel_Power.mp3'))
+    pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAME))
     pygame.mixer.music.play(-1)  # -1 makes the music loop continuously
 
 # Game loop
@@ -204,7 +204,7 @@ while running:
                 if (787 <= mouse_x - start_screen_pos[0] <= 787 + start_button_width and 
                     742 <= mouse_y - start_screen_pos[1] <= 742 + start_button_height):
                     pygame.mixer.music.stop()
-                    asset_manager.sounds['press_start'].play()
+                    asset_manager.sounds[config.SFX_BUTTON.replace('.mp3', '')].play()
                     start_game()
                 # Exit button
                 elif (787 <= mouse_x - start_screen_pos[0] <= 787 + exit_button_width and 
@@ -550,7 +550,7 @@ while running:
       screen.blit(exit_button_image, (exit_button_x, exit_button_y))
 
       if not pygame.mixer.music.get_busy():
-          pygame.mixer.music.load(asset_manager._get_path('gameover.mp3'))
+          pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAMEOVER))
           pygame.mixer.music.play(-1)
 
     # Update the display

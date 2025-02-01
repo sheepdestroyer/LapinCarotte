@@ -37,3 +37,9 @@ BUTTON_SPACING = 20  # pixels between UI elements
 FRAME_DELAY = 0.02  # seconds (50 FPS)
 EXPLOSION_FLASH_INTERVAL = 0.1  # seconds
 EXPLOSION_MAX_FLASHES = 3
+
+# Audio Configuration
+MUSIC_GAME = 'Pixel_Power.mp3'
+MUSIC_INTRO = 'intro.mp3'
+MUSIC_GAMEOVER = 'gameover.mp3'
+SFX_BUTTON = 'PressStart.mp3'
