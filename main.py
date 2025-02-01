@@ -416,7 +416,7 @@ while running:
             
             if game_state.player.health <= 0:
                 game_state.game_over = True
-                asset_manager.sounds['background_music'].stop()
+                pygame.mixer.music.stop()
                 asset_manager.sounds['death'].play()           
         
         # Check item collisions
