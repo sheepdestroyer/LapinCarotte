@@ -85,6 +85,6 @@ class GameState:
             y = random.randint(0, self.world_size[1])
             if not self.player or \
                ((x - self.player.rect.centerx)**2 + 
-                (y - self.player.rect.centery)**2 > (min(self.world_size)/3)**2):
+                (y - self.player.rect.centery)**2 > (min(self.world_size)/config.CARROT_SPAWN_SAFE_RATIO)**2):
                 self.carrots.append(Carrot(x, y, asset_manager.images['carrot']))
                 break

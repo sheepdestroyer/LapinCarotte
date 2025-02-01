@@ -37,6 +37,14 @@ BUTTON_SPACING = 20  # pixels between UI elements
 FRAME_DELAY = 0.02  # seconds (50 FPS)
 EXPLOSION_FLASH_INTERVAL = 0.1  # seconds
 EXPLOSION_MAX_FLASHES = 3
+VAMPIRE_DEATH_DURATION = 2
+VAMPIRE_RESPAWN_TIME = 5
+PLAYER_DEATH_DURATION = 2
+
+# Gameplay
+ITEM_DROP_GARLIC_CHANCE = 0.5  # 50% chance
+GARLIC_SHOT_ROTATION_SPEED = 5
+CARROT_SPAWN_SAFE_RATIO = 3  # Minimum distance from player (1/X of world size)
 
 # Audio Configuration
 MUSIC_GAME = 'Pixel_Power.mp3'

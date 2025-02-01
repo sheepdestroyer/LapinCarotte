@@ -397,7 +397,7 @@ while running:
         if game_state.garlic_shot and game_state.garlic_shot["active"]:
             if game_state.garlic_shot_travel < config.GARLIC_SHOT_MAX_TRAVEL:
                 # Update rotation angle each frame
-                game_state.garlic_shot["rotation_angle"] = (game_state.garlic_shot["rotation_angle"] + config.GARLIC_ROTATION_SPEED) % 360
+                game_state.garlic_shot["rotation_angle"] = (game_state.garlic_shot["rotation_angle"] + config.GARLIC_SHOT_ROTATION_SPEED) % 360
                 # Move in the pre-calculated direction
                 game_state.garlic_shot["x"] += game_state.garlic_shot["dx"] * game_state.garlic_shot_speed
                 game_state.garlic_shot["y"] += game_state.garlic_shot["dy"] * game_state.garlic_shot_speed
@@ -487,7 +487,7 @@ while running:
         for explosion in game_state.explosions[:]:
             if explosion.update(current_time):
                 # Create collectible item
-                is_garlic = random.choice([True, False])
+                is_garlic = random.random() < config.ITEM_DROP_GARLIC_CHANCE
                 item_image = asset_manager.images['garlic'] if is_garlic else asset_manager.images['hp']
                 game_state.items.append(
                     Collectible(
@@ -527,7 +527,7 @@ while running:
             handle_player_death()
         
         if game_state.player.death_effect_active:
-            if current_time - game_state.player.death_effect_start_time >= 2:
+            if current_time - game_state.player.death_effect_start_time >= config.PLAYER_DEATH_DURATION:
                 game_state.game_over = True
                 game_state.player.death_effect_active = False
 
