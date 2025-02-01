@@ -156,8 +156,9 @@ def reset_game():
 
     # Reset game state
     game_state.game_over = False
-    asset_manager.sounds['gameover_music'].stop()
-    asset_manager.sounds['background_music'].play(-1)  # Restart the background music
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load(asset_manager._get_path('Pixel_Power.mp3'))
+    pygame.mixer.music.play(-1)
     
     # Clear all items
     game_state.items.clear()
@@ -171,7 +172,8 @@ def reset_game():
 # Function to start the game
 def start_game():
     game_state.started = True
-    asset_manager.sounds['background_music'].play(-1)  # -1 makes the music loop continuously
+    pygame.mixer.music.load(asset_manager._get_path('Pixel_Power.mp3'))
+    pygame.mixer.music.play(-1)  # -1 makes the music loop continuously
 
 # Game loop
 running = True
@@ -517,8 +519,9 @@ while running:
       exit_button_y = screen_height * 3 / 4 - exit_button_height / 2
       screen.blit(exit_button_image, (exit_button_x, exit_button_y))
 
-      time.sleep(2)
-      asset_manager.sounds['gameover_music'].play(-1)
+      if not pygame.mixer.music.get_busy():
+          pygame.mixer.music.load(asset_manager._get_path('gameover.mp3'))
+          pygame.mixer.music.play(-1)
 
     # Update the display
     pygame.display.flip()
