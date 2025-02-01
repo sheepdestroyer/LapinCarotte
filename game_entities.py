@@ -13,6 +13,9 @@ class Player:
         self.last_direction = "right"
         self.health = START_HEALTH
         self.garlic_count = 0
+        # Add death effect properties
+        self.death_effect_active = False
+        self.death_effect_start_time = 0
 
     def move(self, dx, dy, world_bounds):
         speed = PLAYER_SPEED

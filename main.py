@@ -142,15 +142,19 @@ exit_button_image = asset_manager.images['exit']
 
 # Function to reset the game state
 def handle_player_death():
-    if not game_state.game_over:
+    if not game_state.game_over and not game_state.player.death_effect_active:
+        # Start death animation
+        game_state.player.death_effect_active = True
+        game_state.player.death_effect_start_time = current_time
+        # Play sounds
         pygame.mixer.music.stop()
         asset_manager.sounds['death'].play()
-        game_state.game_over = True
-        time.sleep(2)  # Keep brief delay for death sound
 
 def reset_game():
     # Reset game state
     game_state.player.reset()
+    game_state.player.death_effect_active = False
+    game_state.player.death_effect_start_time = 0
     game_state.scroll = [0, 0]
 
     # Reset vampire properly
@@ -302,14 +306,15 @@ while running:
         screen.blit(asset_manager.images['start'], (start_screen_pos[0] + 787, start_screen_pos[1] + 742))
         screen.blit(asset_manager.images['exit'], (start_screen_pos[0] + 787, start_screen_pos[1] + 827))
     elif not game_state.game_over:
-        # Handle keyboard input for player movement
-        keys = pygame.key.get_pressed()
-        dx, dy = 0, 0
-        if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 1
-        if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
-        if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 1
-        if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
-        game_state.player.move(dx, dy, game_state.world_size)
+        # Handle keyboard input for player movement (only if not dying)
+        if not game_state.player.death_effect_active:
+            keys = pygame.key.get_pressed()
+            dx, dy = 0, 0
+            if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 1
+            if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
+            if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 1
+            if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
+            game_state.player.move(dx, dy, game_state.world_size)
             
         # Scrolling logic
         if game_state.player.rect.x < game_state.scroll[0] + screen_width * game_state.scroll_trigger:
@@ -447,8 +452,20 @@ while running:
             if carrot.active:
                 screen.blit(carrot.image, (carrot.rect.x - game_state.scroll[0], carrot.rect.y - game_state.scroll[1]))
 
-        # Draw the rabbit using blit
-        screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
+        # Draw the rabbit with death effect if active
+        if game_state.player.death_effect_active:
+            time_since_death = current_time - game_state.player.death_effect_start_time
+            if int(time_since_death / 0.1) % 2 == 0:  # Flash every 0.1 seconds
+                tinted_image = game_state.player.image.copy()
+                tinted_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
+                screen.blit(tinted_image, (game_state.player.rect.x - game_state.scroll[0], 
+                                         game_state.player.rect.y - game_state.scroll[1]))
+            else:
+                screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0], 
+                                                    game_state.player.rect.y - game_state.scroll[1]))
+        else:
+            screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0], 
+                                                game_state.player.rect.y - game_state.scroll[1]))
 
         # Draw bullets
         for bullet in game_state.bullets:
@@ -505,9 +522,14 @@ while running:
                            (item.rect.x - game_state.scroll[0],
                             item.rect.y - game_state.scroll[1]))
                             
-        # Check for player death
+        # Check for player death and handle death animation
         if game_state.player.health <= 0 and not game_state.game_over:
             handle_player_death()
+        
+        if game_state.player.death_effect_active:
+            if current_time - game_state.player.death_effect_start_time >= 2:
+                game_state.game_over = True
+                game_state.player.death_effect_active = False
 
     else: # Game is over, display the game over screen
       # Fill the screen with black (or your background color)
