@@ -11,8 +11,11 @@ class Player:
         self.rect = image.get_rect(topleft=(x, y))
         self.flipped = False
         self.last_direction = "right"
-        self.health = 3
+        self.health = START_HEALTH
         self.garlic_count = 0
+        # Add death effect properties
+        self.death_effect_active = False
+        self.death_effect_start_time = 0
 
     def move(self, dx, dy, world_bounds):
         speed = PLAYER_SPEED
@@ -26,11 +29,12 @@ class Player:
             self.image = self.original_image
             self.flipped = False
             
-    def take_damage(self):
-        self.health -= 1
+    def take_damage(self, amount=1):
+        self.health = max(0, self.health - amount)
+        return self.health <= 0  # Returns True if player died
         
     def reset(self):
-        self.health = 3
+        self.health = START_HEALTH
         self.garlic_count = 0
         self.rect.x = 200
         self.rect.y = 200

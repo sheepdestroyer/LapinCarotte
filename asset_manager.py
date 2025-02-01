@@ -30,16 +30,13 @@ class AssetManager:
             
         # Sound loading
         sound_assets = {
-            'intro': 'intro.mp3',
-            'background': 'Pixel_Power.mp3',
             'explosion': 'explosion.mp3',
             'press_start': 'PressStart.mp3',
             'hurt': 'hurt.mp3',
             'get_hp': 'item_hp.mp3',
             'get_garlic': 'item_garlic.mp3',
             'death': 'death.mp3',
-            'vampire_death': 'VampireDeath.mp3',
-            'gameover': 'gameover.mp3'
+            'vampire_death': 'VampireDeath.mp3'
         }
         
         for key, path in sound_assets.items():
