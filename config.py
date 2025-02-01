@@ -4,7 +4,7 @@ SCROLL_TRIGGER = 0.1  # 10% screen edge trigger for scrolling
 
 # Player & Entities
 PLAYER_SPEED = 5
-START_HEALTH = 1
+START_HEALTH = 2
 MAX_HEALTH = 3
 MAX_GARLIC = 3
 
