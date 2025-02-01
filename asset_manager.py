@@ -31,7 +31,7 @@ class AssetManager:
         # Sound loading
         sound_assets = {
             'explosion': 'explosion.mp3',
-            'press_start': 'PressStart.mp3',
+            'press_start': 'press_start.mp3',
             'hurt': 'hurt.mp3',
             'get_hp': 'item_hp.mp3',
             'get_garlic': 'item_garlic.mp3',

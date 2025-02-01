@@ -1,9 +1,6 @@
-from game_entities import Carrot, Vampire, Player, Bullet, GarlicShot, Explosion, Collectible
 import random
-from config import (
-    WORLD_SIZE, CARROT_COUNT, ITEM_SCALE, SCROLL_TRIGGER,
-    GARLIC_SHOT_SPEED, GARLIC_SHOT_DURATION, CARROT_SPAWN_SAFE_RATIO
-)
+from game_entities import Carrot, Vampire, Player, Bullet, GarlicShot, Explosion, Collectible
+from config import *
 
 class GameState:
     def __init__(self, asset_manager):

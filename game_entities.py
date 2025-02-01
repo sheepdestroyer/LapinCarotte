@@ -31,7 +31,7 @@ class Player:
             
     def take_damage(self, amount=1):
         self.health = max(0, self.health - amount)
-        return self.health <= 0  # Returns True if player died
+        return self.health > 0  # Returns True if player still alive
         
     def reset(self):
         self.health = START_HEALTH
@@ -204,7 +204,7 @@ class Vampire:
                 self.death_effect_active = False
         else:
             # Respawn check when NOT active
-            if (current_time - self.respawn_timer > config.VAMPIRE_RESPAWN_TIME):
+            if (current_time - self.respawn_timer > VAMPIRE_RESPAWN_TIME):
                 self.respawn(
                     random.randint(0, world_bounds[0] - self.rect.width),
                     random.randint(0, world_bounds[1] - self.rect.height)
