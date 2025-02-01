@@ -2,7 +2,7 @@ from game_entities import Carrot, Vampire, Player, Bullet, GarlicShot, Explosion
 import random
 from config import (
     WORLD_SIZE, CARROT_COUNT, ITEM_SCALE, SCROLL_TRIGGER,
-    GARLIC_SHOT_SPEED, GARLIC_SHOT_DURATION
+    GARLIC_SHOT_SPEED, GARLIC_SHOT_DURATION, CARROT_SPAWN_SAFE_RATIO
 )
 
 class GameState:
@@ -85,6 +85,6 @@ class GameState:
             y = random.randint(0, self.world_size[1])
             if not self.player or \
                ((x - self.player.rect.centerx)**2 + 
-                (y - self.player.rect.centery)**2 > (min(self.world_size)/config.CARROT_SPAWN_SAFE_RATIO)**2):
+                (y - self.player.rect.centery)**2 > (min(self.world_size)/CARROT_SPAWN_SAFE_RATIO)**2):
                 self.carrots.append(Carrot(x, y, asset_manager.images['carrot']))
                 break
