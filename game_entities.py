@@ -5,7 +5,7 @@ import time
 from config import *
 
 class Player:
-    def __init__(self, x, y, image):
+    def __init__(self, x, y, image, asset_manager):
         self.original_image = image
         self.image = image
         self.rect = image.get_rect(topleft=(x, y))
@@ -13,9 +13,9 @@ class Player:
         self.last_direction = "right"
         self.health = START_HEALTH
         self.garlic_count = 0
-        # Add death effect properties
         self.death_effect_active = False
         self.death_effect_start_time = 0
+        self.asset_manager = asset_manager
 
     def move(self, dx, dy, world_bounds):
         speed = PLAYER_SPEED
@@ -31,6 +31,8 @@ class Player:
             
     def take_damage(self, amount=1):
         self.health = max(0, self.health - amount)
+        if self.health > 0:
+            self.asset_manager.sounds['hurt'].play()
         return self.health > 0  # Returns True if player still alive
         
     def reset(self):

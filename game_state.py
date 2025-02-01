@@ -10,7 +10,7 @@ class GameState:
         self.game_over = False
         self.started = False
         self.asset_manager = asset_manager
-        self.player = Player(200, 200, asset_manager.images['rabbit'])
+        self.player = Player(200, 200, asset_manager.images['rabbit'], asset_manager)
         self.garlic_shot = None
         self.garlic_shot_start_time = 0
         self.garlic_shot_travel = 0

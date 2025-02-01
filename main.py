@@ -420,8 +420,7 @@ while running:
 
         # Check collision with player
         if game_state.vampire.active and game_state.player.rect.colliderect(game_state.vampire.rect):
-            if game_state.player.take_damage():
-                asset_manager.sounds['hurt'].play()
+            game_state.player.take_damage()
             game_state.vampire.active = False
             game_state.vampire.respawn_timer = current_time
            
