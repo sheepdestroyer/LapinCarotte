@@ -76,7 +76,7 @@ class Carrot:
     def __init__(self, x, y, image):
         self.image = image
         self.rect = image.get_rect(center=(x, y))
-        self.speed = 3
+        self.speed = CARROT_SPEED
         self.active = True
         self.respawn_timer = 0
         self.direction = pygame.math.Vector2(random.uniform(-1, 1), 
