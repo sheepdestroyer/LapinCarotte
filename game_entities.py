@@ -2,8 +2,8 @@ import pygame
 import math
 import random
 import time
-import utils
 from config import *
+import utils
 
 class GameObject:
     """Base class for all game entities"""
