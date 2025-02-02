@@ -4,7 +4,10 @@ Un lapin combat les carottes vampires
 ![image](https://github.com/user-attachments/assets/577473aa-4569-43aa-9c7a-0c6f26821257)
 
 
-# Run
+# Download latest Windows executable
+Get [LapinCarotte.exe](https://github.com/sheepdestroyer/LapinCarotte/releases/download/v0.2-beta/LapinCarotte.exe) here: https://github.com/sheepdestroyer/LapinCarotte/releases
+
+# Run dev env
 ```
 pip install pygame
 python main.py
