@@ -41,12 +41,12 @@ class GameState:
         self.game_over = False
         self.started = False
         
-        # Clear all entity containers
-        self.bullets.clear()
-        self.explosions.clear()
-        self.garlic_shots.clear()
-        self.items.clear()
-        self.carrots.clear()
+        # Completely reset all entity containers
+        self.bullets = []
+        self.explosions = []
+        self.garlic_shots = []
+        self.items = []
+        self.carrots = []
         
         # Reset garlic shot state
         self.garlic_shot = None
@@ -56,6 +56,9 @@ class GameState:
         # Reset entities
         if self.player:
             self.player.reset()
+            # Clear any bullet rotation state
+            if hasattr(self.player, 'bullet_rotation'):
+                del self.player.bullet_rotation
         if self.vampire:
             self.vampire.respawn(
                 random.randint(0, self.world_size[0] - self.vampire.rect.width),
