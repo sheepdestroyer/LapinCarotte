@@ -26,14 +26,16 @@ def get_asset_path(relative_path):
 pygame.init()
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
-# Create maximized window immediately
+# Load assets
+asset_manager = AssetManager()
+asset_manager.load_assets()
+
+pygame.display.set_icon(asset_manager.images['icon'])
 #screen = pygame.display.set_mode((0, 0), pygame.WINDOWMAXIMIZED)
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
 screen_width, screen_height = screen.get_size()
 
 # Initialize game systems
-asset_manager = AssetManager()
-asset_manager.load_assets()
 game_state = GameState(asset_manager)
 
 # Calculate centered position for start screen
