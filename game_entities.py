@@ -3,6 +3,7 @@ import math
 import random
 import time
 from config import *
+import utils
 
 class GameObject:
     """Base class for all game entities"""
@@ -71,10 +72,8 @@ class Player(GameObject):
 class Bullet(GameObject):
     def __init__(self, x, y, target_x, target_y, image):
         super().__init__(x, y, image)
-        dx = target_x - x
-        dy = target_y - y
-        dist = math.hypot(dx, dy)
-        self.velocity = (dx/dist * BULLET_SPEED, dy/dist * BULLET_SPEED) if dist > 0 else (0, 0)
+        dir_x, dir_y = utils.get_direction_vector(x, y, target_x, target_y)
+        self.velocity = (dir_x * BULLET_SPEED, dir_y * BULLET_SPEED)
         self.angle = math.degrees(math.atan2(-dy, dx))
         
     def update(self):
@@ -129,10 +128,8 @@ class Carrot(GameObject):
 class GarlicShot(GameObject):
     def __init__(self, start_x, start_y, target_x, target_y, image):
         super().__init__(start_x, start_y, image)
-        dx = target_x - start_x
-        dy = target_y - start_y
-        dist = math.hypot(dx, dy)
-        self.direction = pygame.math.Vector2(dx/dist, dy/dist) if dist > 0 else pygame.math.Vector2(0, 0)
+        dir_x, dir_y = utils.get_direction_vector(start_x, start_y, target_x, target_y)
+        self.direction = pygame.math.Vector2(dir_x, dir_y)
         self.rotation_angle = 0
         self.speed = GARLIC_SHOT_SPEED
         self.max_travel = GARLIC_SHOT_MAX_TRAVEL
@@ -198,13 +195,9 @@ class Vampire(GameObject):
     def update(self, player, world_bounds, current_time):
         if self.active:
             # Movement logic
-            dx = player.rect.centerx - self.rect.centerx
-            dy = player.rect.centery - self.rect.centery
-            distance = math.hypot(dx, dy)
-            
-            if distance > 0:
-                self.rect.x += dx/distance * self.speed
-                self.rect.y += dy/distance * self.speed
+            move_x, move_y = utils.calculate_movement_towards(self.rect, player.rect, self.speed, world_bounds)
+            self.rect.x += move_x
+            self.rect.y += move_y
 
             # Boundary check
             self.rect.x = max(0, min(world_bounds[0] - self.rect.width, self.rect.x))
