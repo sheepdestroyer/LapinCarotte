@@ -30,10 +30,11 @@ os.environ['SDL_VIDEO_CENTERED'] = '1'
 asset_manager = AssetManager()
 asset_manager.load_assets()
 
-pygame.display.set_icon(asset_manager.images['icon'])
 #screen = pygame.display.set_mode((0, 0), pygame.WINDOWMAXIMIZED)
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
 screen_width, screen_height = screen.get_size()
+
+pygame.display.set_icon(asset_manager.images['icon'])
 
 # Initialize game systems
 game_state = GameState(asset_manager)
