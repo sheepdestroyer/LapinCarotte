@@ -22,7 +22,7 @@ python build_exe.py
 # Credits
 ```
 Game Design : PixelWarrior9000
-Arts : PixelWarrior9000
+Arts : PixelWarrior9000 & AIs
 Code & Arts : Random mix of AIs
 QA : PixelWarrior9000 & sheepdestroyer
 Bugfixes & Management : sheepdestroyer
