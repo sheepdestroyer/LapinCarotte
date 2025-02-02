@@ -162,7 +162,9 @@ def reset_game():
     )
 
     # Reset bullets
-    bullets = []
+    game_state.bullets = []
+    if hasattr(game_state.player, 'bullets'):
+        del game_state.player.bullets
 
     # Reset game state
     game_state.game_over = False
