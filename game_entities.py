@@ -74,7 +74,7 @@ class Bullet(GameObject):
         super().__init__(x, y, image)
         dir_x, dir_y = utils.get_direction_vector(x, y, target_x, target_y)
         self.velocity = (dir_x * BULLET_SPEED, dir_y * BULLET_SPEED)
-        self.angle = math.degrees(math.atan2(-dy, dx))
+        self.angle = math.degrees(math.atan2(-dir_y, dir_x))
         
     def update(self):
         self.rect.x += self.velocity[0]
