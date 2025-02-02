@@ -40,10 +40,18 @@ class GameState:
         self.scroll = [0, 0]
         self.game_over = False
         self.started = False
+        
+        # Clear all entity containers
         self.bullets.clear()
         self.explosions.clear()
         self.garlic_shots.clear()
         self.items.clear()
+        self.carrots.clear()
+        
+        # Reset garlic shot state
+        self.garlic_shot = None
+        self.garlic_shot_travel = 0
+        self.garlic_shot_start_time = 0
         
         # Reset entities
         if self.player:
@@ -54,7 +62,17 @@ class GameState:
                 random.randint(0, self.world_size[1] - self.vampire.rect.height)
             )
         
-        # Recreate carrots
+        # Hard reset vampires
+        if self.vampire:
+            self.vampire.active = False
+            self.vampire.death_effect_active = False
+            self.vampire.respawn_timer = 0
+            self.vampire.respawn(
+                random.randint(0, self.world_size[0] - self.vampire.rect.width),
+                random.randint(0, self.world_size[1] - self.vampire.rect.height)
+            )
+            
+        # Recreate carrots with fresh instances
         self.carrots = []
         for _ in range(CARROT_COUNT):
             self.create_carrot()
