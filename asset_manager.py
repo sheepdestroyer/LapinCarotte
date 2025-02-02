@@ -18,7 +18,6 @@ class AssetManager:
             'vampire': 'vampire.png',
             'hp': 'HP.png',
             'icon': 'HP.png',  # Use PNG format for pygame icon
-            'taskbar_icon': 'HP.ico',  # ICO will be loaded separately for Windows
             'garlic': 'garlic.png',
             'game_over': 'GameOver.png',
             'restart': 'restart.png',
