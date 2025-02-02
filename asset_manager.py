@@ -17,7 +17,6 @@ class AssetManager:
             'explosion': 'explosion.png',
             'vampire': 'vampire.png',
             'hp': 'HP.png',
-            'icon': 'HP.ico',
             'garlic': 'garlic.png',
             'game_over': 'GameOver.png',
             'restart': 'restart.png',
