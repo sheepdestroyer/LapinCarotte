@@ -17,7 +17,7 @@ class AssetManager:
             'explosion': 'explosion.png',
             'vampire': 'vampire.png',
             'hp': 'HP.png',
-            'icon': 'HP.png',  # Use PNG format for pygame icon
+            'icon': 'HP.png',
             'garlic': 'garlic.png',
             'game_over': 'GameOver.png',
             'restart': 'restart.png',

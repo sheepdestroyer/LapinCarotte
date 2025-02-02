@@ -36,6 +36,7 @@ asset_manager.load_assets()
 
 # Set game's Icon using PNG for best compatibility
 pygame.display.set_icon(asset_manager.images['icon'])
+
 # Windows taskbar icon workaround                                                                                                                                    
 if sys.platform == 'win32':                                                                                                                                          
     import ctypes
@@ -43,7 +44,6 @@ if sys.platform == 'win32':
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('LapinCarotte.1.0')
     # Set window title for better taskbar visibility
     pygame.display.set_caption("LapinCarotte", "LapinCarotte")
-
 
 # Initialize game systems
 game_state = GameState(asset_manager)
