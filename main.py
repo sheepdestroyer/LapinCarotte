@@ -35,7 +35,13 @@ asset_manager = AssetManager()
 asset_manager.load_assets()
 
 # Set game's Icon
-pygame.display.set_icon(asset_manager.images['hp'])
+#pygame.display.set_icon(asset_manager.images['hp'])
+pygame.display.set_icon(asset_manager.images['icon'])
+# Windows taskbar icon workaround                                                                                                                                    
+if sys.platform == 'win32':                                                                                                                                          
+    import ctypes                                                                                                                                                    
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('LapinCarotte.1.0') 
+
 
 # Initialize game systems
 game_state = GameState(asset_manager)
