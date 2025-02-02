@@ -3,19 +3,34 @@ import math
 import random
 import time
 from config import *
+from utilities import *
 
-class Player:
+class GameObject:
+    """Base class for all game entities"""
     def __init__(self, x, y, image):
         self.original_image = image
         self.image = image
         self.rect = image.get_rect(topleft=(x, y))
+        self.active = True
+        
+    def update(self, *args):
+        """Update logic to be overridden by subclasses"""
+        pass
+        
+    def draw(self, screen, scroll):
+        """Draw the entity with scroll offset"""
+        screen.blit(self.image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
+
+class Player(GameObject):
+    def __init__(self, x, y, image, asset_manager):
+        super().__init__(x, y, image)
         self.flipped = False
         self.last_direction = "right"
         self.health = START_HEALTH
         self.garlic_count = 0
-        # Add death effect properties
         self.death_effect_active = False
         self.death_effect_start_time = 0
+        self.asset_manager = asset_manager
 
     def move(self, dx, dy, world_bounds):
         speed = PLAYER_SPEED
@@ -31,7 +46,8 @@ class Player:
             
     def take_damage(self, amount=1):
         self.health = max(0, self.health - amount)
-        return self.health <= 0  # Returns True if player died
+        if self.health > 0:
+            self.asset_manager.sounds['hurt'].play()
         
     def reset(self):
         self.health = START_HEALTH
@@ -53,15 +69,12 @@ class Player:
             for i in range(self.garlic_count):
                 screen.blit(garlic_image, (garlic_ui_x + i * (32 + 5), 10))
 
-class Bullet:
+class Bullet(GameObject):
     def __init__(self, x, y, target_x, target_y, image):
-        self.original_image = image
-        self.rect = image.get_rect(center=(x, y))
-        dx = target_x - x
-        dy = target_y - y
-        dist = math.hypot(dx, dy)
-        self.velocity = (dx/dist * 10, dy/dist * 10) if dist > 0 else (0, 0)
-        self.angle = math.degrees(math.atan2(-dy, dx))
+        super().__init__(x, y, image)
+        dir_x, dir_y = get_direction_vector(x, y, target_x, target_y)
+        self.velocity = (dir_x * BULLET_SPEED, dir_y * BULLET_SPEED)
+        self.angle = math.degrees(math.atan2(-dir_y, dir_x))
         
     def update(self):
         self.rect.x += self.velocity[0]
@@ -71,11 +84,10 @@ class Bullet:
     def rotated_image(self):
         return pygame.transform.rotate(self.original_image, self.angle)
 
-class Carrot:
+class Carrot(GameObject):
     def __init__(self, x, y, image):
-        self.image = image
-        self.rect = image.get_rect(center=(x, y))
-        self.speed = 3
+        super().__init__(x, y, image)
+        self.speed = CARROT_SPEED
         self.active = True
         self.respawn_timer = 0
         self.direction = pygame.math.Vector2(random.uniform(-1, 1), 
@@ -96,10 +108,10 @@ class Carrot:
             direction = carrot_center - player_center
             dist = direction.length()
             
-            max_distance = 200
+            max_distance = CARROT_DETECTION_RADIUS
             speed_multiplier = min(max(1, 1 + (max_distance - dist)/max_distance * (3 - 1)), 3)
             
-            if dist < 100 and dist > 0:
+            if dist < CARROT_CHASE_RADIUS and dist > 0:
                 direction.normalize_ip()
                 self.direction = direction
             else:
@@ -113,17 +125,14 @@ class Carrot:
             self.rect.x = max(0, min(world_bounds[0] - self.rect.width, self.rect.x))
             self.rect.y = max(0, min(world_bounds[1] - self.rect.height, self.rect.y))
 
-class GarlicShot:
+class GarlicShot(GameObject):
     def __init__(self, start_x, start_y, target_x, target_y, image):
-        self.image = image
-        self.rect = image.get_rect(center=(start_x, start_y))
-        dx = target_x - start_x
-        dy = target_y - start_y
-        dist = math.hypot(dx, dy)
-        self.direction = pygame.math.Vector2(dx/dist, dy/dist) if dist > 0 else pygame.math.Vector2(0, 0)
+        super().__init__(start_x, start_y, image)
+        dir_x, dir_y = get_direction_vector(start_x, start_y, target_x, target_y)
+        self.direction = pygame.math.Vector2(dir_x, dir_y)
         self.rotation_angle = 0
-        self.speed = 5
-        self.max_travel = 250
+        self.speed = GARLIC_SHOT_SPEED
+        self.max_travel = GARLIC_SHOT_MAX_TRAVEL
         self.traveled = 0
         self.active = True
 
@@ -142,8 +151,8 @@ class Explosion:
         self.rect = image.get_rect(center=(x, y))
         self.start_time = time.time()
         self.flash_count = 0
-        self.max_flashes = 3
-        self.flash_interval = 0.1
+        self.max_flashes = EXPLOSION_MAX_FLASHES
+        self.flash_interval = EXPLOSION_FLASH_INTERVAL
         self.active = True
 
     def update(self, current_time):
@@ -164,36 +173,31 @@ class Explosion:
                        (self.rect.x - scroll[0], 
                         self.rect.y - scroll[1]))
 
-class Collectible:
+class Collectible(GameObject):
     def __init__(self, x, y, image, item_type, scale=0.5):
-        self.image = pygame.transform.scale(image, 
+        scaled_image = pygame.transform.scale(image, 
             (int(image.get_width() * scale), 
              int(image.get_height() * scale)))
-        self.rect = self.image.get_rect(center=(x, y))
+        super().__init__(x, y, scaled_image)
         self.active = True
         self.item_type = item_type
 
-class Vampire:
+class Vampire(GameObject):
     def __init__(self, x, y, image):
-        self.image = image
-        self.rect = image.get_rect(center=(x, y))  # Center-based position
+        super().__init__(x, y, image)
         self.active = False
         self.respawn_timer = 0
         self.death_effect_active = False
         self.death_effect_start_time = 0
-        self.death_effect_duration = 2  # 2 second death effect
+        self.death_effect_duration = VAMPIRE_DEATH_DURATION
         self.speed = VAMPIRE_SPEED
 
     def update(self, player, world_bounds, current_time):
         if self.active:
             # Movement logic
-            dx = player.rect.centerx - self.rect.centerx
-            dy = player.rect.centery - self.rect.centery
-            distance = math.hypot(dx, dy)
-            
-            if distance > 0:
-                self.rect.x += dx/distance * self.speed
-                self.rect.y += dy/distance * self.speed
+            move_x, move_y = calculate_movement_towards(self.rect, player.rect, self.speed, world_bounds)
+            self.rect.x += move_x
+            self.rect.y += move_y
 
             # Boundary check
             self.rect.x = max(0, min(world_bounds[0] - self.rect.width, self.rect.x))
@@ -204,7 +208,7 @@ class Vampire:
                 self.death_effect_active = False
         else:
             # Respawn check when NOT active
-            if (current_time - self.respawn_timer > 5):
+            if (current_time - self.respawn_timer > VAMPIRE_RESPAWN_TIME):
                 self.respawn(
                     random.randint(0, world_bounds[0] - self.rect.width),
                     random.randint(0, world_bounds[1] - self.rect.height)

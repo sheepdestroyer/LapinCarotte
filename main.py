@@ -9,10 +9,7 @@ import config
 from asset_manager import AssetManager
 from game_entities import Player, Bullet, Carrot, Vampire, Explosion, Collectible
 from game_state import GameState
-from config import (
-    MAX_HEALTH, MAX_GARLIC, ITEM_SCALE, CARROT_COUNT,
-    WORLD_SIZE, CARROT_RESPAWN_DELAY
-)
+from config import *
 
 def get_asset_path(relative_path):
     # Get absolute path to resource, works for dev and for PyInstaller
@@ -51,7 +48,7 @@ pygame.display.set_caption("LapinCarotte")
 game_state = GameState(asset_manager)
 
 # Play intro music
-pygame.mixer.music.load(asset_manager._get_path('intro.mp3'))
+pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_INTRO))
 pygame.mixer.music.play(-1)  # -1 makes it loop indefinitely
 
 # Function to calculate distance between objects
@@ -140,7 +137,7 @@ game_over_image = asset_manager.images['game_over']
 restart_button_image = asset_manager.images['restart']
 exit_button_image = asset_manager.images['exit']
 
-# Function to reset the game state
+# Function to handle the player's death
 def handle_player_death():
     if not game_state.game_over and not game_state.player.death_effect_active:
         # Start death animation
@@ -150,6 +147,7 @@ def handle_player_death():
         pygame.mixer.music.stop()
         asset_manager.sounds['death'].play()
 
+# Function to reset the game state
 def reset_game():
     # Reset game state
     game_state.player.reset()
@@ -164,12 +162,14 @@ def reset_game():
     )
 
     # Reset bullets
-    bullets = []
+    game_state.bullets = []
+    if hasattr(game_state.player, 'bullets'):
+        del game_state.player.bullets
 
     # Reset game state
     game_state.game_over = False
     pygame.mixer.music.stop()
-    pygame.mixer.music.load(asset_manager._get_path('Pixel_Power.mp3'))
+    pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAME))
     pygame.mixer.music.play(-1)
     
     # Clear all items
@@ -184,7 +184,7 @@ def reset_game():
 # Function to start the game
 def start_game():
     game_state.started = True
-    pygame.mixer.music.load(asset_manager._get_path('Pixel_Power.mp3'))
+    pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAME))
     pygame.mixer.music.play(-1)  # -1 makes the music loop continuously
 
 # Game loop
@@ -204,7 +204,7 @@ while running:
                 if (787 <= mouse_x - start_screen_pos[0] <= 787 + start_button_width and 
                     742 <= mouse_y - start_screen_pos[1] <= 742 + start_button_height):
                     pygame.mixer.music.stop()
-                    asset_manager.sounds['press_start'].play()
+                    asset_manager.sounds['press_start'].play()  # Direct match to loaded sound key
                     start_game()
                 # Exit button
                 elif (787 <= mouse_x - start_screen_pos[0] <= 787 + exit_button_width and 
@@ -213,7 +213,7 @@ while running:
         elif not game_state.game_over:
             # Handle shooting with space bar or left mouse button
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_SPACE and not game_state.player.death_effect_active:
                     # Create new bullet at rabbit's center
                     bullet_x = game_state.player.rect.centerx
                     bullet_y = game_state.player.rect.centery
@@ -224,7 +224,7 @@ while running:
                     game_state.bullets.append(Bullet(bullet_x, bullet_y, bullet_dx, bullet_dy, asset_manager.images['bullet']))
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:  # Left mouse button
+                if event.button == 1 and not game_state.player.death_effect_active:  # Left mouse button
                     mouse_pos = pygame.mouse.get_pos()
                     world_mouse = (
                         mouse_pos[0] + game_state.scroll[0],
@@ -241,7 +241,7 @@ while running:
                     )
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 3 and game_state.player.garlic_count > 0 and game_state.garlic_shot is None:
+                if event.button == 3 and not game_state.player.death_effect_active and game_state.player.garlic_count > 0 and game_state.garlic_shot is None:
                     game_state.player.garlic_count -= 1
                     game_state.garlic_shot_start_time = current_time
                     game_state.garlic_shot_travel = 0
@@ -308,13 +308,14 @@ while running:
     elif not game_state.game_over:
         # Handle keyboard input for player movement (only if not dying)
         if not game_state.player.death_effect_active:
-            keys = pygame.key.get_pressed()
             dx, dy = 0, 0
-            if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 1
-            if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
-            if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 1
-            if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
-            game_state.player.move(dx, dy, game_state.world_size)
+            if not game_state.player.death_effect_active:
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 1
+                if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
+                if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 1
+                if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
+                game_state.player.move(dx, dy, game_state.world_size)
             
         # Scrolling logic
         if game_state.player.rect.x < game_state.scroll[0] + screen_width * game_state.scroll_trigger:
@@ -397,7 +398,7 @@ while running:
         if game_state.garlic_shot and game_state.garlic_shot["active"]:
             if game_state.garlic_shot_travel < config.GARLIC_SHOT_MAX_TRAVEL:
                 # Update rotation angle each frame
-                game_state.garlic_shot["rotation_angle"] = (game_state.garlic_shot["rotation_angle"] + config.GARLIC_ROTATION_SPEED) % 360
+                game_state.garlic_shot["rotation_angle"] = (game_state.garlic_shot["rotation_angle"] + GARLIC_SHOT_ROTATION_SPEED) % 360
                 # Move in the pre-calculated direction
                 game_state.garlic_shot["x"] += game_state.garlic_shot["dx"] * game_state.garlic_shot_speed
                 game_state.garlic_shot["y"] += game_state.garlic_shot["dy"] * game_state.garlic_shot_speed
@@ -422,8 +423,7 @@ while running:
 
         # Check collision with player
         if game_state.vampire.active and game_state.player.rect.colliderect(game_state.vampire.rect):
-            if game_state.player.take_damage():
-                asset_manager.sounds['hurt'].play()
+            game_state.player.take_damage()
             game_state.vampire.active = False
             game_state.vampire.respawn_timer = current_time
            
@@ -487,7 +487,7 @@ while running:
         for explosion in game_state.explosions[:]:
             if explosion.update(current_time):
                 # Create collectible item
-                is_garlic = random.choice([True, False])
+                is_garlic = random.random() < config.ITEM_DROP_GARLIC_CHANCE
                 item_image = asset_manager.images['garlic'] if is_garlic else asset_manager.images['hp']
                 game_state.items.append(
                     Collectible(
@@ -527,7 +527,7 @@ while running:
             handle_player_death()
         
         if game_state.player.death_effect_active:
-            if current_time - game_state.player.death_effect_start_time >= 2:
+            if current_time - game_state.player.death_effect_start_time >= config.PLAYER_DEATH_DURATION:
                 game_state.game_over = True
                 game_state.player.death_effect_active = False
 
@@ -550,7 +550,7 @@ while running:
       screen.blit(exit_button_image, (exit_button_x, exit_button_y))
 
       if not pygame.mixer.music.get_busy():
-          pygame.mixer.music.load(asset_manager._get_path('gameover.mp3'))
+          pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAMEOVER))
           pygame.mixer.music.play(-1)
 
     # Update the display

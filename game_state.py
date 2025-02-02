@@ -1,9 +1,6 @@
-from game_entities import Carrot, Vampire, Player, Bullet, GarlicShot, Explosion, Collectible
 import random
-from config import (
-    WORLD_SIZE, CARROT_COUNT, ITEM_SCALE, SCROLL_TRIGGER,
-    GARLIC_SHOT_SPEED, GARLIC_SHOT_DURATION
-)
+from game_entities import Carrot, Vampire, Player, Bullet, GarlicShot, Explosion, Collectible
+from config import *
 
 class GameState:
     def __init__(self, asset_manager):
@@ -13,7 +10,7 @@ class GameState:
         self.game_over = False
         self.started = False
         self.asset_manager = asset_manager
-        self.player = Player(200, 200, asset_manager.images['rabbit'])
+        self.player = Player(200, 200, asset_manager.images['rabbit'], asset_manager)
         self.garlic_shot = None
         self.garlic_shot_start_time = 0
         self.garlic_shot_travel = 0
@@ -43,21 +40,42 @@ class GameState:
         self.scroll = [0, 0]
         self.game_over = False
         self.started = False
-        self.bullets.clear()
-        self.explosions.clear()
-        self.garlic_shots.clear()
-        self.items.clear()
+        
+        # Completely reset all entity containers
+        self.bullets = []
+        self.explosions = []
+        self.garlic_shots = []
+        self.items = []
+        self.carrots = []
+        
+        # Reset garlic shot state
+        self.garlic_shot = None
+        self.garlic_shot_travel = 0
+        self.garlic_shot_start_time = 0
         
         # Reset entities
         if self.player:
             self.player.reset()
+            # Clear any bullet rotation state
+            if hasattr(self.player, 'bullet_rotation'):
+                del self.player.bullet_rotation
         if self.vampire:
             self.vampire.respawn(
                 random.randint(0, self.world_size[0] - self.vampire.rect.width),
                 random.randint(0, self.world_size[1] - self.vampire.rect.height)
             )
         
-        # Recreate carrots
+        # Hard reset vampires
+        if self.vampire:
+            self.vampire.active = False
+            self.vampire.death_effect_active = False
+            self.vampire.respawn_timer = 0
+            self.vampire.respawn(
+                random.randint(0, self.world_size[0] - self.vampire.rect.width),
+                random.randint(0, self.world_size[1] - self.vampire.rect.height)
+            )
+            
+        # Recreate carrots with fresh instances
         self.carrots = []
         for _ in range(CARROT_COUNT):
             self.create_carrot()
@@ -85,6 +103,6 @@ class GameState:
             y = random.randint(0, self.world_size[1])
             if not self.player or \
                ((x - self.player.rect.centerx)**2 + 
-                (y - self.player.rect.centery)**2 > (min(self.world_size)/3)**2):
+                (y - self.player.rect.centery)**2 > (min(self.world_size)/CARROT_SPAWN_SAFE_RATIO)**2):
                 self.carrots.append(Carrot(x, y, asset_manager.images['carrot']))
                 break
