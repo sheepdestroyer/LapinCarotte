@@ -2,8 +2,8 @@ import pygame
 import math
 import random
 import time
-import utils
 from config import *
+from utilities import *
 
 class GameObject:
     """Base class for all game entities"""
@@ -72,7 +72,7 @@ class Player(GameObject):
 class Bullet(GameObject):
     def __init__(self, x, y, target_x, target_y, image):
         super().__init__(x, y, image)
-        dir_x, dir_y = utils.get_direction_vector(x, y, target_x, target_y)
+        dir_x, dir_y = get_direction_vector(x, y, target_x, target_y)
         self.velocity = (dir_x * BULLET_SPEED, dir_y * BULLET_SPEED)
         self.angle = math.degrees(math.atan2(-dir_y, dir_x))
         
@@ -128,7 +128,7 @@ class Carrot(GameObject):
 class GarlicShot(GameObject):
     def __init__(self, start_x, start_y, target_x, target_y, image):
         super().__init__(start_x, start_y, image)
-        dir_x, dir_y = utils.get_direction_vector(start_x, start_y, target_x, target_y)
+        dir_x, dir_y = get_direction_vector(start_x, start_y, target_x, target_y)
         self.direction = pygame.math.Vector2(dir_x, dir_y)
         self.rotation_angle = 0
         self.speed = GARLIC_SHOT_SPEED
@@ -195,7 +195,7 @@ class Vampire(GameObject):
     def update(self, player, world_bounds, current_time):
         if self.active:
             # Movement logic
-            move_x, move_y = utils.calculate_movement_towards(self.rect, player.rect, self.speed, world_bounds)
+            move_x, move_y = calculate_movement_towards(self.rect, player.rect, self.speed, world_bounds)
             self.rect.x += move_x
             self.rect.y += move_y
 
