@@ -35,7 +35,7 @@ asset_manager = AssetManager()
 asset_manager.load_assets()
 
 # Set game's Icon
-pygame.display.set_icon(asset_manager.images['icon'])
+pygame.display.set_icon(asset_manager.images['hp'])
 
 # Initialize game systems
 game_state = GameState(asset_manager)
