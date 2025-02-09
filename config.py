@@ -7,6 +7,7 @@ PLAYER_SPEED = 5
 START_HEALTH = 2
 MAX_HEALTH = 3
 MAX_GARLIC = 3
+MAX_CARROT_JUICE = 999  # Practical "infinite" cap
 
 # Gameplay Mechanics
 ## Combat

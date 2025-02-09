@@ -449,6 +449,10 @@ while running:
                 elif item.item_type == 'garlic' and game_state.player.garlic_count < MAX_GARLIC:
                     game_state.player.garlic_count += 1
                     asset_manager.sounds['get_garlic'].play()
+                elif item.item_type == 'carrot_juice':
+                    if not hasattr(game_state.player, 'carrot_juice_count'):
+                        game_state.player.carrot_juice_count = 0
+                    game_state.player.carrot_juice_count += 1
                 game_state.items.remove(item)
 
 

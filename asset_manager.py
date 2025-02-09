@@ -23,7 +23,8 @@ class AssetManager:
             'restart': 'restart.png',
             'exit': 'exit.png',
             'start': 'start.png',
-            'start_screen': 'start_screen_final.png'
+            'start_screen': 'start_screen_final.png',
+            'carrot_juice': 'carrot_juice.png'
         }
         
         for key, path in assets.items():
