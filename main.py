@@ -483,6 +483,7 @@ while running:
                         game_state.player.carrot_juice_count = 0
                     game_state.player.carrot_juice_count += 1
                     game_state.player.juice_changed = True
+                    asset_manager.sounds['get_hp'].play()  # Reuse existing pickup sound
                 game_state.items.remove(item)
 
 
