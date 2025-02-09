@@ -433,12 +433,13 @@ while running:
                     game_state.garlic_shot = None
                     game_state.vampire_killed_count += 1
                     game_state.last_vampire_death_pos = game_state.vampire.rect.center  # Store death position
-        # Update vampire and check for completed death animation
-        prev_death_effect = game_state.vampire.death_effect_active
+        # Update vampire
         game_state.vampire.update(game_state.player, game_state.world_size, current_time)
         
-        # Spawn carrot juice after death animation finishes
-        if prev_death_effect and not game_state.vampire.death_effect_active:
+        # Handle finished death animations immediately
+        if game_state.vampire.death_effect_active and \
+           current_time - game_state.vampire.death_effect_start_time >= config.VAMPIRE_DEATH_DURATION:
+            
             game_state.items.append(
                 Collectible(
                     game_state.last_vampire_death_pos[0],
