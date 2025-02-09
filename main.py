@@ -510,7 +510,7 @@ while running:
                         explosion.rect.centerx,
                         explosion.rect.centery,
                         item_image,
-                        'garlic' if is_garlic else 'hp' if random.random() < 0.1 else 'carrot_juice',
+                        'garlic' if is_garlic else 'hp',
                         ITEM_SCALE
                     )
                 )
