@@ -430,6 +430,7 @@ while running:
                     game_state.vampire.respawn_timer = current_time
                     asset_manager.sounds['vampire_death'].play()
                     game_state.garlic_shot = None
+                    game_state.vampire_killed_count += 1
                     # Always drop carrot juice when vampire dies
                     game_state.items.append(
                         Collectible(
@@ -440,6 +441,7 @@ while running:
                             ITEM_SCALE
                         )
                     )
+                    print(f"[DEBUG] Vampire killed! Total: {game_state.vampire_killed_count}")
         # Update vampire
         game_state.vampire.update(game_state.player, game_state.world_size, current_time)
 
@@ -458,11 +460,13 @@ while running:
                     asset_manager.sounds['get_hp'].play()
                 elif item.item_type == 'garlic' and game_state.player.garlic_count < MAX_GARLIC:
                     game_state.player.garlic_count += 1
+                    game_state.player.garlic_changed = True
                     asset_manager.sounds['get_garlic'].play()
                 elif item.item_type == 'carrot_juice':
                     if not hasattr(game_state.player, 'carrot_juice_count'):
                         game_state.player.carrot_juice_count = 0
                     game_state.player.carrot_juice_count += 1
+                    game_state.player.juice_changed = True
                 game_state.items.remove(item)
 
 
@@ -530,16 +534,15 @@ while running:
         # Draw vampire
         game_state.vampire.draw(screen, game_state.scroll, current_time)
 
-        # Draw health points UI
-        for i in range(game_state.player.health):
-            screen.blit(hp_image, (10 + i * (hp_width + 5), 10))  # 5 pixels spacing
+        # Draw player UI elements
+        game_state.player.draw_ui(screen, hp_image, garlic_image, MAX_GARLIC)
         
-
-        # Draw Garlic count UI
-        if game_state.player.garlic_count > 0:  # Only display if player has garlic
-            garlic_ui_x = screen_width - 10 - MAX_GARLIC * (garlic_width + 5)
-            for i in range(game_state.player.garlic_count):
-                screen.blit(garlic_image, (garlic_ui_x + i * (garlic_width + 5), 10))  # 5 pixels spacing
+        # Debug output
+        if game_state.player.health_changed or game_state.player.garlic_changed or game_state.player.juice_changed:
+            print(f"[DEBUG] Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count}")
+            game_state.player.health_changed = False
+            game_state.player.garlic_changed = False
+            game_state.player.juice_changed = False
 
         # Draw all collectible items
         for item in game_state.items:

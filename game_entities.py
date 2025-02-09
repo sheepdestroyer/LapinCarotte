@@ -32,6 +32,9 @@ class Player(GameObject):
         self.death_effect_active = False
         self.death_effect_start_time = 0
         self.asset_manager = asset_manager
+        self.health_changed = False
+        self.garlic_changed = False
+        self.juice_changed = False
 
     def move(self, dx, dy, world_bounds):
         speed = PLAYER_SPEED
@@ -47,12 +50,14 @@ class Player(GameObject):
             
     def take_damage(self, amount=1):
         self.health = max(0, self.health - amount)
+        self.health_changed = True
         if self.health > 0:
             self.asset_manager.sounds['hurt'].play()
         
     def reset(self):
         self.health = START_HEALTH
         self.garlic_count = 0
+        self.carrot_juice_count = 0
         self.rect.x = 200
         self.rect.y = 200
         

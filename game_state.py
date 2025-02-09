@@ -30,6 +30,7 @@ class GameState:
         self.garlic_shot_start_time = 0
         self.garlic_shot_speed = GARLIC_SHOT_SPEED
         self.garlic_shot_duration = GARLIC_SHOT_DURATION
+        self.vampire_killed_count = 0  # Track vampires killed
         
         # Initialize carrots
         for _ in range(CARROT_COUNT):
