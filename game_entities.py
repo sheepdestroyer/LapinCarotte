@@ -71,9 +71,12 @@ class Player(GameObject):
         
         # Garlic display
         if self.garlic_count > 0:
-            garlic_ui_x = screen.get_width() - 10 - max_garlic * (32 + 5)
+            screen_width = screen.get_width()
+            garlic_width = garlic_image.get_width()
+            spacing = 5
             for i in range(self.garlic_count):
-                screen.blit(garlic_image, (garlic_ui_x + i * (garlic_image.get_width() + 5), 10))
+                x = screen_width - 10 - (i + 1) * (garlic_width + spacing)
+                screen.blit(garlic_image, (x, 10))
         
         # Carrot juice counter at bottom right (always visible when count > 0)
         if self.carrot_juice_count > 0:
