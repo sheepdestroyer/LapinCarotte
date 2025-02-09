@@ -28,6 +28,7 @@ class Player(GameObject):
         self.last_direction = "right"
         self.health = START_HEALTH
         self.garlic_count = 0
+        self.carrot_juice_count = 0  # Initialize counter
         self.death_effect_active = False
         self.death_effect_start_time = 0
         self.asset_manager = asset_manager
@@ -69,13 +70,13 @@ class Player(GameObject):
             for i in range(self.garlic_count):
                 screen.blit(garlic_image, (garlic_ui_x + i * (32 + 5), 10))
             
-            # Carrot juice counter at bottom right
-            if hasattr(self, 'carrot_juice_count') and self.carrot_juice_count > 0:
-                juice_image = self.asset_manager.images['carrot_juice']
-                screen.blit(juice_image, (screen.get_width() - 50, screen.get_height() - 50))
-                font = pygame.font.Font(None, 36)
-                text = font.render(str(self.carrot_juice_count), True, (255, 255, 255))
-                screen.blit(text, (screen.get_width() - 30, screen.get_height() - 45))
+        # Carrot juice counter at bottom right (always visible when count > 0)
+        if hasattr(self, 'carrot_juice_count') and self.carrot_juice_count > 0:
+            juice_image = self.asset_manager.images['carrot_juice']
+            screen.blit(juice_image, (screen.get_width() - 50, screen.get_height() - 50))
+            font = pygame.font.Font(None, 36)
+            text = font.render(str(self.carrot_juice_count), True, (255, 255, 255))
+            screen.blit(text, (screen.get_width() - 30, screen.get_height() - 45))
 
 class Bullet(GameObject):
     def __init__(self, x, y, target_x, target_y, image):
