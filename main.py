@@ -433,12 +433,15 @@ while running:
                     game_state.garlic_shot = None
                     game_state.vampire_killed_count += 1
                     game_state.last_vampire_death_pos = game_state.vampire.rect.center  # Store death position
+                    print(f"[DEBUG] Vampire killed! Total: {game_state.vampire_killed_count}")  # Print once per kill
         # Update vampire
         game_state.vampire.update(game_state.player, game_state.world_size, current_time)
         
         # Handle finished death animations immediately
         if game_state.vampire.death_effect_active and \
            current_time - game_state.vampire.death_effect_start_time >= config.VAMPIRE_DEATH_DURATION:
+            
+            game_state.vampire.death_effect_active = False  # Clear flag immediately
             
             game_state.items.append(
                 Collectible(
@@ -449,7 +452,6 @@ while running:
                     ITEM_SCALE
                 )
             )
-            print(f"[DEBUG] Vampire killed! Total: {game_state.vampire_killed_count}")
 
         # Check collision with player
         if game_state.vampire.active and game_state.player.rect.colliderect(game_state.vampire.rect):
