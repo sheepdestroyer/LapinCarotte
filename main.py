@@ -432,19 +432,22 @@ while running:
                     asset_manager.sounds['vampire_death'].play()
                     game_state.garlic_shot = None
                     game_state.vampire_killed_count += 1
-                    # Always drop carrot juice when vampire dies
-                    game_state.items.append(
-                        Collectible(
-                            game_state.vampire.rect.centerx,
-                            game_state.vampire.rect.centery,
-                            asset_manager.images['carrot_juice'],
-                            'carrot_juice',
-                            ITEM_SCALE
-                        )  # Set position via center coordinates
-                    )
-                    print(f"[DEBUG] Vampire killed! Total: {game_state.vampire_killed_count}")
-        # Update vampire
+        # Update vampire and check for completed death animation
+        prev_death_effect = game_state.vampire.death_effect_active
         game_state.vampire.update(game_state.player, game_state.world_size, current_time)
+        
+        # Spawn carrot juice after death animation finishes
+        if prev_death_effect and not game_state.vampire.death_effect_active:
+            game_state.items.append(
+                Collectible(
+                    game_state.vampire.rect.centerx,
+                    game_state.vampire.rect.centery,
+                    asset_manager.images['carrot_juice'],
+                    'carrot_juice',
+                    ITEM_SCALE
+                )
+            )
+            print(f"[DEBUG] Vampire killed! Total: {game_state.vampire_killed_count}")
 
         # Check collision with player
         if game_state.vampire.active and game_state.player.rect.colliderect(game_state.vampire.rect):
