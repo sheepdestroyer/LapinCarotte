@@ -430,6 +430,16 @@ while running:
                     game_state.vampire.respawn_timer = current_time
                     asset_manager.sounds['vampire_death'].play()
                     game_state.garlic_shot = None
+                    # Always drop carrot juice when vampire dies
+                    game_state.items.append(
+                        Collectible(
+                            game_state.vampire.rect.centerx,
+                            game_state.vampire.rect.centery,
+                            asset_manager.images['carrot_juice'],
+                            'carrot_juice',
+                            ITEM_SCALE
+                        )
+                    )
         # Update vampire
         game_state.vampire.update(game_state.player, game_state.world_size, current_time)
 
