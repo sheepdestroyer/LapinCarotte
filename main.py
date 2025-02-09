@@ -180,6 +180,7 @@ def reset_game():
 
     # Reset game state
     game_state.game_over = False
+    game_state.vampire_killed_count = 0  # Reset kill counter
     pygame.mixer.music.stop()
     pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAME))
     pygame.mixer.music.play(-1)
