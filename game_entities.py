@@ -196,6 +196,7 @@ class Collectible(GameObject):
             (int(image.get_width() * scale), 
              int(image.get_height() * scale)))
         super().__init__(x, y, scaled_image)
+        self.rect = self.image.get_rect(center=(x, y))  # Center the rect
         self.active = True
         self.item_type = item_type
 

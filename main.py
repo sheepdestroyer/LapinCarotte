@@ -440,7 +440,7 @@ while running:
                             asset_manager.images['carrot_juice'],
                             'carrot_juice',
                             ITEM_SCALE
-                        )
+                        ).rect.center  # Set position via center coordinates
                     )
                     print(f"[DEBUG] Vampire killed! Total: {game_state.vampire_killed_count}")
         # Update vampire
