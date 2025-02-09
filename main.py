@@ -141,8 +141,15 @@ game_state.vampire = Vampire(
 for _ in range(CARROT_COUNT):
     game_state.create_carrot(asset_manager)
 
-# Get commonly used images
+# Get commonly used images and pre-render grass background
 grass_image = asset_manager.images['grass']
+# Create single surface with all grass tiles
+grass_background = pygame.Surface(WORLD_SIZE, pygame.SRCALPHA)
+grass_width, grass_height = grass_image.get_size()
+for x in range(0, WORLD_SIZE[0], grass_width):
+    for y in range(0, WORLD_SIZE[1], grass_height):
+        grass_background.blit(grass_image, (x, y))
+        
 garlic_image = asset_manager.images['garlic']
 hp_image = asset_manager.images['hp']
 game_over_image = asset_manager.images['game_over']
@@ -346,27 +353,28 @@ while running:
         # Update carrot logic
         for carrot in game_state.carrots:
             if carrot.active:
-                # Calculate direction using vector
+                # Calculate direction using vector and squared distance
                 rabbit_center = pygame.math.Vector2(game_state.player.rect.center)
                 carrot_center = pygame.math.Vector2(carrot.rect.center)
                 direction = carrot_center - rabbit_center
-                dist = direction.length()
+                dist_sq = direction.length_squared()
                 
-                # Calculate speed multiplier
+                # Calculate speed multiplier using squared distance
                 max_distance = config.CARROT_DETECTION_RADIUS
-                speed_multiplier = min(max(1, 1 + (max_distance - dist)/max_distance * 
-                                    (config.MAX_SPEED_MULTIPLIER - 1)), 
-                                    config.MAX_SPEED_MULTIPLIER)
+                max_distance_sq = max_distance ** 2
+                if dist_sq > 0:
+                    speed_multiplier = 1 + (max_distance - math.sqrt(dist_sq))/max_distance * (config.MAX_SPEED_MULTIPLIER - 1)
+                    speed_multiplier = min(max(1, speed_multiplier), config.MAX_SPEED_MULTIPLIER)
                 
                 # Update movement vector
-                if dist < 100:
-                    if dist > 0:
-                        direction.normalize_ip()
-                        carrot.direction = direction
+                if dist_sq < 10000:  # 100^2
+                    if dist_sq > 0:
+                        carrot.direction = direction.normalize()
                 else:
-                    # Add random wander
+                    # Add random wander and normalize once
                     carrot.direction += pygame.math.Vector2(random.uniform(-0.2, 0.2), random.uniform(-0.2, 0.2))
-                    carrot.direction.normalize_ip()
+                    if carrot.direction.length_squared() > 0:
+                        carrot.direction.normalize_ip()
                 
                 # Apply movement
                 movement = carrot.direction * carrot.speed * speed_multiplier
@@ -478,12 +486,8 @@ while running:
                 game_state.items.remove(item)
 
 
-        # Screen tiling code (fill the entire world_width x world_height area)
-        grass_width = grass_image.get_width()
-        grass_height = grass_image.get_height()
-        for x in range(0, game_state.world_size[0], grass_width):
-            for y in range(0, game_state.world_size[1], grass_height):
-                screen.blit(grass_image, (x - game_state.scroll[0], y - game_state.scroll[1]))
+        # Draw pre-rendered grass background
+        screen.blit(grass_background, (-game_state.scroll[0], -game_state.scroll[1]))
 
         # Draw the carrots
         for carrot in game_state.carrots:
