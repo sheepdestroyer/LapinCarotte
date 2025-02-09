@@ -440,8 +440,8 @@ while running:
         if prev_death_effect and not game_state.vampire.death_effect_active:
             game_state.items.append(
                 Collectible(
-                    game_state.vampire.rect.centerx,
-                    game_state.vampire.rect.centery,
+                    game_state.last_vampire_death_pos[0],
+                    game_state.last_vampire_death_pos[1],
                     asset_manager.images['carrot_juice'],
                     'carrot_juice',
                     ITEM_SCALE
