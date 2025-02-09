@@ -81,14 +81,24 @@ class Player(GameObject):
         # Carrot juice counter at bottom right (always visible when count > 0)
         if self.carrot_juice_count > 0:
             juice_image = self.asset_manager.images['carrot_juice']
-            # Position using same spacing logic as HP/garlic counters
+            digits = str(self.carrot_juice_count)
             spacing = 5
-            x = screen.get_width() - 10 - juice_image.get_width() - spacing
+            digit_width = self.asset_manager.images['digit_0'].get_width()
+            
+            # Calculate total width needed for digits and spacing
+            total_width = len(digits) * (digit_width + spacing)
+            
+            # Start position (left side of juice image)
+            x = screen.get_width() - 10 - juice_image.get_width() - total_width
             y = screen.get_height() - 10 - juice_image.get_height()
-            screen.blit(juice_image, (x, y))
-            font = pygame.font.Font(None, 36)
-            text = font.render(str(self.carrot_juice_count), True, (255, 255, 255))
-            screen.blit(text, (x + juice_image.get_width() + spacing, y))
+            
+            # Draw digits first
+            for i, digit in enumerate(digits):
+                digit_img = self.asset_manager.images[f'digit_{digit}']
+                screen.blit(digit_img, (x + i * (digit_width + spacing), y))
+            
+            # Draw juice image to the right of the digits
+            screen.blit(juice_image, (x + total_width + spacing, y))
 
 class Bullet(GameObject):
     def __init__(self, x, y, target_x, target_y, image):

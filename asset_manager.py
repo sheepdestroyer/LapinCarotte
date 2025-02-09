@@ -24,7 +24,17 @@ class AssetManager:
             'exit': 'images/exit.png',
             'start': 'images/start.png',
             'start_screen': 'images/start_screen_final.png',
-            'carrot_juice': 'images/carrot_juice.png'
+            'carrot_juice': 'images/carrot_juice.png',
+            'digit_0': 'fonts/0.png',
+            'digit_1': 'fonts/1.png',
+            'digit_2': 'fonts/2.png',
+            'digit_3': 'fonts/3.png',
+            'digit_4': 'fonts/4.png',
+            'digit_5': 'fonts/5.png',
+            'digit_6': 'fonts/6.png',
+            'digit_7': 'fonts/7.png',
+            'digit_8': 'fonts/8.png',
+            'digit_9': 'fonts/9.png'
         }
         
         for key, path in assets.items():
