@@ -432,6 +432,7 @@ while running:
                     asset_manager.sounds['vampire_death'].play()
                     game_state.garlic_shot = None
                     game_state.vampire_killed_count += 1
+                    game_state.last_vampire_death_pos = game_state.vampire.rect.center  # Store death position
         # Update vampire and check for completed death animation
         prev_death_effect = game_state.vampire.death_effect_active
         game_state.vampire.update(game_state.player, game_state.world_size, current_time)
