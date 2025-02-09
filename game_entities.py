@@ -67,13 +67,13 @@ class Player(GameObject):
     def draw_ui(self, screen, hp_image, garlic_image, max_garlic):
         # Health display
         for i in range(self.health):
-            screen.blit(hp_image, (10 + i * (32 + 5), 10))
+            screen.blit(hp_image, (10 + i * (hp_image.get_width() + 5), 10))
         
         # Garlic display
         if self.garlic_count > 0:
             garlic_ui_x = screen.get_width() - 10 - max_garlic * (32 + 5)
             for i in range(self.garlic_count):
-                screen.blit(garlic_image, (garlic_ui_x + i * (32 + 5), 10))
+                screen.blit(garlic_image, (garlic_ui_x + i * (garlic_image.get_width() + 5), 10))
         
         # Carrot juice counter at bottom right (always visible when count > 0)
         if self.carrot_juice_count > 0:
