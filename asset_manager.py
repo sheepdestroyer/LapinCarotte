@@ -10,21 +10,21 @@ class AssetManager:
     def load_assets(self):
         # Image loading
         assets = {
-            'grass': 'grass.png',
-            'carrot': 'carrot.png',
-            'rabbit': 'rabbit.png',
-            'bullet': 'bullet.png',
-            'explosion': 'explosion.png',
-            'vampire': 'vampire.png',
-            'hp': 'HP.png',
-            'icon': 'HP.png',
-            'garlic': 'garlic.png',
-            'game_over': 'GameOver.png',
-            'restart': 'restart.png',
-            'exit': 'exit.png',
-            'start': 'start.png',
-            'start_screen': 'start_screen_final.png',
-            'carrot_juice': 'carrot_juice.png'
+            'grass': 'images/grass.png',
+            'carrot': 'images/carrot.png',
+            'rabbit': 'images/rabbit.png',
+            'bullet': 'images/bullet.png',
+            'explosion': 'images/explosion.png',
+            'vampire': 'images/vampire.png',
+            'hp': 'images/HP.png',
+            'icon': 'images/HP.png',
+            'garlic': 'images/garlic.png',
+            'game_over': 'images/GameOver.png',
+            'restart': 'images/restart.png',
+            'exit': 'images/exit.png',
+            'start': 'images/start.png',
+            'start_screen': 'images/start_screen_final.png',
+            'carrot_juice': 'images/carrot_juice.png'
         }
         
         for key, path in assets.items():
@@ -32,13 +32,13 @@ class AssetManager:
             
         # Sound loading
         sound_assets = {
-            'explosion': 'explosion.mp3',
-            'press_start': 'press_start.mp3',
-            'hurt': 'hurt.mp3',
-            'get_hp': 'item_hp.mp3',
-            'get_garlic': 'item_garlic.mp3',
-            'death': 'death.mp3',
-            'vampire_death': 'VampireDeath.mp3'
+            'explosion': 'sounds/explosion.mp3',
+            'press_start': 'sounds/press_start.mp3',
+            'hurt': 'sounds/hurt.mp3',
+            'get_hp': 'sounds/item_hp.mp3',
+            'get_garlic': 'sounds/item_garlic.mp3',
+            'death': 'sounds/death.mp3',
+            'vampire_death': 'sounds/VampireDeath.mp3'
         }
         
         for key, path in sound_assets.items():

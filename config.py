@@ -48,6 +48,6 @@ GARLIC_SHOT_ROTATION_SPEED = 5
 CARROT_SPAWN_SAFE_RATIO = 3  # Minimum distance from player (1/X of world size)
 
 # Music Configuration
-MUSIC_INTRO = 'intro.mp3'
-MUSIC_GAME = 'Pixel_Power.mp3'
-MUSIC_GAMEOVER = 'gameover.mp3'
+MUSIC_INTRO = 'sounds/intro.mp3'
+MUSIC_GAME = 'sounds/Pixel_Power.mp3'
+MUSIC_GAMEOVER = 'sounds/gameover.mp3'
