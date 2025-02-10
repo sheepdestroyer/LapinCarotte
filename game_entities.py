@@ -28,9 +28,13 @@ class Player(GameObject):
         self.last_direction = "right"
         self.health = START_HEALTH
         self.garlic_count = 0
+        self.carrot_juice_count = 0  # Initialize counter
         self.death_effect_active = False
         self.death_effect_start_time = 0
         self.asset_manager = asset_manager
+        self.health_changed = False
+        self.garlic_changed = False
+        self.juice_changed = False
 
     def move(self, dx, dy, world_bounds):
         speed = PLAYER_SPEED
@@ -46,12 +50,14 @@ class Player(GameObject):
             
     def take_damage(self, amount=1):
         self.health = max(0, self.health - amount)
+        self.health_changed = True
         if self.health > 0:
             self.asset_manager.sounds['hurt'].play()
         
     def reset(self):
         self.health = START_HEALTH
         self.garlic_count = 0
+        self.carrot_juice_count = 0
         self.rect.x = 200
         self.rect.y = 200
         
@@ -61,13 +67,44 @@ class Player(GameObject):
     def draw_ui(self, screen, hp_image, garlic_image, max_garlic):
         # Health display
         for i in range(self.health):
-            screen.blit(hp_image, (10 + i * (32 + 5), 10))
+            screen.blit(hp_image, (10 + i * (hp_image.get_width() + 5), 10))
         
         # Garlic display
         if self.garlic_count > 0:
-            garlic_ui_x = screen.get_width() - 10 - max_garlic * (32 + 5)
+            screen_width = screen.get_width()
+            garlic_width = garlic_image.get_width()
+            spacing = 5
             for i in range(self.garlic_count):
-                screen.blit(garlic_image, (garlic_ui_x + i * (32 + 5), 10))
+                x = screen_width - 10 - (i + 1) * (garlic_width + spacing)
+                screen.blit(garlic_image, (x, 10))
+        
+        # Carrot juice counter at bottom right (always visible when count > 0)
+        if self.carrot_juice_count > 0:
+            juice_image = self.asset_manager.images['carrot_juice']
+            digits = str(self.carrot_juice_count)
+            spacing = 5
+            original_digit = self.asset_manager.images['digit_0']
+            scaled_digit_width = original_digit.get_width() * 5
+            scaled_digit_height = original_digit.get_height() * 5
+            
+            # Calculate total width needed for digits and spacing
+            total_width = len(digits) * (scaled_digit_width + spacing)
+            
+            # Start position (left side of juice image)
+            x = screen.get_width() - 10 - juice_image.get_width() - total_width
+            y = screen.get_height() - 10 - juice_image.get_height()
+            
+            # Calculate vertical position to align bottoms
+            digit_y = y + juice_image.get_height() - scaled_digit_height
+            
+            # Draw digits first
+            for i, digit in enumerate(digits):
+                digit_img = self.asset_manager.images[f'digit_{digit}']
+                scaled_digit = pygame.transform.scale(digit_img, (scaled_digit_width, scaled_digit_height))
+                screen.blit(scaled_digit, (x + i * (scaled_digit_width + spacing), digit_y))
+            
+            # Draw juice image to the right of the digits
+            screen.blit(juice_image, (x + total_width + spacing, y))
 
 class Bullet(GameObject):
     def __init__(self, x, y, target_x, target_y, image):
@@ -179,6 +216,7 @@ class Collectible(GameObject):
             (int(image.get_width() * scale), 
              int(image.get_height() * scale)))
         super().__init__(x, y, scaled_image)
+        self.rect = self.image.get_rect(center=(x, y))  # Center the rect
         self.active = True
         self.item_type = item_type
 

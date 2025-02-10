@@ -141,8 +141,15 @@ game_state.vampire = Vampire(
 for _ in range(CARROT_COUNT):
     game_state.create_carrot(asset_manager)
 
-# Get commonly used images
+# Get commonly used images and pre-render grass background
 grass_image = asset_manager.images['grass']
+# Create single surface with all grass tiles
+grass_background = pygame.Surface(WORLD_SIZE, pygame.SRCALPHA)
+grass_width, grass_height = grass_image.get_size()
+for x in range(0, WORLD_SIZE[0], grass_width):
+    for y in range(0, WORLD_SIZE[1], grass_height):
+        grass_background.blit(grass_image, (x, y))
+        
 garlic_image = asset_manager.images['garlic']
 hp_image = asset_manager.images['hp']
 game_over_image = asset_manager.images['game_over']
@@ -180,6 +187,7 @@ def reset_game():
 
     # Reset game state
     game_state.game_over = False
+    game_state.vampire_killed_count = 0  # Reset kill counter
     pygame.mixer.music.stop()
     pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAME))
     pygame.mixer.music.play(-1)
@@ -345,27 +353,28 @@ while running:
         # Update carrot logic
         for carrot in game_state.carrots:
             if carrot.active:
-                # Calculate direction using vector
+                # Calculate direction using vector and squared distance
                 rabbit_center = pygame.math.Vector2(game_state.player.rect.center)
                 carrot_center = pygame.math.Vector2(carrot.rect.center)
                 direction = carrot_center - rabbit_center
-                dist = direction.length()
+                dist_sq = direction.length_squared()
                 
-                # Calculate speed multiplier
+                # Calculate speed multiplier using squared distance
                 max_distance = config.CARROT_DETECTION_RADIUS
-                speed_multiplier = min(max(1, 1 + (max_distance - dist)/max_distance * 
-                                    (config.MAX_SPEED_MULTIPLIER - 1)), 
-                                    config.MAX_SPEED_MULTIPLIER)
+                max_distance_sq = max_distance ** 2
+                if dist_sq > 0:
+                    speed_multiplier = 1 + (max_distance - math.sqrt(dist_sq))/max_distance * (config.MAX_SPEED_MULTIPLIER - 1)
+                    speed_multiplier = min(max(1, speed_multiplier), config.MAX_SPEED_MULTIPLIER)
                 
                 # Update movement vector
-                if dist < 100:
-                    if dist > 0:
-                        direction.normalize_ip()
-                        carrot.direction = direction
+                if dist_sq < 10000:  # 100^2
+                    if dist_sq > 0:
+                        carrot.direction = direction.normalize()
                 else:
-                    # Add random wander
+                    # Add random wander and normalize once
                     carrot.direction += pygame.math.Vector2(random.uniform(-0.2, 0.2), random.uniform(-0.2, 0.2))
-                    carrot.direction.normalize_ip()
+                    if carrot.direction.length_squared() > 0:
+                        carrot.direction.normalize_ip()
                 
                 # Apply movement
                 movement = carrot.direction * carrot.speed * speed_multiplier
@@ -430,8 +439,27 @@ while running:
                     game_state.vampire.respawn_timer = current_time
                     asset_manager.sounds['vampire_death'].play()
                     game_state.garlic_shot = None
+                    game_state.vampire_killed_count += 1
+                    game_state.last_vampire_death_pos = game_state.vampire.rect.center  # Store death position
+                    print(f"[DEBUG] Vampire killed! Total: {game_state.vampire_killed_count}")  # Print once per kill
         # Update vampire
         game_state.vampire.update(game_state.player, game_state.world_size, current_time)
+        
+        # Handle finished death animations immediately
+        if game_state.vampire.death_effect_active and \
+           current_time - game_state.vampire.death_effect_start_time >= config.VAMPIRE_DEATH_DURATION:
+            
+            game_state.vampire.death_effect_active = False  # Clear flag immediately
+            
+            game_state.items.append(
+                Collectible(
+                    game_state.last_vampire_death_pos[0],
+                    game_state.last_vampire_death_pos[1],
+                    asset_manager.images['carrot_juice'],
+                    'carrot_juice',
+                    ITEM_SCALE
+                )
+            )
 
         # Check collision with player
         if game_state.vampire.active and game_state.player.rect.colliderect(game_state.vampire.rect):
@@ -448,16 +476,19 @@ while running:
                     asset_manager.sounds['get_hp'].play()
                 elif item.item_type == 'garlic' and game_state.player.garlic_count < MAX_GARLIC:
                     game_state.player.garlic_count += 1
+                    game_state.player.garlic_changed = True
                     asset_manager.sounds['get_garlic'].play()
+                elif item.item_type == 'carrot_juice':
+                    if not hasattr(game_state.player, 'carrot_juice_count'):
+                        game_state.player.carrot_juice_count = 0
+                    game_state.player.carrot_juice_count += 1
+                    game_state.player.juice_changed = True
+                    asset_manager.sounds['get_hp'].play()  # Reuse existing pickup sound
                 game_state.items.remove(item)
 
 
-        # Screen tiling code (fill the entire world_width x world_height area)
-        grass_width = grass_image.get_width()
-        grass_height = grass_image.get_height()
-        for x in range(0, game_state.world_size[0], grass_width):
-            for y in range(0, game_state.world_size[1], grass_height):
-                screen.blit(grass_image, (x - game_state.scroll[0], y - game_state.scroll[1]))
+        # Draw pre-rendered grass background
+        screen.blit(grass_background, (-game_state.scroll[0], -game_state.scroll[1]))
 
         # Draw the carrots
         for carrot in game_state.carrots:
@@ -516,16 +547,15 @@ while running:
         # Draw vampire
         game_state.vampire.draw(screen, game_state.scroll, current_time)
 
-        # Draw health points UI
-        for i in range(game_state.player.health):
-            screen.blit(hp_image, (10 + i * (hp_width + 5), 10))  # 5 pixels spacing
+        # Draw player UI elements
+        game_state.player.draw_ui(screen, hp_image, garlic_image, MAX_GARLIC)
         
-
-        # Draw Garlic count UI
-        if game_state.player.garlic_count > 0:  # Only display if player has garlic
-            garlic_ui_x = screen_width - 10 - MAX_GARLIC * (garlic_width + 5)
-            for i in range(game_state.player.garlic_count):
-                screen.blit(garlic_image, (garlic_ui_x + i * (garlic_width + 5), 10))  # 5 pixels spacing
+        # Debug output
+        if game_state.player.health_changed or game_state.player.garlic_changed or game_state.player.juice_changed:
+            print(f"[DEBUG] Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count}")
+            game_state.player.health_changed = False
+            game_state.player.garlic_changed = False
+            game_state.player.juice_changed = False
 
         # Draw all collectible items
         for item in game_state.items:
