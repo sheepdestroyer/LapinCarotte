@@ -9,7 +9,7 @@ Get [LapinCarotte.exe](https://github.com/sheepdestroyer/LapinCarotte/releases/d
 
 # Run dev env
 ```
-pip install pygame
+pip install pygame-ce
 python main.py
 ```
 
