@@ -5,7 +5,7 @@ Un lapin combat les carottes vampires
 
 
 # Download latest Windows executable
-Get [LapinCarotte.exe](https://github.com/sheepdestroyer/LapinCarotte/releases/download/v0.2-beta/LapinCarotte.exe) here: https://github.com/sheepdestroyer/LapinCarotte/releases
+Get [LapinCarotte.exe](https://github.com/sheepdestroyer/LapinCarotte/releases/download/v0.3-beta/LapinCarotte.exe) here: https://github.com/sheepdestroyer/LapinCarotte/releases
 
 # Run dev env
 ```
