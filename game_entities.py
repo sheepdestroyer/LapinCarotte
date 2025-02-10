@@ -83,19 +83,25 @@ class Player(GameObject):
             juice_image = self.asset_manager.images['carrot_juice']
             digits = str(self.carrot_juice_count)
             spacing = 5
-            digit_width = self.asset_manager.images['digit_0'].get_width()
+            original_digit = self.asset_manager.images['digit_0']
+            scaled_digit_width = original_digit.get_width() * 5
+            scaled_digit_height = original_digit.get_height() * 5
             
             # Calculate total width needed for digits and spacing
-            total_width = len(digits) * (digit_width + spacing)
+            total_width = len(digits) * (scaled_digit_width + spacing)
             
             # Start position (left side of juice image)
             x = screen.get_width() - 10 - juice_image.get_width() - total_width
             y = screen.get_height() - 10 - juice_image.get_height()
             
+            # Calculate vertical position to align bottoms
+            digit_y = y + juice_image.get_height() - scaled_digit_height
+            
             # Draw digits first
             for i, digit in enumerate(digits):
                 digit_img = self.asset_manager.images[f'digit_{digit}']
-                screen.blit(digit_img, (x + i * (digit_width + spacing), y))
+                scaled_digit = pygame.transform.scale(digit_img, (scaled_digit_width, scaled_digit_height))
+                screen.blit(scaled_digit, (x + i * (scaled_digit_width + spacing), digit_y))
             
             # Draw juice image to the right of the digits
             screen.blit(juice_image, (x + total_width + spacing, y))
