@@ -1,6 +1,6 @@
 # World & Camera
-WORLD_SIZE = (3000, 3000)
-SCROLL_TRIGGER = 0.1  # 10% screen edge trigger for scrolling
+WORLD_SIZE = (4000, 4000)
+SCROLL_TRIGGER = 0.2  # 10% screen edge trigger for scrolling
 
 # Player & Entities
 PLAYER_SPEED = 5
@@ -11,7 +11,7 @@ MAX_CARROT_JUICE = 999  # Practical "infinite" cap
 
 # Gameplay Mechanics
 ## Combat
-BULLET_SPEED = 10
+BULLET_SPEED = 4
 GARLIC_SHOT_SPEED = 5
 GARLIC_SHOT_DURATION = 3  # seconds
 GARLIC_SHOT_MAX_TRAVEL = 250  # pixels
