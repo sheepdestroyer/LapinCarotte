@@ -37,6 +37,9 @@ asset_manager.load_assets()
 # Set game's Icon using PNG for best compatibility
 pygame.display.set_icon(asset_manager.images['icon'])
 
+# Hide default cursor and set up custom crosshair
+pygame.mouse.set_visible(False)
+
 # Windows taskbar icon workaround                                                                                                                                    
 if sys.platform == 'win32':                                                                                                                                          
     import ctypes
@@ -595,6 +598,12 @@ while running:
           pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAMEOVER))
           pygame.mixer.music.play(-1)
 
+    # Draw custom crosshair at mouse position
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    crosshair_img = asset_manager.images['crosshair']
+    crosshair_rect = crosshair_img.get_rect(center=(mouse_x, mouse_y))
+    screen.blit(crosshair_img, crosshair_rect)
+    
     # Update the display
     pygame.display.flip()
     time.sleep(config.FRAME_DELAY)
