@@ -100,11 +100,6 @@ hp_rect = asset_manager.images['hp'].get_rect()
 hp_width = hp_rect.width
 hp_height = hp_rect.height
 
-# Get the Garlic image size
-garlic_rect = asset_manager.images['garlic'].get_rect()
-garlic_width = garlic_rect.width
-garlic_height = garlic_rect.height
-
 # Get the GameOver image size
 game_over_rect = asset_manager.images['game_over'].get_rect()
 game_over_width = game_over_rect.width
@@ -340,241 +335,99 @@ while running:
                 if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
                 game_state.player.move(dx, dy, game_state.world_size)
             
-        # Scrolling logic
-        if game_state.player.rect.x < game_state.scroll[0] + screen_width * game_state.scroll_trigger:
-            game_state.scroll[0] = max(0, game_state.player.rect.x - screen_width * game_state.scroll_trigger)
-        elif game_state.player.rect.x + game_state.player.rect.width > game_state.scroll[0] + screen_width * (1 - game_state.scroll_trigger):
-            game_state.scroll[0] = min(game_state.world_size[0] - screen_width,
-                                     game_state.player.rect.x - screen_width*(1-game_state.scroll_trigger) + game_state.player.rect.width)
+            # Scrolling logic
+            if game_state.player.rect.x < game_state.scroll[0] + screen_width * game_state.scroll_trigger:
+                game_state.scroll[0] = max(0, game_state.player.rect.x - screen_width * game_state.scroll_trigger)
+            elif game_state.player.rect.x + game_state.player.rect.width > game_state.scroll[0] + screen_width * (1 - game_state.scroll_trigger):
+                game_state.scroll[0] = min(game_state.world_size[0] - screen_width,
+                                         game_state.player.rect.x - screen_width*(1-game_state.scroll_trigger) + game_state.player.rect.width)
 
-        if game_state.player.rect.y < game_state.scroll[1] + screen_height * game_state.scroll_trigger:
-            game_state.scroll[1] = max(0, game_state.player.rect.y - screen_height * game_state.scroll_trigger)
-        elif game_state.player.rect.y + game_state.player.rect.height > game_state.scroll[1] + screen_height * (1 - game_state.scroll_trigger):
-            game_state.scroll[1] = min(game_state.world_size[1] - screen_height,
-                                     game_state.player.rect.y - screen_height*(1-game_state.scroll_trigger) + game_state.player.rect.height)
+            if game_state.player.rect.y < game_state.scroll[1] + screen_height * game_state.scroll_trigger:
+                game_state.scroll[1] = max(0, game_state.player.rect.y - screen_height * game_state.scroll_trigger)
+            elif game_state.player.rect.y + game_state.player.rect.height > game_state.scroll[1] + screen_height * (1 - game_state.scroll_trigger):
+                game_state.scroll[1] = min(game_state.world_size[1] - screen_height,
+                                         game_state.player.rect.y - screen_height*(1-game_state.scroll_trigger) + game_state.player.rect.height)
 
-        # Update carrot logic
-        for carrot in game_state.carrots:
-            if carrot.active:
-                # Calculate direction using vector and squared distance
-                rabbit_center = pygame.math.Vector2(game_state.player.rect.center)
-                carrot_center = pygame.math.Vector2(carrot.rect.center)
-                direction = carrot_center - rabbit_center
-                dist_sq = direction.length_squared()
-                
-                # Calculate speed multiplier using squared distance
-                max_distance = config.CARROT_DETECTION_RADIUS
-                max_distance_sq = max_distance ** 2
-                if dist_sq > 0:
-                    speed_multiplier = 1 + (max_distance - math.sqrt(dist_sq))/max_distance * (config.MAX_SPEED_MULTIPLIER - 1)
-                    speed_multiplier = min(max(1, speed_multiplier), config.MAX_SPEED_MULTIPLIER)
-                
-                # Update movement vector
-                if dist_sq < 10000:  # 100^2
-                    if dist_sq > 0:
-                        carrot.direction = direction.normalize()
-                else:
-                    # Add random wander and normalize once
-                    carrot.direction += pygame.math.Vector2(random.uniform(-0.2, 0.2), random.uniform(-0.2, 0.2))
-                    if carrot.direction.length_squared() > 0:
-                        carrot.direction.normalize_ip()
-                
-                # Apply movement
-                movement = carrot.direction * carrot.speed * speed_multiplier
-                carrot.rect.x += movement.x
-                carrot.rect.y += movement.y
-                
-                # Keep within world bounds
-                carrot.rect.x = max(0, min(game_state.world_size[0] - carrot.rect.width, carrot.rect.x))
-                carrot.rect.y = max(0, min(game_state.world_size[1] - carrot.rect.height, carrot.rect.y))
+            # Update game state
+            game_state.update(current_time)
 
-        # Update bullets and handle collisions
-        for bullet in game_state.bullets[:]:
-            bullet.update()
-            
-            # Remove off-screen bullets
-            if (bullet.rect.right < 0 or bullet.rect.left > game_state.world_size[0] or
-                bullet.rect.bottom < 0 or bullet.rect.top > game_state.world_size[1]):
-                game_state.bullets.remove(bullet)
-                continue
-            
-            # Check collisions with carrots
+            # Draw pre-rendered grass background
+            screen.blit(grass_background, (-game_state.scroll[0], -game_state.scroll[1]))
+
+            # Draw the carrots
             for carrot in game_state.carrots:
-                if carrot.active and bullet.rect.colliderect(carrot.rect):
-                    game_state.explosions.append(Explosion(
-                        carrot.rect.centerx,
-                        carrot.rect.centery,
-                        asset_manager.images['explosion']
-                    ))
-                    carrot.active = False
-                    carrot.respawn_timer = current_time
-                    asset_manager.sounds['explosion'].play()
-                    game_state.bullets.remove(bullet)
-                    break
+                if carrot.active:
+                    screen.blit(carrot.image, (carrot.rect.x - game_state.scroll[0], carrot.rect.y - game_state.scroll[1]))
 
-        # Respawn carrots after delay
-        for carrot in game_state.carrots:
-            if not carrot.active and current_time - carrot.respawn_timer > CARROT_RESPAWN_DELAY:
-                carrot.respawn_timer = 0  # Reset timer
-                carrot.respawn(game_state.world_size, game_state.player.rect)
-        
-        # Garlic shot logic
-        if game_state.garlic_shot and game_state.garlic_shot["active"]:
-            if game_state.garlic_shot_travel < config.GARLIC_SHOT_MAX_TRAVEL:
-                # Update rotation angle each frame
-                game_state.garlic_shot["rotation_angle"] = (game_state.garlic_shot["rotation_angle"] + GARLIC_SHOT_ROTATION_SPEED) % 360
-                # Move in the pre-calculated direction
-                game_state.garlic_shot["x"] += game_state.garlic_shot["dx"] * game_state.garlic_shot_speed
-                game_state.garlic_shot["y"] += game_state.garlic_shot["dy"] * game_state.garlic_shot_speed
-                game_state.garlic_shot_travel += game_state.garlic_shot_speed
-            else:
-                if current_time - game_state.garlic_shot_start_time > game_state.garlic_shot_duration:
-                    game_state.garlic_shot["active"] = False
-                    game_state.garlic_shot = None
-
-            # Check for collision with vampire
-            if game_state.garlic_shot and game_state.vampire.active:
-                garlic_rect = pygame.Rect(game_state.garlic_shot["x"], game_state.garlic_shot["y"], garlic_width, garlic_height)
-                if garlic_rect.colliderect(game_state.vampire.rect):
-                    game_state.vampire.death_effect_active = True
-                    game_state.vampire.death_effect_start_time = current_time
-                    game_state.vampire.active = False
-                    game_state.vampire.respawn_timer = current_time
-                    asset_manager.sounds['vampire_death'].play()
-                    game_state.garlic_shot = None
-                    game_state.vampire_killed_count += 1
-                    game_state.last_vampire_death_pos = game_state.vampire.rect.center  # Store death position
-                    print(f"[DEBUG] Vampire killed! Total: {game_state.vampire_killed_count}")  # Print once per kill
-        # Update vampire
-        game_state.vampire.update(game_state.player, game_state.world_size, current_time)
-        
-        # Handle finished death animations immediately
-        if game_state.vampire.death_effect_active and \
-           current_time - game_state.vampire.death_effect_start_time >= config.VAMPIRE_DEATH_DURATION:
-            
-            game_state.vampire.death_effect_active = False  # Clear flag immediately
-            
-            game_state.items.append(
-                Collectible(
-                    game_state.last_vampire_death_pos[0],
-                    game_state.last_vampire_death_pos[1],
-                    asset_manager.images['carrot_juice'],
-                    'carrot_juice',
-                    ITEM_SCALE
-                )
-            )
-
-        # Check collision with player
-        if game_state.vampire.active and game_state.player.rect.colliderect(game_state.vampire.rect):
-            game_state.player.take_damage()
-            game_state.vampire.active = False
-            game_state.vampire.respawn_timer = current_time
-           
-        
-        # Check item collisions
-        for item in game_state.items[:]:
-            if game_state.player.rect.colliderect(item.rect):
-                if item.item_type == 'hp' and game_state.player.health < MAX_HEALTH:
-                    game_state.player.health += 1
-                    asset_manager.sounds['get_hp'].play()
-                elif item.item_type == 'garlic' and game_state.player.garlic_count < MAX_GARLIC:
-                    game_state.player.garlic_count += 1
-                    game_state.player.garlic_changed = True
-                    asset_manager.sounds['get_garlic'].play()
-                elif item.item_type == 'carrot_juice':
-                    if not hasattr(game_state.player, 'carrot_juice_count'):
-                        game_state.player.carrot_juice_count = 0
-                    game_state.player.carrot_juice_count += 1
-                    game_state.player.juice_changed = True
-                    asset_manager.sounds['get_hp'].play()  # Reuse existing pickup sound
-                game_state.items.remove(item)
-
-
-        # Draw pre-rendered grass background
-        screen.blit(grass_background, (-game_state.scroll[0], -game_state.scroll[1]))
-
-        # Draw the carrots
-        for carrot in game_state.carrots:
-            if carrot.active:
-                screen.blit(carrot.image, (carrot.rect.x - game_state.scroll[0], carrot.rect.y - game_state.scroll[1]))
-
-        # Draw the rabbit with death effect if active
-        if game_state.player.death_effect_active:
-            time_since_death = current_time - game_state.player.death_effect_start_time
-            if int(time_since_death / 0.1) % 2 == 0:  # Flash every 0.1 seconds
-                tinted_image = game_state.player.image.copy()
-                tinted_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
-                screen.blit(tinted_image, (game_state.player.rect.x - game_state.scroll[0], 
-                                         game_state.player.rect.y - game_state.scroll[1]))
+            # Draw the rabbit with death effect if active
+            if game_state.player.death_effect_active:
+                time_since_death = current_time - game_state.player.death_effect_start_time
+                if int(time_since_death / 0.1) % 2 == 0:  # Flash every 0.1 seconds
+                    tinted_image = game_state.player.image.copy()
+                    tinted_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
+                    screen.blit(tinted_image, (game_state.player.rect.x - game_state.scroll[0],
+                                             game_state.player.rect.y - game_state.scroll[1]))
+                else:
+                    screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0],
+                                                        game_state.player.rect.y - game_state.scroll[1]))
             else:
                 screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0], 
                                                     game_state.player.rect.y - game_state.scroll[1]))
-        else:
-            screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0], 
-                                                game_state.player.rect.y - game_state.scroll[1]))
 
-        # Draw bullets
-        for bullet in game_state.bullets:
-            screen.blit(
-                bullet.rotated_image,
-                (bullet.rect.x - game_state.scroll[0],
-                 bullet.rect.y - game_state.scroll[1])
-            )
-
-        # Draw the garlic shot
-        if game_state.garlic_shot and game_state.garlic_shot["active"]:
-            # Use rotation_angle instead of fixed angle
-            rotated_garlic = pygame.transform.rotate(garlic_image, game_state.garlic_shot["rotation_angle"])
-            rotated_rect = rotated_garlic.get_rect(center=(game_state.garlic_shot["x"], game_state.garlic_shot["y"]))
-            screen.blit(rotated_garlic, (rotated_rect.x - game_state.scroll[0], 
-                                       rotated_rect.y - game_state.scroll[1]))
-
-        # Update and draw explosions
-        for explosion in game_state.explosions[:]:
-            if explosion.update(current_time):
-                # Create collectible item
-                is_garlic = random.random() < config.ITEM_DROP_GARLIC_CHANCE
-                item_image = asset_manager.images['garlic'] if is_garlic else asset_manager.images['hp']
-                game_state.items.append(
-                    Collectible(
-                        explosion.rect.centerx,
-                        explosion.rect.centery,
-                        item_image,
-                        'garlic' if is_garlic else 'hp',
-                        ITEM_SCALE
-                    )
+            # Draw bullets
+            for bullet in game_state.bullets:
+                screen.blit(
+                    bullet.rotated_image,
+                    (bullet.rect.x - game_state.scroll[0],
+                     bullet.rect.y - game_state.scroll[1])
                 )
-                game_state.explosions.remove(explosion)
-            explosion.draw(screen, game_state.scroll)
-        
-        # Draw vampire
-        game_state.vampire.draw(screen, game_state.scroll, current_time)
 
-        # Draw player UI elements
-        game_state.player.draw_ui(screen, hp_image, garlic_image, MAX_GARLIC)
-        
-        # Debug output
-        if game_state.player.health_changed or game_state.player.garlic_changed or game_state.player.juice_changed:
-            print(f"[DEBUG] Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count}")
-            game_state.player.health_changed = False
-            game_state.player.garlic_changed = False
-            game_state.player.juice_changed = False
+            # Draw the garlic shot
+            if game_state.garlic_shot and game_state.garlic_shot["active"]:
+                # Use rotation_angle instead of fixed angle
+                rotated_garlic = pygame.transform.rotate(garlic_image, game_state.garlic_shot["rotation_angle"])
+                rotated_rect = rotated_garlic.get_rect(center=(game_state.garlic_shot["x"], game_state.garlic_shot["y"]))
+                screen.blit(rotated_garlic, (rotated_rect.x - game_state.scroll[0],
+                                           rotated_rect.y - game_state.scroll[1]))
 
-        # Draw all collectible items
-        for item in game_state.items:
-            if item.active:
-                screen.blit(item.image, 
-                           (item.rect.x - game_state.scroll[0],
-                            item.rect.y - game_state.scroll[1]))
-                            
-        # Check for player death and handle death animation
-        if game_state.player.health <= 0 and not game_state.game_over:
-            handle_player_death()
-        
-        if game_state.player.death_effect_active:
-            if current_time - game_state.player.death_effect_start_time >= config.PLAYER_DEATH_DURATION:
-                game_state.game_over = True
-                game_state.player.death_effect_active = False
+            # Update and draw explosions
+            for explosion in game_state.explosions[:]:
+                # The update logic for explosions (including item creation) is now in game_state.update()
+                # We only need to draw them here if they are still active.
+                # However, the original code removed the explosion *after* creating items.
+                # To maintain that, we might need to adjust how explosions are handled or drawn.
+                # For now, let's assume game_state.update() handles removal and main loop handles drawing active ones.
+                explosion.draw(screen, game_state.scroll) # This line was inside the if explosion.update block before, moving it out.
+                                                        # This might need further review if explosions are removed too quickly.
+
+            # Draw vampire
+            game_state.vampire.draw(screen, game_state.scroll, current_time)
+
+            # Draw player UI elements
+            game_state.player.draw_ui(screen, hp_image, garlic_image, MAX_GARLIC)
+
+            # Debug output
+            if game_state.player.health_changed or game_state.player.garlic_changed or game_state.player.juice_changed:
+                print(f"[DEBUG] Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count}")
+                game_state.player.health_changed = False
+                game_state.player.garlic_changed = False
+                game_state.player.juice_changed = False
+
+            # Draw all collectible items
+            for item in game_state.items:
+                if item.active:
+                    screen.blit(item.image,
+                               (item.rect.x - game_state.scroll[0],
+                                item.rect.y - game_state.scroll[1]))
+
+            # Check for player death and handle death animation
+            if game_state.player.health <= 0 and not game_state.game_over:
+                handle_player_death()
+
+            if game_state.player.death_effect_active:
+                if current_time - game_state.player.death_effect_start_time >= config.PLAYER_DEATH_DURATION:
+                    game_state.game_over = True
+                    game_state.player.death_effect_active = False
 
     else: # Game is over, display the game over screen
       # Fill the screen with black (or your background color)

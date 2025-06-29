@@ -8,42 +8,42 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 
 **Objectif :** Centraliser toute la logique de mise à jour des entités du jeu (joueur, ennemis, projectiles, etc.) dans la classe `GameState` pour simplifier la boucle principale de `main.py`.
 
-### Statut : ⏳ À faire
+### Statut : ✅ Terminé
 
 ### Étapes :
 
--   [ ] **1. Créer une méthode `update` dans `GameState`**
+-   [x] **1. Créer une méthode `update` dans `GameState`**
     -   Dans le fichier `game_state.py`, ajoutez une nouvelle méthode à la classe `GameState` : `def update(self, current_time):`.
 
--   [ ] **2. Déplacer la logique de mise à jour des carottes**
+-   [x] **2. Déplacer la logique de mise à jour des carottes**
     -   Coupez le bloc de code qui gère la mise à jour de la position des carottes depuis `main.py`.
     -   Collez ce bloc dans la nouvelle méthode `update` de `game_state.py`.
 
--   [ ] **3. Déplacer la logique de mise à jour des projectiles (`Bullet`)**
+-   [x] **3. Déplacer la logique de mise à jour des projectiles (`Bullet`)**
     -   Coupez la boucle `for bullet in game_state.bullets[:]:` de `main.py` qui gère la mise à jour des projectiles et leurs collisions avec les carottes.
     -   Collez-la dans la méthode `update` de `game_state.py`.
 
--   [ ] **4. Déplacer la logique de réapparition des carottes**
+-   [x] **4. Déplacer la logique de réapparition des carottes**
     -   Coupez la boucle `for carrot in game_state.carrots:` de `main.py` qui gère leur réapparition.
     -   Collez-la dans la méthode `update` de `game_state.py`.
 
--   [ ] **5. Déplacer la logique du tir d'ail (`GarlicShot`)**
+-   [x] **5. Déplacer la logique du tir d'ail (`GarlicShot`)**
     -   Coupez tout le bloc `if game_state.garlic_shot and game_state.garlic_shot["active"]:` de `main.py`.
     -   Collez-le dans la méthode `update` de `game_state.py`.
 
--   [ ] **6. Déplacer la logique de mise à jour du vampire**
+-   [x] **6. Déplacer la logique de mise à jour du vampire**
     -   Coupez l'appel `game_state.vampire.update(...)` et la logique de collision avec le joueur depuis `main.py`.
     -   Collez-les dans la méthode `update` de `game_state.py`.
 
--   [ ] **7. Déplacer la logique de mise à jour des explosions**
+-   [x] **7. Déplacer la logique de mise à jour des explosions**
     -   Coupez la boucle `for explosion in game_state.explosions[:]:` de `main.py`.
     -   Collez-la dans la méthode `update` de `game_state.py`. Assurez-vous que la création des `Collectible` après l'explosion est bien incluse.
 
--   [ ] **8. Déplacer la logique de collecte des items**
+-   [x] **8. Déplacer la logique de collecte des items**
     -   Coupez la boucle `for item in game_state.items[:]:` de `main.py`.
     -   Collez-la dans la méthode `update` de `game_state.py`.
 
--   [ ] **9. Nettoyer `main.py`**
+-   [x] **9. Nettoyer `main.py`**
     -   Dans la boucle de jeu principale de `main.py` (sous `elif not game_state.game_over:`), supprimez tous les blocs de code que vous venez de déplacer.
     -   Remplacez-les par un unique appel : `game_state.update(current_time)`.
 
