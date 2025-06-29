@@ -336,6 +336,7 @@ while running:
                 game_state.player.move(dx, dy, game_state.world_size)
             
             # Scrolling logic
+            # print("[DEBUG] MainLoop: Applying scrolling logic") # Optional detailed log
             if game_state.player.rect.x < game_state.scroll[0] + screen_width * game_state.scroll_trigger:
                 game_state.scroll[0] = max(0, game_state.player.rect.x - screen_width * game_state.scroll_trigger)
             elif game_state.player.rect.x + game_state.player.rect.width > game_state.scroll[0] + screen_width * (1 - game_state.scroll_trigger):
@@ -347,30 +348,34 @@ while running:
             elif game_state.player.rect.y + game_state.player.rect.height > game_state.scroll[1] + screen_height * (1 - game_state.scroll_trigger):
                 game_state.scroll[1] = min(game_state.world_size[1] - screen_height,
                                          game_state.player.rect.y - screen_height*(1-game_state.scroll_trigger) + game_state.player.rect.height)
+            # print("[DEBUG] MainLoop: Scrolling logic applied") # Optional detailed log
 
             try:
+                # print(f"[DEBUG] MainLoop: Entering try block. player.death_effect_active={game_state.player.death_effect_active}")
                 # Update game state
-                if not game_state.player.death_effect_active: # Do not update game logic if player is in death animation
+                if not game_state.player.death_effect_active:
+                    # print("[DEBUG] MainLoop: Calling game_state.update() (full)")
                     game_state.update(current_time)
                 else:
-                    # Minimal updates if needed during death animation (e.g., vampire might still animate)
-                    game_state.vampire.update(game_state.player, game_state.world_size, current_time) # Example if vampire needs to continue its animation
-                    # Consider if explosions or bullets should also update visually
-                    for explosion in game_state.explosions[:]:
-                        if explosion.active: # Check if explosion is still active
-                             explosion.update(current_time) # Only update, item creation is handled in game_state.update
-                    # Bullets might just continue moving without new interactions
-                    for bullet in game_state.bullets[:]:
+                    # print("[DEBUG] MainLoop: Performing partial updates (player death effect active)")
+                    # Minimal updates if needed during death animation
+                    # game_state.vampire.update(game_state.player, game_state.world_size, current_time) # Vampire update disabled during player death animation to prevent freeze
+
+                    for i, explosion in enumerate(game_state.explosions[:]):
+                        if explosion.active:
+                            explosion.update(current_time)
+
+                    for i, bullet in enumerate(game_state.bullets[:]):
                         bullet.update()
                         if (bullet.rect.right < 0 or bullet.rect.left > game_state.world_size[0] or
                             bullet.rect.bottom < 0 or bullet.rect.top > game_state.world_size[1]):
                             game_state.bullets.remove(bullet)
-
+                # print("[DEBUG] MainLoop: Update logic complete. Starting draw.")
 
                 # Draw pre-rendered grass background
+                # print("[DEBUG] MainLoop: Drawing grass background")
                 screen.blit(grass_background, (-game_state.scroll[0], -game_state.scroll[1]))
-
-                # Draw the carrots
+                # print("[DEBUG] MainLoop: Drawing carrots")
                 for carrot in game_state.carrots:
                     if carrot.active:
                         screen.blit(carrot.image, (carrot.rect.x - game_state.scroll[0], carrot.rect.y - game_state.scroll[1]))
@@ -436,16 +441,24 @@ while running:
                 # However, the main fix is to prevent game logic from running during death anim.
                 # game_state.game_over = True # Uncomment to force game over on error
 
+            # print("[DEBUG] MainLoop: Try block finished.")
+
             # Check for player death and handle death animation
+            # print(f"[DEBUG] MainLoop: Checking player death. HP={game_state.player.health}, game_over={game_state.game_over}, death_effect_active={game_state.player.death_effect_active}")
             if game_state.player.health <= 0 and not game_state.game_over:
+                # print("[DEBUG] MainLoop: Player health <= 0 and not game_over. Calling handle_player_death()")
                 handle_player_death()
 
             if game_state.player.death_effect_active:
+                # print(f"[DEBUG] MainLoop: Player death effect is active. Time check: {current_time - game_state.player.death_effect_start_time} >= {config.PLAYER_DEATH_DURATION}")
                 if current_time - game_state.player.death_effect_start_time >= config.PLAYER_DEATH_DURATION:
+                    # print("[DEBUG] MainLoop: PLAYER_DEATH_DURATION reached. Setting game_over = True")
                     game_state.game_over = True
                     game_state.player.death_effect_active = False
+            # print(f"[DEBUG] MainLoop: Finished player death checks. game_over={game_state.game_over}")
 
     else: # Game is over, display the game over screen
+      # print(f"[DEBUG] MainLoop: Game is over (game_state.game_over={game_state.game_over}). Displaying game over screen.") # Restored for clarity
       # Fill the screen with black (or your background color)
       screen.fill((0, 0, 0))
       # Draw the game over image
