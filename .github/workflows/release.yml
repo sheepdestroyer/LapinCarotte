@@ -1,0 +1,154 @@
+name: Build and Release Executables
+
+on:
+  push:
+    tags:
+      - 'v*.*'   # Trigger on version tags like v1.0 or v1.0.0
+  workflow_dispatch: # Allows manual triggering
+    inputs:
+      tag_name:
+        description: 'The tag to build and release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  determine_tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.get_tag.outputs.TAG }}
+    steps:
+      - name: Determine Tag
+        id: get_tag
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "TAG=${{ github.event.inputs.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+  build-windows:
+    needs: determine_tag
+    runs-on: windows-latest
+    outputs:
+      executable_name: LapinCarotte.exe
+      executable_path: dist/LapinCarotte.exe
+    steps:
+      - name: Checkout repository at specified tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine_tag.outputs.tag }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build executable with PyInstaller
+        run: python build_exe.py
+
+      - name: Upload Windows executable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lapin-carotte-windows
+          path: dist/LapinCarotte.exe
+
+  build-linux:
+    needs: determine_tag
+    runs-on: ubuntu-latest
+    outputs:
+      executable_name: LapinCarotte
+      executable_path: dist/LapinCarotte
+    steps:
+      - name: Checkout repository at specified tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine_tag.outputs.tag }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Linux build tools for PyInstaller (if any specific are needed, e.g., for UPX)
+        run: |
+          # sudo apt-get update
+          # sudo apt-get install -y upx # Example if UPX was used, build_exe.py specifies --noupx
+
+      - name: Build executable with PyInstaller
+        run: python build_exe.py
+
+      - name: Upload Linux executable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lapin-carotte-linux
+          path: dist/LapinCarotte
+
+  create-release:
+    needs: [determine_tag, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create releases and upload assets
+    steps:
+      - name: Download Windows executable
+        uses: actions/download-artifact@v4
+        with:
+          name: lapin-carotte-windows
+          path: dist-windows
+
+      - name: Download Linux executable
+        uses: actions/download-artifact@v4
+        with:
+          name: lapin-carotte-linux
+          path: dist-linux
+
+      - name: List downloaded files (for debugging)
+        run: |
+          ls -R dist-windows
+          ls -R dist-linux
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.determine_tag.outputs.tag }}
+          release_name: Release ${{ needs.determine_tag.outputs.tag }}
+          body: |
+            Release of version ${{ needs.determine_tag.outputs.tag }}
+            - Windows executable: `${{ needs.build-windows.outputs.executable_name }}`
+            - Linux executable: `${{ needs.build-linux.outputs.executable_name }}`
+          draft: false
+          prerelease: false
+
+      - name: Upload Windows Executable to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist-windows/${{ needs.build-windows.outputs.executable_name }}
+          asset_name: ${{ needs.build-windows.outputs.executable_name }}
+          asset_content_type: application/octet-stream
+
+      - name: Upload Linux Executable to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist-linux/${{ needs.build-linux.outputs.executable_name }}
+          asset_name: ${{ needs.build-linux.outputs.executable_name }}
+          asset_content_type: application/octet-stream
