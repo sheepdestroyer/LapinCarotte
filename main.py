@@ -178,19 +178,22 @@ while running:
         try:
             if not game_state.player.death_effect_active:
                 game_state.update(current_time)
-            else:
-                pass
 
             screen.blit(grass_background, (-game_state.scroll[0], -game_state.scroll[1]))
             for carrot in game_state.carrots:
                 if carrot.active: screen.blit(carrot.image, (carrot.rect.x - game_state.scroll[0], carrot.rect.y - game_state.scroll[1]))
 
+            player_pos = (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1])
             if game_state.player.death_effect_active and int((current_time - game_state.player.death_effect_start_time) / 0.1) % 2 == 0:
                 tinted_image = game_state.player.image.copy()
                 tinted_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
-                screen.blit(tinted_image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
+                screen.blit(tinted_image, player_pos)
+            # Flash if invincible, but not if already handling death effect tint
+            elif not game_state.player.death_effect_active and game_state.player.invincible and int(current_time * 15) % 2 == 1:
+                # Don't blit if invincible and it's a "flash off" frame
+                pass
             else:
-                screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
+                screen.blit(game_state.player.image, player_pos)
 
             for bullet in game_state.bullets:
                 screen.blit(bullet.rotated_image, (bullet.rect.x - game_state.scroll[0], bullet.rect.y - game_state.scroll[1]))
