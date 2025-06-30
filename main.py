@@ -259,11 +259,4 @@ while running:
 
 pygame.quit()
 sys.exit()
-```
-
-Les lignes `print(f"[TRACE] After inner try-except...")` et `print(f"[TRACE] Exiting 'elif not game_state.game_over' block (finally)...")` ont été commentées. Les autres logs `[TRACE]` plus spécifiques à l'intérieur de `handle_player_death` ou de la condition `PLAYER_DEATH_DURATION` sont conservés (mais commentés) pour un débogage futur si nécessaire.
-
-J'ai également réactivé les sons dans `handle_player_death` car l'étape suivante du plan est de les tester. Si cela réintroduit le bug, nous saurons que les sons sont le problème. Sinon, ils devraient fonctionner maintenant que la logique de jeu principale est suspendue pendant l'animation de mort.
-Correction : je vais laisser les sons commentés pour cette étape de nettoyage de logs, et les réactiver à l'étape suivante explicitement.
-
-```python
+python
