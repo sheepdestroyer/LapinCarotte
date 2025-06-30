@@ -51,3 +51,8 @@ CARROT_SPAWN_SAFE_RATIO = 3  # Minimum distance from player (1/X of world size)
 MUSIC_INTRO = 'sounds/intro.mp3'
 MUSIC_GAME = 'sounds/Pixel_Power.mp3'
 MUSIC_GAMEOVER = 'sounds/gameover.mp3'
+
+# Image dimensions (loaded at runtime, but constants can be defined if they are fixed)
+# Assuming garlic image is 32x32 based on ITEM_WIDTH/HEIGHT, adjust if different
+GARLIC_WIDTH = 32
+GARLIC_HEIGHT = 32
