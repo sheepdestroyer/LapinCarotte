@@ -126,6 +126,17 @@ jobs:
           echo "$body" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Delete existing release (if any) to prevent "already_exists" error
+        uses: dev-drprasad/delete-tag-and-release@v0.2.1
+        with:
+          tag_name: ${{ needs.determine_tag.outputs.tag }}
+          delete_release: true # Only delete the release, not the underlying tag
+          repo_owner: ${{ github.repository_owner }} # Explicitly set owner
+          repo_name: ${{ github.event.repository.name }} # Explicitly set repo name
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true # If release doesn't exist, don't fail the workflow
+
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
