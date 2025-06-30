@@ -154,10 +154,9 @@ while running:
         screen.blit(asset_manager.images['start'], (start_screen_pos[0] + 787, start_screen_pos[1] + 742))
         screen.blit(asset_manager.images['exit'], (start_screen_pos[0] + 787, start_screen_pos[1] + 827))
     elif not game_state.game_over:
-        try:
-            if not game_state.player.death_effect_active:
-                dx, dy = 0,0
-                keys = pygame.key.get_pressed()
+        if not game_state.player.death_effect_active:
+            dx, dy = 0,0
+            keys = pygame.key.get_pressed()
                 if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 1
                 if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
                 if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 1
