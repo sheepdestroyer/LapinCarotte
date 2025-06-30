@@ -227,9 +227,6 @@ while running:
                     # print(f"[TRACE] PLAYER_DEATH_DURATION ({config.PLAYER_DEATH_DURATION}s) reached. Setting game_over = True.")
                     game_state.game_over = True
                     game_state.player.death_effect_active = False
-        finally:
-            # print(f"[TRACE] Exiting 'elif not game_state.game_over' block (finally). HP: {game_state.player.health}, game_over: {game_state.game_over}, death_effect: {game_state.player.death_effect_active}")
-            pass
 
     else:
         screen.fill((0, 0, 0))

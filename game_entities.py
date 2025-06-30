@@ -24,11 +24,17 @@ class GameObject:
 class Player(GameObject):
     def __init__(self, x, y, image, asset_manager):
         super().__init__(x, y, image)
+        self.initial_x = x
+        self.initial_y = y
         self.flipped = False
         self.last_direction = "right"
         self.health = START_HEALTH
+        self.max_health = MAX_HEALTH
         self.garlic_count = 0
         self.carrot_juice_count = 0  # Initialize counter
+        self.invincible = False
+        self.last_hit_time = 0
+        self.speed = PLAYER_SPEED
         self.death_effect_active = False
         self.death_effect_start_time = 0
         self.asset_manager = asset_manager
@@ -37,9 +43,8 @@ class Player(GameObject):
         self.juice_changed = False
 
     def move(self, dx, dy, world_bounds):
-        speed = PLAYER_SPEED
-        self.rect.x = max(0, min(world_bounds[0] - self.rect.width, self.rect.x + dx * speed))
-        self.rect.y = max(0, min(world_bounds[1] - self.rect.height, self.rect.y + dy * speed))
+        self.rect.x = max(0, min(world_bounds[0] - self.rect.width, self.rect.x + dx * self.speed))
+        self.rect.y = max(0, min(world_bounds[1] - self.rect.height, self.rect.y + dy * self.speed))
         
         if dx < 0 and not self.flipped:
             self.image = pygame.transform.flip(self.original_image, True, False)
@@ -49,17 +54,28 @@ class Player(GameObject):
             self.flipped = False
             
     def take_damage(self, amount=1):
-        self.health = max(0, self.health - amount)
-        self.health_changed = True
-        if self.health > 0:
-            self.asset_manager.sounds['hurt'].play()
+        if not self.invincible and not self.death_effect_active:
+            self.health = max(0, self.health - amount)
+            self.health_changed = True
+            if self.health > 0:
+                self.asset_manager.sounds['hurt'].play()
+                self.invincible = True
+                self.last_hit_time = time.time()
         
+    def update_invincibility(self):
+        if self.invincible and (time.time() - self.last_hit_time >= PLAYER_INVINCIBILITY_DURATION):
+            self.invincible = False
+
     def reset(self):
         self.health = START_HEALTH
         self.garlic_count = 0
         self.carrot_juice_count = 0
-        self.rect.x = 200
-        self.rect.y = 200
+        self.rect.x = self.initial_x
+        self.rect.y = self.initial_y
+        self.invincible = False
+        self.death_effect_active = False
+        self.image = self.original_image # Reset image if flipped
+        self.flipped = False
         
     def draw(self, screen, scroll):
         screen.blit(self.image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))

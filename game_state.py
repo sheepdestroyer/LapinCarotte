@@ -123,13 +123,12 @@ class GameState:
 
                 # Calculate speed multiplier using squared distance
                 max_distance = CARROT_DETECTION_RADIUS
-                max_distance_sq = max_distance ** 2
                 if dist_sq > 0:
                     speed_multiplier = 1 + (max_distance - math.sqrt(dist_sq))/max_distance * (MAX_SPEED_MULTIPLIER - 1)
                     speed_multiplier = min(max(1, speed_multiplier), MAX_SPEED_MULTIPLIER)
 
                 # Update movement vector
-                if dist_sq < 10000:  # 100^2
+                if dist_sq < CARROT_CHASE_RADIUS_SQUARED:  # 100^2
                     if dist_sq > 0:
                         carrot.direction = direction.normalize()
                 else:

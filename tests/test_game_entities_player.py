@@ -2,7 +2,7 @@ import pytest
 import pygame
 from unittest.mock import MagicMock, patch
 
-from config import START_HEALTH, MAX_HEALTH, PLAYER_INVINCIBILITY_DURATION
+from config import START_HEALTH, MAX_HEALTH, PLAYER_INVINCIBILITY_DURATION, MAX_GARLIC, PLAYER_SPEED
 from game_entities import Player
 
 @pytest.fixture(autouse=True)
@@ -15,13 +15,33 @@ def mock_pygame_display_and_font(mocker):
 @pytest.fixture
 def mock_asset_manager():
     manager = MagicMock()
+
+    # Configure mock_image to behave more like a real Surface for get_rect
+    def mock_get_rect(**kwargs):
+        if 'topleft' in kwargs:
+            return pygame.Rect(kwargs['topleft'], (32, 32))
+        elif 'center' in kwargs:
+            return pygame.Rect((0,0), (32,32)).move(kwargs['center'][0] - 16, kwargs['center'][1] - 16) # adjust for center
+        return pygame.Rect(0, 0, 32, 32)
+
     mock_image = MagicMock(spec=pygame.Surface)
-    mock_image.get_rect = MagicMock(return_value=pygame.Rect(0, 0, 32, 32))
-    mock_image.copy = MagicMock(return_value=mock_image)
+    mock_image.get_rect = MagicMock(side_effect=mock_get_rect)
+    mock_image.copy = MagicMock(return_value=mock_image) # For Player.reset
+    mock_image.convert_alpha = MagicMock(return_value=mock_image) # If used
+
+    # Mock for digit images
+    mock_digit_image = MagicMock(spec=pygame.Surface)
+    mock_digit_image.get_width = MagicMock(return_value=10) # Example width
+    mock_digit_image.get_height = MagicMock(return_value=10) # Example height
+
     manager.images = {
         'rabbit': mock_image,
-        'carrot_juice': mock_image
+        'carrot_juice': mock_image,
     }
+    # Add digit images to the mock asset manager
+    for i in range(10):
+        manager.images[f'digit_{i}'] = mock_digit_image
+
     mock_sound = MagicMock()
     mock_sound.play = MagicMock()
     manager.sounds = {
@@ -33,7 +53,25 @@ def mock_asset_manager():
 
 @pytest.fixture
 def player_instance(mock_asset_manager):
-    return Player(100, 100, mock_asset_manager.images['rabbit'], mock_asset_manager)
+    # Create a real minimal surface for testing flip
+    # Pygame needs to be initialized for Surface, but display isn't strictly needed for just Surface objects
+    if not pygame.get_init(): # Initialize pygame if not already (e.g. by display mock)
+        pygame.init()
+
+    real_surface = pygame.Surface((32, 32))
+    real_surface.fill((255, 0, 0)) # Fill with a color to make it a valid surface
+
+    # Replace the mocked 'rabbit' image in the asset manager for this player instance
+    # OR, more directly, pass this real_surface to Player constructor if asset_manager isn't used for player.image
+    mock_asset_manager.images['rabbit'] = real_surface
+
+    player = Player(100, 100, real_surface, mock_asset_manager)
+    # Player class copies the passed image to self.original_image and self.image
+    # So, player.original_image and player.image should be this real_surface
+
+    # If the Player class makes its own .copy() of the image internally for original_image,
+    # ensure that copy also works. The real Surface.copy() will work.
+    return player
 
 class TestPlayer:
     def test_player_initialization(self, player_instance, mock_asset_manager):
@@ -43,11 +81,13 @@ class TestPlayer:
         assert player_instance.max_health == MAX_HEALTH
         assert player_instance.garlic_count == 0
         assert not player_instance.invincible
+        assert player_instance.speed == PLAYER_SPEED
         assert not player_instance.death_effect_active
         assert player_instance.asset_manager == mock_asset_manager
         assert player_instance.carrot_juice_count == 0
 
     def test_take_damage_reduces_health(self, player_instance, mock_asset_manager):
+        player_instance.invincible = False # Ensure player is not invincible at start of test
         initial_health = player_instance.health
         with patch('time.time', return_value=123.456):
             player_instance.take_damage()
@@ -72,19 +112,39 @@ class TestPlayer:
         mock_asset_manager.sounds['hurt'].play.assert_not_called()
 
     def test_take_damage_until_death_effect_not_triggered_by_take_damage(self, player_instance):
-        for _ in range(START_HEALTH):
-            player_instance.take_damage()
+        player_instance.invincible = False # Ensure player is not invincible at start
+        current_mock_time = 100.0
+        for i in range(START_HEALTH):
+            with patch('time.time', return_value=current_mock_time):
+                player_instance.take_damage()
+                # If health became 0, break, no need to check invincibility update then.
+                if player_instance.health == 0 and i == START_HEALTH -1: # only break if it's the last expected hit
+                    break
+            # Simulate time passing for invincibility to wear off before next hit
+            current_mock_time += PLAYER_INVINCIBILITY_DURATION + 0.1
+            with patch('time.time', return_value=current_mock_time):
+                player_instance.update_invincibility()
+
         assert player_instance.health == 0
         assert not player_instance.death_effect_active
 
     def test_update_invincibility(self, player_instance):
-        with patch('time.time', return_value=100.0):
+        # Ensure player is not invincible before taking damage
+        player_instance.invincible = False
+        player_instance.last_hit_time = 0
+
+        with patch('time.time', return_value=100.0) as mock_time_damage:
             player_instance.take_damage()
         assert player_instance.invincible
-        with patch('time.time', return_value=100.0 + PLAYER_INVINCIBILITY_DURATION - 0.1):
+        assert player_instance.last_hit_time == 100.0
+
+        # Check still invincible just before duration ends
+        with patch('time.time', return_value=100.0 + PLAYER_INVINCIBILITY_DURATION - 0.01) as mock_time_update_1:
             player_instance.update_invincibility()
         assert player_instance.invincible
-        with patch('time.time', return_value=100.0 + PLAYER_INVINCIBILITY_DURATION):
+
+        # Check becomes vincible exactly when duration ends
+        with patch('time.time', return_value=100.0 + PLAYER_INVINCIBILITY_DURATION) as mock_time_update_2:
             player_instance.update_invincibility()
         assert not player_instance.invincible
 
@@ -105,6 +165,8 @@ class TestPlayer:
         assert player_instance.rect.x == player_instance.initial_x
         assert player_instance.rect.y == player_instance.initial_y
         assert player_instance.asset_manager == mock_asset_manager
+        assert player_instance.image == player_instance.original_image # Check if image is reset
+        assert not player_instance.flipped # Check if flipped status is reset
 
     def test_move_player(self, player_instance):
         initial_x, initial_y = player_instance.rect.x, player_instance.rect.y
@@ -145,4 +207,3 @@ class TestPlayer:
         player_instance.carrot_juice_count = 5
         player_instance.draw_ui(mock_screen, mock_hp_image, mock_garlic_image, MAX_GARLIC)
         assert mock_screen.blit.call_count >= 5
-```
