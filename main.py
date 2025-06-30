@@ -154,78 +154,80 @@ while running:
         screen.blit(asset_manager.images['start'], (start_screen_pos[0] + 787, start_screen_pos[1] + 742))
         screen.blit(asset_manager.images['exit'], (start_screen_pos[0] + 787, start_screen_pos[1] + 827))
     elif not game_state.game_over:
+        # Outer try removed, content is now directly under this elif
         if not game_state.player.death_effect_active:
             dx, dy = 0,0
             keys = pygame.key.get_pressed()
-                if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 1
-                if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
-                if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 1
-                if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
-                if dx != 0 or dy != 0:
-                    game_state.player.move(dx, dy, game_state.world_size)
-            
-            if game_state.player.rect.x < game_state.scroll[0] + screen_width * game_state.scroll_trigger:
-                game_state.scroll[0] = max(0, game_state.player.rect.x - screen_width * game_state.scroll_trigger)
-            elif game_state.player.rect.x + game_state.player.rect.width > game_state.scroll[0] + screen_width * (1 - game_state.scroll_trigger):
-                game_state.scroll[0] = min(game_state.world_size[0] - screen_width, game_state.player.rect.x - screen_width*(1-game_state.scroll_trigger) + game_state.player.rect.width)
-            if game_state.player.rect.y < game_state.scroll[1] + screen_height * game_state.scroll_trigger:
-                game_state.scroll[1] = max(0, game_state.player.rect.y - screen_height * game_state.scroll_trigger)
-            elif game_state.player.rect.y + game_state.player.rect.height > game_state.scroll[1] + screen_height * (1 - game_state.scroll_trigger):
-                game_state.scroll[1] = min(game_state.world_size[1] - screen_height, game_state.player.rect.y - screen_height*(1-game_state.scroll_trigger) + game_state.player.rect.height)
+            if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 1
+            if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
+            if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 1
+            if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
+            if dx != 0 or dy != 0:
+                game_state.player.move(dx, dy, game_state.world_size)
 
-            try:
-                if not game_state.player.death_effect_active:
-                    game_state.update(current_time)
-                else:
-                    pass
+        if game_state.player.rect.x < game_state.scroll[0] + screen_width * game_state.scroll_trigger:
+            game_state.scroll[0] = max(0, game_state.player.rect.x - screen_width * game_state.scroll_trigger)
+        elif game_state.player.rect.x + game_state.player.rect.width > game_state.scroll[0] + screen_width * (1 - game_state.scroll_trigger):
+            game_state.scroll[0] = min(game_state.world_size[0] - screen_width, game_state.player.rect.x - screen_width*(1-game_state.scroll_trigger) + game_state.player.rect.width)
+        if game_state.player.rect.y < game_state.scroll[1] + screen_height * game_state.scroll_trigger:
+            game_state.scroll[1] = max(0, game_state.player.rect.y - screen_height * game_state.scroll_trigger)
+        elif game_state.player.rect.y + game_state.player.rect.height > game_state.scroll[1] + screen_height * (1 - game_state.scroll_trigger):
+            game_state.scroll[1] = min(game_state.world_size[1] - screen_height, game_state.player.rect.y - screen_height*(1-game_state.scroll_trigger) + game_state.player.rect.height)
 
-                screen.blit(grass_background, (-game_state.scroll[0], -game_state.scroll[1]))
-                for carrot in game_state.carrots:
-                    if carrot.active: screen.blit(carrot.image, (carrot.rect.x - game_state.scroll[0], carrot.rect.y - game_state.scroll[1]))
+        # Inner try...except for game logic and drawing remains
+        try:
+            if not game_state.player.death_effect_active:
+                game_state.update(current_time)
+            else:
+                pass
 
-                if game_state.player.death_effect_active:
-                    time_since_death = current_time - game_state.player.death_effect_start_time
-                    if int(time_since_death / 0.1) % 2 == 0:
-                        tinted_image = game_state.player.image.copy()
-                        tinted_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
-                        screen.blit(tinted_image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
-                    else:
-                        screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
-                else:
-                    screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
-
-                for bullet in game_state.bullets:
-                    screen.blit(bullet.rotated_image, (bullet.rect.x - game_state.scroll[0], bullet.rect.y - game_state.scroll[1]))
-                if game_state.garlic_shot and game_state.garlic_shot["active"]:
-                    rotated_garlic = pygame.transform.rotate(garlic_image, game_state.garlic_shot["rotation_angle"])
-                    rotated_rect = rotated_garlic.get_rect(center=(game_state.garlic_shot["x"], game_state.garlic_shot["y"]))
-                    screen.blit(rotated_garlic, (rotated_rect.x - game_state.scroll[0], rotated_rect.y - game_state.scroll[1]))
-                for explosion in game_state.explosions:
-                    if explosion.active: explosion.draw(screen, game_state.scroll)
-                game_state.vampire.draw(screen, game_state.scroll, current_time)
-                game_state.player.draw_ui(screen, hp_image, garlic_image, MAX_GARLIC)
-
-                if game_state.player.health_changed or game_state.player.garlic_changed or game_state.player.juice_changed:
-                    print(f"[DEBUG] Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count}")
-                    game_state.player.health_changed = False; game_state.player.garlic_changed = False; game_state.player.juice_changed = False
-
-                for item in game_state.items:
-                    if item.active: screen.blit(item.image, (item.rect.x - game_state.scroll[0], item.rect.y - game_state.scroll[1]))
-            except Exception as e:
-                print(f"ERROR during game logic/draw: {e}")
-                running = False
-
-            # print(f"[TRACE] After inner try-except. HP: {game_state.player.health}, game_over: {game_state.game_over}, death_effect: {game_state.player.death_effect_active}")
-
-            if game_state.player.health <= 0 and not game_state.game_over:
-                handle_player_death()
+            screen.blit(grass_background, (-game_state.scroll[0], -game_state.scroll[1]))
+            for carrot in game_state.carrots:
+                if carrot.active: screen.blit(carrot.image, (carrot.rect.x - game_state.scroll[0], carrot.rect.y - game_state.scroll[1]))
 
             if game_state.player.death_effect_active:
-                time_elapsed = current_time - game_state.player.death_effect_start_time
-                if time_elapsed >= config.PLAYER_DEATH_DURATION:
-                    # print(f"[TRACE] PLAYER_DEATH_DURATION ({config.PLAYER_DEATH_DURATION}s) reached. Setting game_over = True.")
-                    game_state.game_over = True
-                    game_state.player.death_effect_active = False
+                time_since_death = current_time - game_state.player.death_effect_start_time
+                if int(time_since_death / 0.1) % 2 == 0:
+                    tinted_image = game_state.player.image.copy()
+                    tinted_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
+                    screen.blit(tinted_image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
+                else:
+                    screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
+            else:
+                screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
+
+            for bullet in game_state.bullets:
+                screen.blit(bullet.rotated_image, (bullet.rect.x - game_state.scroll[0], bullet.rect.y - game_state.scroll[1]))
+            if game_state.garlic_shot and game_state.garlic_shot["active"]:
+                rotated_garlic = pygame.transform.rotate(garlic_image, game_state.garlic_shot["rotation_angle"])
+                rotated_rect = rotated_garlic.get_rect(center=(game_state.garlic_shot["x"], game_state.garlic_shot["y"]))
+                screen.blit(rotated_garlic, (rotated_rect.x - game_state.scroll[0], rotated_rect.y - game_state.scroll[1]))
+            for explosion in game_state.explosions:
+                if explosion.active: explosion.draw(screen, game_state.scroll)
+            game_state.vampire.draw(screen, game_state.scroll, current_time)
+            game_state.player.draw_ui(screen, hp_image, garlic_image, MAX_GARLIC)
+
+            if game_state.player.health_changed or game_state.player.garlic_changed or game_state.player.juice_changed:
+                print(f"[DEBUG] Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count}")
+                game_state.player.health_changed = False; game_state.player.garlic_changed = False; game_state.player.juice_changed = False
+
+            for item in game_state.items:
+                if item.active: screen.blit(item.image, (item.rect.x - game_state.scroll[0], item.rect.y - game_state.scroll[1]))
+        except Exception as e:
+            print(f"ERROR during game logic/draw: {e}")
+            running = False
+
+        # print(f"[TRACE] After inner try-except. HP: {game_state.player.health}, game_over: {game_state.game_over}, death_effect: {game_state.player.death_effect_active}")
+
+        if game_state.player.health <= 0 and not game_state.game_over:
+            handle_player_death()
+
+        if game_state.player.death_effect_active:
+            time_elapsed = current_time - game_state.player.death_effect_start_time
+            if time_elapsed >= config.PLAYER_DEATH_DURATION:
+                # print(f"[TRACE] PLAYER_DEATH_DURATION ({config.PLAYER_DEATH_DURATION}s) reached. Setting game_over = True.")
+                game_state.game_over = True
+                game_state.player.death_effect_active = False
 
     else:
         screen.fill((0, 0, 0))
