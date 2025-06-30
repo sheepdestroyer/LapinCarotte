@@ -82,7 +82,7 @@ class GameState:
         # Recreate carrots with fresh instances
         self.carrots = []
         for _ in range(CARROT_COUNT):
-            self.create_carrot()
+            self.create_carrot(self.asset_manager) # Pass asset_manager
 
     def add_bullet(self, start_x, start_y, target_x, target_y, image):
         """Create and add a new bullet"""
