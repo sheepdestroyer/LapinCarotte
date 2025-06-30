@@ -185,14 +185,10 @@ while running:
             for carrot in game_state.carrots:
                 if carrot.active: screen.blit(carrot.image, (carrot.rect.x - game_state.scroll[0], carrot.rect.y - game_state.scroll[1]))
 
-            if game_state.player.death_effect_active:
-                time_since_death = current_time - game_state.player.death_effect_start_time
-                if int(time_since_death / 0.1) % 2 == 0:
-                    tinted_image = game_state.player.image.copy()
-                    tinted_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
-                    screen.blit(tinted_image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
-                else:
-                    screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
+            if game_state.player.death_effect_active and int((current_time - game_state.player.death_effect_start_time) / 0.1) % 2 == 0:
+                tinted_image = game_state.player.image.copy()
+                tinted_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
+                screen.blit(tinted_image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
             else:
                 screen.blit(game_state.player.image, (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1]))
 
@@ -209,7 +205,9 @@ while running:
 
             if game_state.player.health_changed or game_state.player.garlic_changed or game_state.player.juice_changed:
                 print(f"[DEBUG] Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count}")
-                game_state.player.health_changed = False; game_state.player.garlic_changed = False; game_state.player.juice_changed = False
+                game_state.player.health_changed = False
+                game_state.player.garlic_changed = False
+                game_state.player.juice_changed = False
 
             for item in game_state.items:
                 if item.active: screen.blit(item.image, (item.rect.x - game_state.scroll[0], item.rect.y - game_state.scroll[1]))
