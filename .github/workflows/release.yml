@@ -3,7 +3,7 @@ name: Build and Release Executables
 on:
   push:
     tags:
-      - 'v*.*'   # Trigger on version tags like v1.0 or v1.0.0
+      - 'v*'   # Trigger on version tags like v1.0, v1.0.0, v0.4-beta
   workflow_dispatch: # Allows manual triggering
     inputs:
       tag_name:
