@@ -98,25 +98,31 @@ jobs:
   create-release:
     needs: [determine_tag, build-windows, build-linux]
     runs-on: ubuntu-latest
+    if: always() # Ensure this job runs even if build jobs fail, to create a partial release
     permissions:
       contents: write # Required to create releases and upload assets
     steps:
-      - name: Download Windows executable
-        uses: actions/download-artifact@v4
-        with:
-          name: lapin-carotte-windows
-          path: dist-windows
-
-      - name: Download Linux executable
-        uses: actions/download-artifact@v4
-        with:
-          name: lapin-carotte-linux
-          path: dist-linux
-
-      - name: List downloaded files (for debugging)
+      - name: Prepare Release Body
+        id: prepare_body
         run: |
-          ls -R dist-windows
-          ls -R dist-linux
+          body="Release of version ${{ needs.determine_tag.outputs.tag }}\n\n"
+          if [[ "${{ needs.build-windows.result }}" == "success" ]]; then
+            body="${body}- Windows executable: `${{ needs.build-windows.outputs.executable_name }}` (Succeeded)\n"
+          else
+            body="${body}- Windows build: Failed\n"
+          fi
+          if [[ "${{ needs.build-linux.result }}" == "success" ]]; then
+            body="${body}- Linux executable: `${{ needs.build-linux.outputs.executable_name }}` (Succeeded)\n"
+          else
+            body="${body}- Linux build: Failed\n"
+          fi
+          if [[ "${{ needs.build-windows.result }}" != "success" && "${{ needs.build-linux.result }}" != "success" ]]; then
+            body="${body}\n\nNo artifacts were successfully built."
+            # Potentially mark as prerelease or draft if both fail
+          fi
+          echo "RELEASE_BODY<<EOF" >> $GITHUB_OUTPUT
+          echo "$body" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         id: create_release
@@ -126,14 +132,19 @@ jobs:
         with:
           tag_name: ${{ needs.determine_tag.outputs.tag }}
           release_name: Release ${{ needs.determine_tag.outputs.tag }}
-          body: |
-            Release of version ${{ needs.determine_tag.outputs.tag }}
-            - Windows executable: `${{ needs.build-windows.outputs.executable_name }}`
-            - Linux executable: `${{ needs.build-linux.outputs.executable_name }}`
-          draft: false
-          prerelease: false
+          body: ${{ steps.prepare_body.outputs.RELEASE_BODY }}
+          draft: false # Consider setting to true if all builds fail or for partial releases
+          prerelease: ${{ needs.build-windows.result != 'success' || needs.build-linux.result != 'success' }} # Mark as prerelease if any build failed
 
-      - name: Upload Windows Executable to Release
+      - name: Download Windows executable (if successful)
+        if: needs.build-windows.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: lapin-carotte-windows
+          path: dist-windows
+
+      - name: Upload Windows Executable to Release (if successful)
+        if: needs.build-windows.result == 'success'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -143,7 +154,15 @@ jobs:
           asset_name: ${{ needs.build-windows.outputs.executable_name }}
           asset_content_type: application/octet-stream
 
-      - name: Upload Linux Executable to Release
+      - name: Download Linux executable (if successful)
+        if: needs.build-linux.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: lapin-carotte-linux
+          path: dist-linux
+
+      - name: Upload Linux Executable to Release (if successful)
+        if: needs.build-linux.result == 'success'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -152,3 +171,11 @@ jobs:
           asset_path: dist-linux/${{ needs.build-linux.outputs.executable_name }}
           asset_name: ${{ needs.build-linux.outputs.executable_name }}
           asset_content_type: application/octet-stream
+
+      - name: List downloaded files (for debugging, will only show if respective download ran)
+        if: always() # Run this step always to see what was downloaded
+        run: |
+          echo "Listing dist-windows (if downloaded):"
+          ls -R dist-windows || echo "dist-windows not downloaded or empty"
+          echo "Listing dist-linux (if downloaded):"
+          ls -R dist-linux || echo "dist-linux not downloaded or empty"
