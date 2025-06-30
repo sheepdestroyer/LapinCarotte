@@ -112,6 +112,9 @@ class GameState:
                 break
 
     def update(self, current_time):
+        # Update player's invincibility state
+        self.player.update_invincibility()
+
         # Update carrot logic
         for carrot in self.carrots:
             if carrot.active:
