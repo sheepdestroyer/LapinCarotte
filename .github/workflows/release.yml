@@ -107,12 +107,14 @@ jobs:
         run: |
           body="Release of version ${{ needs.determine_tag.outputs.tag }}\n\n"
           if [[ "${{ needs.build-windows.result }}" == "success" ]]; then
-            body="${body}- Windows executable: `${{ needs.build-windows.outputs.executable_name }}` (Succeeded)\n"
+            WIN_EXEC_NAME="${{ needs.build-windows.outputs.executable_name }}"
+            body="${body}- Windows executable: \`${WIN_EXEC_NAME}\` (Succeeded)\n"
           else
             body="${body}- Windows build: Failed\n"
           fi
           if [[ "${{ needs.build-linux.result }}" == "success" ]]; then
-            body="${body}- Linux executable: `${{ needs.build-linux.outputs.executable_name }}` (Succeeded)\n"
+            LINUX_EXEC_NAME="${{ needs.build-linux.outputs.executable_name }}"
+            body="${body}- Linux executable: \`${LINUX_EXEC_NAME}\` (Succeeded)\n"
           else
             body="${body}- Linux build: Failed\n"
           fi
