@@ -189,7 +189,7 @@ while running:
                 tinted_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
                 screen.blit(tinted_image, player_pos)
             # Flash if invincible, but not if already handling death effect tint
-            elif not game_state.player.death_effect_active and game_state.player.invincible and int(current_time * 15) % 2 == 1:
+            elif not game_state.player.death_effect_active and game_state.player.invincible and int(current_time * PLAYER_INVINCIBILITY_FLASH_FREQUENCY) % 2 == 1:
                 # Don't blit if invincible and it's a "flash off" frame
                 pass
             else:
