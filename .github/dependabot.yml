@@ -1,0 +1,24 @@
+version: 2
+updates:
+  # Enable version updates for pip
+  - package-ecosystem: "pip"
+    directory: "/" # Location of package manifests (requirements.txt, etc.)
+    schedule:
+      interval: "daily"
+    target-branch: "main"
+    # Example: Include a list of allowed updates
+    # to avoid breaking changes from major version updates
+    # allowed_updates:
+    #  - match:
+    #      dependency-name: "pygame-ce"
+    #      update-type: "semver:minor" # Allow only minor and patch updates
+    #  - match:
+    #      dependency-name: "pyinstaller"
+    #      update-type: "semver:minor"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/" # Location of .github/workflows
+    schedule:
+      interval: "daily"
+    target-branch: "main"
