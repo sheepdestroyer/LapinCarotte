@@ -31,6 +31,11 @@ def build_executable():
     # Directory containing your script
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
+    # Get the release tag from environment variable, default to "dev"
+    release_tag = os.environ.get('RELEASE_TAG', 'dev')
+    executable_name = f'LapinCarotte-{release_tag}'
+    print(f"Using RELEASE_TAG: {release_tag}, executable name will be: {executable_name}")
+
     # Collect asset files
     asset_args = collect_assets()
 
@@ -40,7 +45,7 @@ def build_executable():
         '--onefile',    # Create a single executable
         '--clean',      # Clean PyInstaller cache
         '--noconfirm',  # Replace output directory without asking
-        '--name=LapinCarotte',  # Name of your executable
+        f'--name={executable_name}',  # Name of your executable
         '--noconsole',
         '-i=Assets/HP.ico',
         '--optimize=2',

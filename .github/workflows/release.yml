@@ -30,8 +30,8 @@ jobs:
     needs: determine_tag
     runs-on: windows-latest
     outputs:
-      executable_name: LapinCarotte.exe
-      executable_path: dist/LapinCarotte.exe
+      executable_name: LapinCarotte-${{ needs.determine_tag.outputs.tag }}.exe
+      executable_path: dist/LapinCarotte-${{ needs.determine_tag.outputs.tag }}.exe
     steps:
       - name: Checkout repository at specified tag
         uses: actions/checkout@v4
@@ -50,20 +50,22 @@ jobs:
           pip install -r requirements.txt
 
       - name: Build executable with PyInstaller
+        env:
+          RELEASE_TAG: ${{ needs.determine_tag.outputs.tag }}
         run: python build_exe.py
 
       - name: Upload Windows executable artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lapin-carotte-windows
-          path: dist/LapinCarotte.exe
+          name: lapin-carotte-windows # Artifact name can remain generic
+          path: dist/LapinCarotte-${{ needs.determine_tag.outputs.tag }}.exe # Path to the specifically named exe
 
   build-linux:
     needs: determine_tag
     runs-on: ubuntu-latest
     outputs:
-      executable_name: LapinCarotte
-      executable_path: dist/LapinCarotte
+      executable_name: LapinCarotte-${{ needs.determine_tag.outputs.tag }} # PyInstaller output on Linux has no extension by default
+      executable_path: dist/LapinCarotte-${{ needs.determine_tag.outputs.tag }}
     steps:
       - name: Checkout repository at specified tag
         uses: actions/checkout@v4
@@ -87,6 +89,8 @@ jobs:
           # sudo apt-get install -y upx # Example if UPX was used, build_exe.py specifies --noupx
 
       - name: Build executable with PyInstaller
+        env:
+          RELEASE_TAG: ${{ needs.determine_tag.outputs.tag }}
         run: python -u build_exe.py
 
       - name: List contents of dist directory (Linux)
@@ -96,15 +100,15 @@ jobs:
           ls -lahR dist/ || echo "./dist/ directory not found or build failed to create it."
           echo "Listing contents of current directory:"
           ls -lah
-          echo "Checking for log files if PyInstaller created any (e.g., build/LapinCarotte/warn-LapinCarotte.txt):"
+          echo "Checking for log files if PyInstaller created any (e.g., build/LapinCarotte-${{ needs.determine_tag.outputs.tag }}/warn-LapinCarotte-${{ needs.determine_tag.outputs.tag }}.txt):"
           find build -name "*.txt" -print -exec cat {} \; || echo "No PyInstaller log files found in build/."
 
 
       - name: Upload Linux executable artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lapin-carotte-linux
-          path: dist/LapinCarotte
+          name: lapin-carotte-linux # Artifact name can remain generic
+          path: dist/LapinCarotte-${{ needs.determine_tag.outputs.tag }} # Path to the specifically named executable
 
   create-release:
     needs: [determine_tag, build-windows, build-linux]
@@ -219,17 +223,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.set_upload_url.outputs.UPLOAD_URL }} # Updated
-          asset_path: dist-windows/${{ needs.build-windows.outputs.executable_name }}
-          asset_name: ${{ needs.build-windows.outputs.executable_name }}
+          upload_url: ${{ steps.set_upload_url.outputs.UPLOAD_URL }}
+          asset_path: dist-windows/${{ needs.build-windows.outputs.executable_name }} # This now includes the tag and .exe
+          asset_name: ${{ needs.build-windows.outputs.executable_name }} # This now includes the tag and .exe
           asset_content_type: application/octet-stream
 
       - name: Download Linux executable (if successful)
         if: needs.build-linux.result == 'success'
         uses: actions/download-artifact@v4
         with:
-          name: lapin-carotte-linux
-          path: dist-linux
+          name: lapin-carotte-linux # Artifact name is generic
+          path: dist-linux # Download to this path
 
       - name: Upload Linux Executable to Release (if successful)
         if: needs.build-linux.result == 'success'
@@ -237,9 +241,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.set_upload_url.outputs.UPLOAD_URL }} # Updated
-          asset_path: dist-linux/${{ needs.build-linux.outputs.executable_name }}
-          asset_name: ${{ needs.build-linux.outputs.executable_name }}
+          upload_url: ${{ steps.set_upload_url.outputs.UPLOAD_URL }}
+          asset_path: dist-linux/${{ needs.build-linux.outputs.executable_name }} # Path to LapinCarotte-{tag}
+          asset_name: LapinCarotte-${{ needs.determine_tag.outputs.tag }}-linux.bin # Desired release asset name
           asset_content_type: application/octet-stream
 
       - name: List downloaded files (for debugging, will only show if respective download ran)
