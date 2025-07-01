@@ -19,6 +19,15 @@ pip install pyinstaller
 python build_exe.py
 ```
 
+## Gameplay Features
+
+*   **Dynamic Scrolling World:** Explore a large world that scrolls as you move.
+*   **Combat:** Shoot projectiles (left-click or Space) to defend yourself.
+*   **Special Attack:** Use a powerful Garlic Shot (right-click, consumes garlic).
+*   **Collectibles:** Gather HP, Garlic, and Carrot Juice dropped by enemies.
+*   **Enemies:** Face off against vampire carrots and a main vampire boss.
+*   **Pause and Settings:** Press `ESCAPE` to pause the game. From the pause menu, you can resume, access game settings, or quit. The settings screen allows live modification of various game parameters like player speed, bullet speed, etc. *(Note: Currently, a SyntaxError in `main.py` prevents the game from running, but this feature is implemented).*
+
 ## CI/CD & Automation
 
 This project uses GitHub Actions for Continuous Integration and automation of tests, builds, and releases. Dependabot is also configured for managing dependency updates.

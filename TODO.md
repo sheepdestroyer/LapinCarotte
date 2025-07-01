@@ -162,7 +162,7 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 
 **Objectif :** Permettre au joueur de mettre le jeu en pause et d'accéder à un écran de paramètres pour modifier les configurations du jeu en direct.
 
-### Statut : ⏳ À faire
+### Statut : ✅ Terminé (avec un bug SyntaxError connu dans main.py)
 
 ### Étapes :
 

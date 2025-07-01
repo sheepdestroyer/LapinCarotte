@@ -536,92 +536,92 @@ def main_loop():
             screen.blit(overlay, (0,0))
 
             if game_state.show_settings:
-                # Draw Settings Screen - TEMPORARILY COMMENTED OUT FOR DEBUGGING SYNTAX ERROR
-                # font = pygame.font.Font(None, 74)
-                # text_surf = font.render("Settings", True, (255, 255, 255))
-                # text_rect = text_surf.get_rect(center=(screen_width / 2, screen_height / 4)) # Title
-                # screen.blit(text_surf, text_rect)
+                # Draw Settings Screen
+                font = pygame.font.Font(None, 74)
+                text_surf = font.render("Settings", True, (255, 255, 255))
+                text_rect = text_surf.get_rect(center=(screen_width / 2, screen_height / 4)) # Title
+                screen.blit(text_surf, text_rect)
 
-                # # Draw dynamic config variables
-                # if font_small: # Ensure font is loaded
-                #     # Define a clipping rectangle for the settings items
-                #     clip_rect = pygame.Rect(0, setting_start_y, screen_width, settings_view_height)
-                #     screen.set_clip(clip_rect)
+                # Draw dynamic config variables
+                if font_small: # Ensure font is loaded
+                    # Define a clipping rectangle for the settings items
+                    clip_rect = pygame.Rect(0, setting_start_y, screen_width, settings_view_height)
+                    screen.set_clip(clip_rect)
 
-                #     for item in config_vars_layout:
-                #         # Calculate actual Y position on the screen based on scroll offset
-                #         draw_y = setting_start_y + item["item_y_pos_relative"] - settings_scroll_offset_y
+                    for item in config_vars_layout:
+                        # Calculate actual Y position on the screen based on scroll offset
+                        draw_y = setting_start_y + item["item_y_pos_relative"] - settings_scroll_offset_y
 
-                #         # Basic check if the item is within the broader visible screen area (clipping will handle specifics)
-                #         if draw_y + setting_item_height > setting_start_y - setting_item_height and draw_y < setting_start_y + settings_view_height + setting_item_height:
+                        # Basic check if the item is within the broader visible screen area (clipping will handle specifics)
+                        if draw_y + setting_item_height > setting_start_y - setting_item_height and draw_y < setting_start_y + settings_view_height + setting_item_height:
 
-                #             # Draw Label
-                #             screen.blit(item["label_surf"], (item["label_pos_x"], draw_y))
+                            # Draw Label
+                            screen.blit(item["label_surf"], (item["label_pos_x"], draw_y))
 
-                #             # Draw Value (dynamically fetched) - This block needs to be indented
-                #             current_value = getattr(config, item["name"], "N/A")
-                #             value_text = f"{current_value}"
-                #             if isinstance(current_value, float):
-                #                 value_text = f"{current_value:.3f}" # Format float
+                            # Draw Value (dynamically fetched)
+                            current_value = getattr(config, item["name"], "N/A")
+                            value_text = f"{current_value}"
+                            if isinstance(current_value, float):
+                                value_text = f"{current_value:.3f}" # Format float
 
-                #             default_val = get_default_value(item['name'])
-                #             default_text = f"(Default: {default_val})"
-                #             if isinstance(default_val, float):
-                #                 default_text = f"(Default: {default_val:.3f})"
+                            default_val = get_default_value(item['name'])
+                            default_text = f"(Default: {default_val})"
+                            if isinstance(default_val, float):
+                                default_text = f"(Default: {default_val:.3f})"
 
-                #             # Add range information from metadata
-                #             meta = config_metadata.get(item["name"], {})
-                #             range_text = ""
-                #             if meta.get("type") in ["int", "float"]:
-                #                 min_val = meta.get("min", "N/A")
-                #                 max_val = meta.get("max", "N/A")
-                #                 range_text = f" [{min_val}-{max_val}]"
+                            # Add range information from metadata
+                            meta = config_metadata.get(item["name"], {})
+                            range_text = ""
+                            if meta.get("type") in ["int", "float"]:
+                                min_val = meta.get("min", "N/A")
+                                max_val = meta.get("max", "N/A")
+                                range_text = f" [{min_val}-{max_val}]"
 
-                #             full_value_text = f"{value_text} {default_text}{range_text}"
-                #             value_surf = font_small.render(full_value_text, True, (220, 220, 220))
-                #             value_display_y = draw_y + item["label_surf"].get_height() / 2
-                #             value_rect = value_surf.get_rect(midleft=(item["value_pos_x"], value_display_y))
-                #             screen.blit(value_surf, value_rect)
+                            full_value_text = f"{value_text} {default_text}{range_text}"
+                            value_surf = font_small.render(full_value_text, True, (220, 220, 220))
+                            value_display_y = draw_y + item["label_surf"].get_height() / 2
+                            value_rect = value_surf.get_rect(midleft=(item["value_pos_x"], value_display_y))
+                            screen.blit(value_surf, value_rect)
 
-                #             # Draw +/-/R Buttons, adjusting their Y position based on scroll
-                #             minus_draw_rect = item["minus_button_rel_rect_base"].copy()
-                #             minus_draw_rect.y = draw_y
-                #             pygame.draw.rect(screen, (200,200,200), minus_draw_rect)
-                #             screen.blit(item["minus_surface"], minus_draw_rect.topleft)
+                            # Draw +/-/R Buttons, adjusting their Y position based on scroll
+                            minus_draw_rect = item["minus_button_rel_rect_base"].copy()
+                            minus_draw_rect.y = draw_y
+                            pygame.draw.rect(screen, (200,200,200), minus_draw_rect)
+                            screen.blit(item["minus_surface"], minus_draw_rect.topleft)
 
-                #             plus_draw_rect = item["plus_button_rel_rect_base"].copy()
-                #             plus_draw_rect.y = draw_y
-                #             pygame.draw.rect(screen, (200,200,200), plus_draw_rect)
-                #             screen.blit(item["plus_surface"], plus_draw_rect.topleft)
+                            plus_draw_rect = item["plus_button_rel_rect_base"].copy()
+                            plus_draw_rect.y = draw_y
+                            pygame.draw.rect(screen, (200,200,200), plus_draw_rect)
+                            screen.blit(item["plus_surface"], plus_draw_rect.topleft)
 
-                #             reset_draw_rect = item["reset_button_rel_rect_base"].copy()
-                #             reset_draw_rect.y = draw_y
-                #             pygame.draw.rect(screen, (200,200,150), reset_draw_rect)
-                #             screen.blit(item["reset_surface"], reset_draw_rect.topleft)
-                #         # End of the "if draw_y + setting_item_height > ..." block
+                            reset_draw_rect = item["reset_button_rel_rect_base"].copy()
+                            reset_draw_rect.y = draw_y
+                            pygame.draw.rect(screen, (200,200,150), reset_draw_rect)
+                            screen.blit(item["reset_surface"], reset_draw_rect.topleft)
+                        # End of the "if draw_y + setting_item_height > ..." block
 
-                #     screen.set_clip(None) # Reset clipping
+                    screen.set_clip(None) # Reset clipping
 
-                #     # Optional: Add a visual scrollbar indicator
-                #     if total_settings_content_height > settings_view_height:
-                #         scrollbar_track_height = settings_view_height
-                #         scrollbar_height = max(20, scrollbar_track_height * (settings_view_height / total_settings_content_height))
+                    # Optional: Add a visual scrollbar indicator
+                    if total_settings_content_height > settings_view_height:
+                        scrollbar_track_height = settings_view_height
+                        scrollbar_height = max(20, scrollbar_track_height * (settings_view_height / total_settings_content_height))
 
-                #         current_scrollable_height = total_settings_content_height - settings_view_height
-                #         scrollbar_thumb_y_ratio = 0
-                #         if current_scrollable_height > 0:
-                #              scrollbar_thumb_y_ratio = settings_scroll_offset_y / current_scrollable_height
+                        # Ensure scrollbar_thumb_y_ratio is not dividing by zero if content height equals view height
+                        current_scrollable_height = total_settings_content_height - settings_view_height
+                        scrollbar_thumb_y_ratio = 0
+                        if current_scrollable_height > 0:
+                             scrollbar_thumb_y_ratio = settings_scroll_offset_y / current_scrollable_height
 
-                #         scrollbar_thumb_y = setting_start_y + scrollbar_thumb_y_ratio * (scrollbar_track_height - scrollbar_height)
+                        scrollbar_thumb_y = setting_start_y + scrollbar_thumb_y_ratio * (scrollbar_track_height - scrollbar_height)
 
-                #         pygame.draw.rect(screen, (80, 80, 80),
-                #                          (screen_width - 25, setting_start_y, 15, scrollbar_track_height)) # Scrollbar Track
-                #         pygame.draw.rect(screen, (150, 150, 150),
-                #                          (screen_width - 25, scrollbar_thumb_y, 15, scrollbar_height)) # Scrollbar Thumb
+                        pygame.draw.rect(screen, (80, 80, 80),
+                                         (screen_width - 25, setting_start_y, 15, scrollbar_track_height)) # Scrollbar Track
+                        pygame.draw.rect(screen, (150, 150, 150),
+                                         (screen_width - 25, scrollbar_thumb_y, 15, scrollbar_height)) # Scrollbar Thumb
 
-                # for button in settings_screen_buttons: # Draw other settings buttons (e.g., Back button)
-                #     button.draw(screen)
-                pass # Added pass to ensure block is not empty
+                for button in settings_screen_buttons: # Draw other settings buttons (e.g., Back button)
+                    button.draw(screen)
 
             else: # Pause Screen UI
                 font = pygame.font.Font(None, 100) # Larger font for "Paused"
@@ -630,8 +630,6 @@ def main_loop():
                 screen.blit(text_surf, text_rect)
                 for button in pause_screen_buttons:
                     button.draw(screen)
-            # End of "else" for "if game_state.show_settings"
-        # End of "elif game_state.paused:"
 
         else:
             # Player movement and game logic updates only if not paused and not game over
