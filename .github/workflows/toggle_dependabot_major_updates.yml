@@ -1,0 +1,113 @@
+name: Toggle Dependabot Major Updates for Pip
+
+on:
+  workflow_dispatch:
+    inputs:
+      major_updates_enabled:
+        description: 'Enable major updates for Pip dependencies? (true/false)'
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  update_dependabot_config:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Allows the workflow to commit changes
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }} # Checkout the branch the workflow is running on (e.g. main)
+
+      - name: Update Dependabot Configuration File
+        run: |
+          DEPENDABOT_FILE=".github/dependabot.yml"
+          MAJOR_UPDATES_ENABLED="${{ github.event.inputs.major_updates_enabled }}"
+
+          echo "Input major_updates_enabled: $MAJOR_UPDATES_ENABLED"
+
+          if [[ "$MAJOR_UPDATES_ENABLED" == "true" ]]; then
+            echo "Configuring Dependabot to ALLOW MAJOR updates for pip..."
+            cat << 'EOF' > $DEPENDABOT_FILE
+version: 2
+updates:
+  # Enable version updates for pip
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    target-branch: "main"
+    # Allowing all updates, including major, for pip dependencies.
+    # To restrict to minor/patch, trigger this workflow with 'major_updates_enabled: false'.
+
+  # Enable version updates for GitHub Actions
+  # By default, this allows all updates for GitHub Actions, including major versions.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    target-branch: "main"
+EOF
+          else
+            echo "Configuring Dependabot for MINOR/PATCH updates on pip (default)..."
+            cat << 'EOF' > $DEPENDABOT_FILE
+version: 2
+updates:
+  # Enable version updates for pip
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    target-branch: "main"
+    # By default, only allow patch and minor updates for all pip dependencies.
+    # To enable major updates, trigger this workflow with 'major_updates_enabled: true'.
+    allowed_updates:
+      - match:
+          dependency-name: "*" # Apply to all pip dependencies
+          update-type: "semver:patch"
+      - match:
+          dependency-name: "*" # Apply to all pip dependencies
+          update-type: "semver:minor"
+
+  # Enable version updates for GitHub Actions
+  # By default, this allows all updates for GitHub Actions, including major versions.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    target-branch: "main"
+EOF
+          fi
+          echo "Content of $DEPENDABOT_FILE after update:"
+          cat $DEPENDABOT_FILE
+
+      - name: Commit and Push Dependabot Configuration
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .github/dependabot.yml
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to dependabot.yml. Configuration already matches desired state."
+          else
+            COMMIT_MESSAGE="chore(dependabot): Set pip major updates to ${{ github.event.inputs.major_updates_enabled }}"
+            echo "Committing with message: $COMMIT_MESSAGE"
+            git commit -m "$COMMIT_MESSAGE"
+
+            # Extract branch name from ref (e.g., refs/heads/main -> main)
+            # GITHUB_REF is in format refs/heads/branch-name or refs/tags/tag-name or refs/pull/pr-number/merge
+            # We only want to push if it's a branch.
+            if [[ "${{ github.ref }}" == refs/heads/* ]]; then
+              BRANCH_NAME=${GITHUB_REF#refs/heads/}
+              echo "Pushing changes to branch $BRANCH_NAME..."
+              git push origin "$BRANCH_NAME"
+              echo "Committed and pushed changes to dependabot.yml on branch $BRANCH_NAME"
+            else
+              echo "Workflow not running on a branch head (ref: ${{ github.ref }}). Skipping push."
+              echo "This is normal for tag events or PRs if the workflow were triggered by them."
+              echo "For workflow_dispatch, GITHUB_REF should be the branch it was triggered from."
+            fi
+          fi
