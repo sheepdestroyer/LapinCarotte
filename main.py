@@ -316,6 +316,10 @@ def main_loop():
     time.sleep(config.FRAME_DELAY)
 
 if __name__ == '__main__':
-    main_loop()
-    pygame.quit()
+if __name__ == '__main__':
+    try:
+        main_loop()
+    finally:
+        pygame.quit()
+        sys.exit()
     sys.exit()
