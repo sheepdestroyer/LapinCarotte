@@ -102,6 +102,11 @@ jobs:
     permissions:
       contents: write # Required to create releases and upload assets
     steps:
+      - name: Checkout repository at specified tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine_tag.outputs.tag }} # Checkout the specific tag
+
       - name: Prepare Release Body
         id: prepare_body
         run: |
