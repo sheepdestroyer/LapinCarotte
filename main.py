@@ -157,8 +157,11 @@ def handle_player_death():
         game_state.player.death_effect_active = True
         game_state.player.death_effect_start_time = current_time
         # print(f"[TRACE] handle_player_death: Set death_effect_active=True, death_effect_start_time={game_state.player.death_effect_start_time:.4f}")
+    try:
         pygame.mixer.music.stop()
         asset_manager.sounds['death'].play()
+    except pygame.error as e:
+        print(f"ERROR: Could not load or play sound: {e}")
 
 # This is the main game loop variable
 running = True
