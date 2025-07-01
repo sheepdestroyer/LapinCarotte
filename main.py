@@ -51,12 +51,14 @@ def start_game():
     pygame.mixer.music.stop()
     pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAME))
     pygame.mixer.music.play(-1)
+    asset_manager.sounds['press_start'].play()
 
 def reset_game():
     game_state.reset()
     pygame.mixer.music.stop()
     pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAME))
     pygame.mixer.music.play(-1)
+    asset_manager.sounds['press_start'].play()
 
 def quit_game():
     global running
@@ -160,10 +162,6 @@ def main_loop():
             if not game_state.started:
                 for button in start_screen_buttons:
                     button.handle_event(event)
-                # Legacy sound playback for start button, can be moved into callback if Button class supports it
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                     if start_button_start_screen.rect.collidepoint(event.pos):
-                        asset_manager.sounds['press_start'].play()
             elif not game_state.game_over:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE and not game_state.player.death_effect_active:
@@ -192,10 +190,6 @@ def main_loop():
             else: # Game Over screen
                 for button in game_over_buttons:
                     button.handle_event(event)
-                # Legacy sound playback for restart button
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if restart_button_game_over_screen.rect.collidepoint(event.pos):
-                        asset_manager.sounds['press_start'].play()
 
 
         if not game_state.started:

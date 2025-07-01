@@ -95,42 +95,60 @@ def mock_pygame_modules(monkeypatch):
     mock_start_screen_surface.convert_alpha.return_value = mock_start_screen_surface
     mock_start_screen_surface.get_width.return_value = 1920
     mock_start_screen_surface.get_height.return_value = 1080
-    mock_start_screen_surface.get_rect.return_value = pygame.Rect(0,0,1920,1080)
+    mock_start_screen_surface.get_rect.return_value = real_pygame_rect(0,0,1920,1080)
 
+    # Define a list of common image keys that can use the generic mock_image_surface
+    common_image_keys = [
+        'icon', 'carrot', 'vampire', 'hp', 'game_over', 'grass', 'garlic',
+        'crosshair', 'bullet', 'explosion', 'rabbit', 'carrot_juice',
+        'digit_0', 'digit_1', 'digit_2', 'digit_3', 'digit_4',
+        'digit_5', 'digit_6', 'digit_7', 'digit_8', 'digit_9'
+    ]
 
     mock_asset_manager_instance.images = {
-            'icon': mock_image_surface, # pygame.display.set_icon(asset_manager.images['icon'])
-            'start_screen': mock_start_screen_surface, # screen.blit(start_screen_image, start_screen_pos)
-            'start': mock_image_surface, # Passed to Button, then blitted
-            'exit': mock_image_surface, # Passed to Button, then blitted
-            'restart': mock_image_surface, # Passed to Button, then blitted
-            'carrot': mock_image_surface, # game_entities.Carrot(asset_manager.images['carrot']), then blitted
-            'vampire': mock_image_surface,
-            'hp': mock_image_surface, # player.draw_ui uses this
-            'game_over': mock_image_surface, # screen.blit(game_over_image, ...)
-            'grass': mock_image_surface, # grass_background.blit(grass_image, ...)
-            'garlic': mock_image_surface, # player.draw_ui uses this / garlic_shot blit
-            'crosshair': mock_image_surface, # screen.blit(crosshair_img, ...)
-            'bullet': mock_image_surface,
-            'explosion': mock_image_surface,
-            'rabbit': mock_image_surface,
-            'carrot_juice': mock_image_surface,
-            'digit_0': mock_image_surface, 'digit_1': mock_image_surface, 'digit_2': mock_image_surface,
-            'digit_3': mock_image_surface, 'digit_4': mock_image_surface, 'digit_5': mock_image_surface,
-            'digit_6': mock_image_surface, 'digit_7': mock_image_surface, 'digit_8': mock_image_surface,
-            'digit_9': mock_image_surface,
+        key: mock_image_surface for key in common_image_keys
     }
-    # Ensure get_rect is available for rect-based positioning if not covered by mock_image_surface
-    mock_asset_manager_instance.images['start'].get_rect = lambda: mock_start_rect
-    mock_asset_manager_instance.images['exit'].get_rect = lambda: mock_exit_rect
-    mock_asset_manager_instance.images['restart'].get_rect = lambda: mock_restart_rect
-    # For other images that might use get_rect directly from asset_manager.images in main
-    mock_asset_manager_instance.images['carrot'].get_rect = MagicMock(return_value=pygame.Rect(0,0,10,10))
-    mock_asset_manager_instance.images['vampire'].get_rect = MagicMock(return_value=pygame.Rect(0,0,10,10))
-    mock_asset_manager_instance.images['hp'].get_rect = MagicMock(return_value=pygame.Rect(0,0,10,10))
-    mock_asset_manager_instance.images['game_over'].get_rect = MagicMock(return_value=pygame.Rect(0,0,10,10))
-    mock_asset_manager_instance.images['crosshair'].get_rect = MagicMock(return_value=pygame.Rect(0,0,10,10))
 
+    # Add/override specific mocks
+    mock_asset_manager_instance.images['start_screen'] = mock_start_screen_surface
+
+    # For button images, they use mock_image_surface by default through pygame.image.load mock,
+    # but their get_rect methods need to return specific rects for positioning logic in main.py
+    # So, we ensure these specific rects are available.
+    # Create new mocks for these specific images if they need distinct properties beyond get_rect
+    # or re-assign if mock_image_surface is sufficient but just need to override get_rect.
+
+    start_button_mock_img = MagicMock(spec=real_pygame_surface)
+    start_button_mock_img.get_rect.return_value = mock_start_rect
+    start_button_mock_img.get_width.return_value = mock_start_rect.width # Consistent width
+    start_button_mock_img.get_height.return_value = mock_start_rect.height # Consistent height
+    start_button_mock_img.convert_alpha.return_value = start_button_mock_img
+
+    exit_button_mock_img = MagicMock(spec=real_pygame_surface)
+    exit_button_mock_img.get_rect.return_value = mock_exit_rect
+    exit_button_mock_img.get_width.return_value = mock_exit_rect.width
+    exit_button_mock_img.get_height.return_value = mock_exit_rect.height
+    exit_button_mock_img.convert_alpha.return_value = exit_button_mock_img
+
+    restart_button_mock_img = MagicMock(spec=real_pygame_surface)
+    restart_button_mock_img.get_rect.return_value = mock_restart_rect
+    restart_button_mock_img.get_width.return_value = mock_restart_rect.width
+    restart_button_mock_img.get_height.return_value = mock_restart_rect.height
+    restart_button_mock_img.convert_alpha.return_value = restart_button_mock_img
+
+    mock_asset_manager_instance.images['start'] = start_button_mock_img
+    mock_asset_manager_instance.images['exit'] = exit_button_mock_img
+    mock_asset_manager_instance.images['restart'] = restart_button_mock_img
+
+    # The general mock_image_surface already has a get_rect returning a 50x50 rect.
+    # This should be sufficient for other images like 'carrot', 'vampire', 'hp', 'game_over', 'crosshair'
+    # as their exact rect dimensions are not as critical for the current tests as button rects are for positioning.
+    # Thus, the explicit get_rect overrides below are removed.
+    # mock_asset_manager_instance.images['carrot'].get_rect = MagicMock(return_value=pygame.Rect(0,0,10,10))
+    # mock_asset_manager_instance.images['vampire'].get_rect = MagicMock(return_value=pygame.Rect(0,0,10,10))
+    # mock_asset_manager_instance.images['hp'].get_rect = MagicMock(return_value=pygame.Rect(0,0,10,10))
+    # mock_asset_manager_instance.images['game_over'].get_rect = MagicMock(return_value=pygame.Rect(0,0,10,10))
+    # mock_asset_manager_instance.images['crosshair'].get_rect = MagicMock(return_value=pygame.Rect(0,0,10,10))
 
     mock_asset_manager_instance.sounds = {
         'press_start': MagicMock(),
@@ -153,6 +171,12 @@ def test_game_initialization_no_errors():
     Teste si l'importation de main.py et l'initialisation des variables globales
     (y compris les boutons qui utilisent start_game etc.) se passent sans erreur.
     """
+    # NOTE: L'import de `main` est fait ici et répété dans les autres tests de ce fichier.
+    # Idéalement, `main.py` serait structuré pour que son initialisation puisse être
+    # appelée explicitement, permettant un import unique en haut du fichier de test
+    # et un meilleur contrôle de l'état global pour l'isolation des tests.
+    # Pour l'instant, cette approche fonctionne car la fixture `mock_pygame_modules`
+    # réinitialise les mocks nécessaires avant chaque test.
     try:
         with patch('pygame.quit'), patch('sys.exit'): # Empêche la fermeture de Pygame/sys
              # L'import de main exécute le code au niveau global
@@ -170,22 +194,23 @@ def test_start_game_functionality(mock_pygame_modules):
     """Teste si la fonction start_game modifie correctement l'état du jeu."""
     import main # Importer après que les mocks soient actifs
 
-    # S'assurer que le jeu n'est pas démarré initialement
+    # S'assurer que le jeu n'est pas démarré initialement et réinitialiser le mock du son spécifique
     main.game_state.started = False
+    main.asset_manager.sounds['press_start'].play.reset_mock()
 
     # Appeler la fonction start_game
     main.start_game()
 
     # Vérifier que l'état du jeu a changé
     assert main.game_state.started == True
-    # Vérifier que la musique du jeu a été jouée (via le mock)
-    main.asset_manager.sounds['press_start'].play.assert_not_called() # Ce son est pour le clic, pas start_game directement
+    # Vérifier que la musique du jeu a été jouée et que le son du bouton a été joué
+    main.asset_manager.sounds['press_start'].play.assert_called_once()
 
     # Pour déboguer, vérifions quel est l'objet asset_manager dans main
     # et si sa méthode _get_path est bien notre lambda
-    # Ceci est une assertion de débogage, peut être retirée plus tard
-    assert main.asset_manager._get_path("test") == "dummy_lambda_path", \
-        f"main.asset_manager._get_path n'est pas le mock attendu. Type: {type(main.asset_manager._get_path)}"
+    # NOTE: Debug assertion removed.
+    # assert main.asset_manager._get_path("test") == "dummy_lambda_path", \
+    #     f"main.asset_manager._get_path n'est pas le mock attendu. Type: {type(main.asset_manager._get_path)}"
 
     pygame.mixer.music.load.assert_called_with("dummy_lambda_path") # MUSIC_GAME
     pygame.mixer.music.play.assert_called_with(-1)
@@ -194,20 +219,22 @@ def test_reset_game_functionality(mock_pygame_modules):
     """Teste si la fonction reset_game réinitialise correctement l'état du jeu."""
     import main
 
-    # Simuler un état de jeu modifié
+    # Simuler un état de jeu modifié et réinitialiser le mock du son spécifique
     main.game_state.started = True
     main.game_state.game_over = True
     main.game_state.player.health = 0
+    main.asset_manager.sounds['press_start'].play.reset_mock()
 
     main.reset_game()
 
     assert main.game_state.started == False
     assert main.game_state.game_over == False
     assert main.game_state.player.health == main.START_HEALTH # Vérifier une valeur spécifique réinitialisée
+    main.asset_manager.sounds['press_start'].play.assert_called_once()
 
-    # Assertion de débogage
-    assert main.asset_manager._get_path("test") == "dummy_lambda_path", \
-        f"main.asset_manager._get_path n'est pas le mock attendu. Type: {type(main.asset_manager._get_path)}"
+    # NOTE: Debug assertion removed.
+    # assert main.asset_manager._get_path("test") == "dummy_lambda_path", \
+    #     f"main.asset_manager._get_path n'est pas le mock attendu. Type: {type(main.asset_manager._get_path)}"
 
     pygame.mixer.music.load.assert_called_with("dummy_lambda_path") # MUSIC_GAME
     pygame.mixer.music.play.assert_called_with(-1)
