@@ -46,19 +46,21 @@ pygame.mixer.music.play(-1)
 current_time = 0.0
 
 # Game state modification functions (used as callbacks for buttons)
-def start_game():
-    game_state.started = True
+def _play_game_music_and_sound(sound_to_play=None):
+    """Helper function to stop current music, play game music, and an optional sound effect."""
     pygame.mixer.music.stop()
     pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAME))
     pygame.mixer.music.play(-1)
-    asset_manager.sounds['press_start'].play()
+    if sound_to_play and sound_to_play in asset_manager.sounds:
+        asset_manager.sounds[sound_to_play].play()
+
+def start_game():
+    game_state.started = True
+    _play_game_music_and_sound('press_start')
 
 def reset_game():
     game_state.reset()
-    pygame.mixer.music.stop()
-    pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAME))
-    pygame.mixer.music.play(-1)
-    asset_manager.sounds['press_start'].play()
+    _play_game_music_and_sound('press_start')
 
 def quit_game():
     global running
@@ -119,13 +121,18 @@ game_over_buttons = [restart_button_game_over_screen, exit_button_game_over_scre
 def distance(x1, y1, x2, y2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
+# These _rect variables are defined once, early, as their .width/.height attributes are used by Button positioning logic
+# The variables defined at lines 71-73 are the single source of truth.
+# restart_button_rect = asset_manager.images['restart'].get_rect() # Defined at line 71
+# exit_button_rect = asset_manager.images['exit'].get_rect()       # Defined at line 72
+# start_button_rect = asset_manager.images['start'].get_rect()     # Defined at line 73
+
+# Other rects, not directly used for button positioning logic that needs them *before* this point
 carrot_rect = asset_manager.images['carrot'].get_rect()
 vampire_rect = asset_manager.images['vampire'].get_rect()
 hp_rect = asset_manager.images['hp'].get_rect()
 game_over_rect = asset_manager.images['game_over'].get_rect()
-restart_button_rect = asset_manager.images['restart'].get_rect()
-exit_button_rect = asset_manager.images['exit'].get_rect()
-start_button_rect = asset_manager.images['start'].get_rect()
+
 
 grass_image = asset_manager.images['grass']
 grass_background = pygame.Surface(WORLD_SIZE, pygame.SRCALPHA)

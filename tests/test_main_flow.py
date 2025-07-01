@@ -214,11 +214,8 @@ def test_start_game_functionality(mock_pygame_modules):
     # Vérifier que la musique du jeu a été jouée et que le son du bouton a été joué
     main.asset_manager.sounds['press_start'].play.assert_called_once()
 
-    # Pour déboguer, vérifions quel est l'objet asset_manager dans main
     # et si sa méthode _get_path est bien notre lambda
     # NOTE: Debug assertion removed.
-    # assert main.asset_manager._get_path("test") == "dummy_lambda_path", \
-    #     f"main.asset_manager._get_path n'est pas le mock attendu. Type: {type(main.asset_manager._get_path)}"
 
     pygame.mixer.music.load.assert_called_with("dummy_lambda_path") # MUSIC_GAME
     pygame.mixer.music.play.assert_called_with(-1)
@@ -241,8 +238,6 @@ def test_reset_game_functionality(mock_pygame_modules):
     main.asset_manager.sounds['press_start'].play.assert_called_once()
 
     # NOTE: Debug assertion removed.
-    # assert main.asset_manager._get_path("test") == "dummy_lambda_path", \
-    #     f"main.asset_manager._get_path n'est pas le mock attendu. Type: {type(main.asset_manager._get_path)}"
 
     pygame.mixer.music.load.assert_called_with("dummy_lambda_path") # MUSIC_GAME
     pygame.mixer.music.play.assert_called_with(-1)
