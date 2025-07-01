@@ -6,10 +6,20 @@ updates:
     schedule:
       interval: "daily"
     target-branch: "main"
-    # By default, all updates (including major) are allowed unless specific ignore
-    # conditions or restrictive allowed_updates are set.
+    # By default, only allow patch and minor updates for all pip dependencies.
+    # To enable major updates, this section needs to be manually modified
+    # (e.g., by commenting out 'allowed_updates' or adding a rule for "semver:major").
+    allowed_updates:
+      - match:
+          dependency-name: "*" # Apply to all pip dependencies
+          update-type: "semver:patch"
+      - match:
+          dependency-name: "*" # Apply to all pip dependencies
+          update-type: "semver:minor"
 
   # Enable version updates for GitHub Actions
+  # By default, this allows all updates for GitHub Actions, including major versions.
+  # Add allowed_updates or ignore rules here if you want to restrict action updates.
   - package-ecosystem: "github-actions"
     directory: "/" # Location of .github/workflows
     schedule:
