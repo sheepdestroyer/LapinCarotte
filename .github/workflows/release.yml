@@ -124,18 +124,16 @@ jobs:
           fi
           echo "RELEASE_BODY<<EOF" >> $GITHUB_OUTPUT
           echo "$body" >> $GITHUB_OUTPUT
+          echo "$body" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Delete existing release (if any) to prevent "already_exists" error
-        uses: dev-drprasad/delete-tag-and-release@v0.2.1
-        with:
-          tag_name: ${{ needs.determine_tag.outputs.tag }}
-          delete_release: true # Only delete the release, not the underlying tag
-          repo_owner: ${{ github.repository_owner }} # Explicitly set owner
-          repo_name: ${{ github.event.repository.name }} # Explicitly set repo name
+      - name: Delete existing GitHub Release (if any)
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true # If release doesn't exist, don't fail the workflow
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # gh cli uses GH_TOKEN or GITHUB_TOKEN
+          TAG_NAME: ${{ needs.determine_tag.outputs.tag }}
+        run: |
+          gh release delete "$TAG_NAME" --yes || true
+          echo "Attempted to delete release for tag $TAG_NAME. If it existed, it's deleted. If not, we continued."
 
       - name: Create GitHub Release
         id: create_release
