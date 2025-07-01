@@ -79,18 +79,18 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 
 **Objectif :** Supprimer les valeurs "magiques" (nombres codés en dur) du code en les déplaçant dans `config.py` pour une configuration centralisée.
 
-### Statut : ⏳ À faire
+### Statut : ✅ Terminé
 
 ### Étapes :
 
--   [ ] **1. Centraliser les positions des boutons**
+-   [x] **1. Centraliser les positions des boutons**
     -   Dans `config.py`, ajoutez des variables pour les positions des boutons de l'écran de démarrage, qui sont actuellement codées en dur dans `main.py` (ex: 787, 742).
     -   Dans `main.py`, importez ces nouvelles variables et utilisez-les lors de la création de vos instances de `Button`.
 
--   [ ] **2. Centraliser les paramètres de l'écran "Game Over"**
+-   [x] **2. Centraliser les paramètres de l'écran "Game Over"**
     -   La position des boutons sur l'écran "Game Over" est calculée dynamiquement, ce qui est bien.
-    -   Pour améliorer, déplacez l'espacement de `20` pixels dans `config.py` (ex: `BUTTON_SPACING = 20`).
-    -   Mettez à jour le code de `main.py` pour utiliser cette nouvelle constante.
+    -   Pour améliorer, déplacez l'espacement de `20` pixels dans `config.py` (ex: `BUTTON_SPACING = 20`). (Note: Constante `BUTTON_SPACING` déjà existante et utilisée).
+    -   Mettez à jour le code de `main.py` pour utiliser cette nouvelle constante. (Note: Déjà en place).
 
 ---
 

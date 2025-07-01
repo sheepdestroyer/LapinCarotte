@@ -87,14 +87,14 @@ start_button_img = asset_manager.images['start']
 exit_button_img = asset_manager.images['exit']
 
 start_button_start_screen = Button(
-    start_screen_pos[0] + 787,
-    start_screen_pos[1] + 742,
+    start_screen_pos[0] + START_SCREEN_BUTTON_START_X_OFFSET,
+    start_screen_pos[1] + START_SCREEN_BUTTON_START_Y_OFFSET,
     start_button_img,
     start_game
 )
 exit_button_start_screen = Button(
-    start_screen_pos[0] + 787,
-    start_screen_pos[1] + 827,
+    start_screen_pos[0] + START_SCREEN_BUTTON_EXIT_X_OFFSET,
+    start_screen_pos[1] + START_SCREEN_BUTTON_EXIT_Y_OFFSET,
     exit_button_img,
     quit_game
 )
