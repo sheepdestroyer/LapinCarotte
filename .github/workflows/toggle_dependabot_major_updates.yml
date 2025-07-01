@@ -23,63 +23,20 @@ jobs:
 
       - name: Update Dependabot Configuration File
         run: |
-          DEPENDABOT_FILE=".github/dependabot.yml"
+          set -e # Exit on error
           MAJOR_UPDATES_ENABLED="${{ github.event.inputs.major_updates_enabled }}"
+          DEPENDABOT_FILE=".github/dependabot.yml" # Define for cat command later
 
           echo "Input major_updates_enabled: $MAJOR_UPDATES_ENABLED"
 
           if [[ "$MAJOR_UPDATES_ENABLED" == "true" ]]; then
-            echo "Configuring Dependabot to ALLOW MAJOR updates for pip..."
-            cat << 'EOF' > $DEPENDABOT_FILE
-version: 2
-updates:
-  # Enable version updates for pip
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    target-branch: "main"
-    # Allowing all updates, including major, for pip dependencies.
-    # To restrict to minor/patch, trigger this workflow with 'major_updates_enabled: false'.
-
-  # Enable version updates for GitHub Actions
-  # By default, this allows all updates for GitHub Actions, including major versions.
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    target-branch: "main"
-EOF
+            echo "Executing: bash .github/scripts/set_dependabot_permissive.sh"
+            bash .github/scripts/set_dependabot_permissive.sh
           else
-            echo "Configuring Dependabot for MINOR/PATCH updates on pip (default)..."
-            cat << 'EOF' > $DEPENDABOT_FILE
-version: 2
-updates:
-  # Enable version updates for pip
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    target-branch: "main"
-    # By default, only allow patch and minor updates for all pip dependencies.
-    # To enable major updates, trigger this workflow with 'major_updates_enabled: true'.
-    allowed_updates:
-      - match:
-          dependency-name: "*" # Apply to all pip dependencies
-          update-type: "semver:patch"
-      - match:
-          dependency-name: "*" # Apply to all pip dependencies
-          update-type: "semver:minor"
-
-  # Enable version updates for GitHub Actions
-  # By default, this allows all updates for GitHub Actions, including major versions.
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    target-branch: "main"
-EOF
+            echo "Executing: bash .github/scripts/set_dependabot_restrictive.sh"
+            bash .github/scripts/set_dependabot_restrictive.sh
           fi
+
           echo "Content of $DEPENDABOT_FILE after update:"
           cat $DEPENDABOT_FILE
 
