@@ -87,7 +87,18 @@ jobs:
           # sudo apt-get install -y upx # Example if UPX was used, build_exe.py specifies --noupx
 
       - name: Build executable with PyInstaller
-        run: python build_exe.py
+        run: python -u build_exe.py
+
+      - name: List contents of dist directory (Linux)
+        if: always() # Run this step even if the build failed to see partial output
+        run: |
+          echo "Listing contents of ./dist/ (if it exists):"
+          ls -lahR dist/ || echo "./dist/ directory not found or build failed to create it."
+          echo "Listing contents of current directory:"
+          ls -lah
+          echo "Checking for log files if PyInstaller created any (e.g., build/LapinCarotte/warn-LapinCarotte.txt):"
+          find build -name "*.txt" -print -exec cat {} \; || echo "No PyInstaller log files found in build/."
+
 
       - name: Upload Linux executable artifact
         uses: actions/upload-artifact@v4
@@ -128,7 +139,6 @@ jobs:
             # Potentially mark as prerelease or draft if both fail
           fi
           echo "RELEASE_BODY<<EOF" >> $GITHUB_OUTPUT
-          echo "$body" >> $GITHUB_OUTPUT
           echo "$body" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
