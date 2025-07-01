@@ -2,26 +2,17 @@ version: 2
 updates:
   # Enable version updates for pip
   - package-ecosystem: "pip"
-    directory: "/" # Location of package manifests (requirements.txt, etc.)
+    directory: "/"
     schedule:
       interval: "daily"
     target-branch: "main"
-    # By default, only allow patch and minor updates for all pip dependencies.
-    # To enable major updates, this section needs to be manually modified
-    # (e.g., by commenting out 'allowed_updates' or adding a rule for "semver:major").
-    allowed_updates:
-      - match:
-          dependency-name: "*" # Apply to all pip dependencies
-          update-type: "semver:patch"
-      - match:
-          dependency-name: "*" # Apply to all pip dependencies
-          update-type: "semver:minor"
+    # Allowing all updates, including major, for pip dependencies.
+    # To restrict to minor/patch, trigger the toggle workflow with 'major_updates_enabled: false'.
 
   # Enable version updates for GitHub Actions
   # By default, this allows all updates for GitHub Actions, including major versions.
-  # Add allowed_updates or ignore rules here if you want to restrict action updates.
   - package-ecosystem: "github-actions"
-    directory: "/" # Location of .github/workflows
+    directory: "/"
     schedule:
       interval: "daily"
     target-branch: "main"
