@@ -50,7 +50,7 @@ Testing is not optional. It is a core responsibility to guarantee that changes a
     * Use `tests/test_game_entities_player.py` as a reference for creating tests for game logic.
 2.  **Run the Full Test Suite:**
     * Before submitting, run the entire test suite locally to ensure your changes have not introduced any regressions.
-    * Execute the tests using the command: `python -m pytest -v`.
+    * Execute the tests using the command: `pip install -r requirements.txt -r requirements_dev.txt && python -m pytest -v`.
     * The Continuous Integration workflow (`run-tests.yml`) will also run these tests, but they must pass locally first.
 
 ---
