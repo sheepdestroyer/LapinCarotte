@@ -142,16 +142,27 @@ jobs:
           echo "$body" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Delete existing GitHub Release (if any)
+      - name: Get existing release info
+        id: get_existing_release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # gh cli uses GH_TOKEN or GITHUB_TOKEN
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ needs.determine_tag.outputs.tag }}
         run: |
-          gh release delete "$TAG_NAME" --yes || true
-          echo "Attempted to delete release for tag $TAG_NAME. If it existed, it's deleted. If not, we continued."
+          # Try to get upload_url and id of existing release.
+          # gh release view exits with 0 if release exists, non-zero otherwise.
+          if gh_data=$(gh release view "$TAG_NAME" --json id,uploadUrl --template '{{.id}}{{"\n"}}{{.uploadUrl}}' 2>/dev/null); then
+            echo "RELEASE_EXISTS=true" >> $GITHUB_OUTPUT
+            echo "EXISTING_RELEASE_ID=$(echo "$gh_data" | sed -n 1p)" >> $GITHUB_OUTPUT
+            echo "EXISTING_UPLOAD_URL=$(echo "$gh_data" | sed -n 2p)" >> $GITHUB_OUTPUT
+            echo "Release '$TAG_NAME' already exists. ID: $(echo "$gh_data" | sed -n 1p). Will upload assets to it."
+          else
+            echo "RELEASE_EXISTS=false" >> $GITHUB_OUTPUT
+            echo "Release '$TAG_NAME' does not exist. Will create it."
+          fi
 
-      - name: Create GitHub Release
-        id: create_release
+      - name: Create GitHub Release (if it doesn't exist)
+        id: create_new_release # Renamed id
+        if: steps.get_existing_release.outputs.RELEASE_EXISTS == 'false'
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -159,8 +170,41 @@ jobs:
           tag_name: ${{ needs.determine_tag.outputs.tag }}
           release_name: Release ${{ needs.determine_tag.outputs.tag }}
           body: ${{ steps.prepare_body.outputs.RELEASE_BODY }}
-          draft: false # Consider setting to true if all builds fail or for partial releases
-          prerelease: ${{ needs.build-windows.result != 'success' || needs.build-linux.result != 'success' }} # Mark as prerelease if any build failed
+          draft: false
+          prerelease: ${{ needs.build-windows.result != 'success' || needs.build-linux.result != 'success' }}
+
+      - name: Set Upload URL
+        id: set_upload_url
+        run: |
+          upload_url=""
+          if [[ "${{ steps.get_existing_release.outputs.RELEASE_EXISTS }}" == "true" ]]; then
+            upload_url="${{ steps.get_existing_release.outputs.EXISTING_UPLOAD_URL }}"
+            echo "Using upload URL from existing release."
+          elif [[ -n "${{ steps.create_new_release.outputs.upload_url }}" ]]; then
+            # This block executes if RELEASE_EXISTS was 'false' AND create_new_release step ran and produced an upload_url
+            upload_url="${{ steps.create_new_release.outputs.upload_url }}"
+            echo "Using upload URL from newly created release."
+          fi
+
+          if [[ -z "$upload_url" ]]; then
+            echo "Error: Could not determine upload URL. Release may not have been found or created successfully."
+            # Check if create_new_release was supposed to run but didn't (e.g. its 'if' condition was false but RELEASE_EXISTS was also false)
+            # This state should ideally not be reached if logic is correct and gh/actions work as expected.
+            # However, if create_new_release step itself failed (not just skipped), its output might be empty.
+            if [[ "${{ steps.get_existing_release.outputs.RELEASE_EXISTS }}" == "false" && -z "${{ steps.create_new_release.outputs.upload_url }}" ]]; then
+                 echo "Debug: RELEASE_EXISTS is false, and create_new_release.outputs.upload_url is also empty."
+                 echo "This might happen if the create_new_release step was skipped due to its own 'if' condition (which should match !RELEASE_EXISTS)"
+                 echo "or if the create_new_release step failed to set its output, or did not run as expected."
+            fi
+            exit 1 # Fail the job if no upload URL can be determined
+          fi
+          echo "UPLOAD_URL=$upload_url" >> $GITHUB_OUTPUT
+          echo "Final upload URL: $upload_url"
+        env: # Pass outputs from previous conditional step explicitly for reliability in script
+           EXISTING_RELEASE_EXISTS: ${{ steps.get_existing_release.outputs.RELEASE_EXISTS }}
+           EXISTING_UPLOAD_URL: ${{ steps.get_existing_release.outputs.EXISTING_UPLOAD_URL }}
+           NEW_RELEASE_UPLOAD_URL: ${{ steps.create_new_release.outputs.upload_url }}
+
 
       - name: Download Windows executable (if successful)
         if: needs.build-windows.result == 'success'
@@ -175,7 +219,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.set_upload_url.outputs.UPLOAD_URL }} # Updated
           asset_path: dist-windows/${{ needs.build-windows.outputs.executable_name }}
           asset_name: ${{ needs.build-windows.outputs.executable_name }}
           asset_content_type: application/octet-stream
@@ -193,7 +237,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.set_upload_url.outputs.UPLOAD_URL }} # Updated
           asset_path: dist-linux/${{ needs.build-linux.outputs.executable_name }}
           asset_name: ${{ needs.build-linux.outputs.executable_name }}
           asset_content_type: application/octet-stream
