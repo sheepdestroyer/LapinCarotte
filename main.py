@@ -48,11 +48,14 @@ current_time = 0.0
 # Game state modification functions (used as callbacks for buttons)
 def _play_game_music_and_sound(sound_to_play=None):
     """Helper function to stop current music, play game music, and an optional sound effect."""
-    pygame.mixer.music.stop()
-    pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAME))
-    pygame.mixer.music.play(-1)
-    if sound_to_play and sound_to_play in asset_manager.sounds:
-        asset_manager.sounds[sound_to_play].play()
+    try:
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_GAME))
+        pygame.mixer.music.play(-1)
+        if sound_to_play and sound_to_play in asset_manager.sounds:
+            asset_manager.sounds[sound_to_play].play()
+    except pygame.error as e:
+        print(f"ERROR: Could not load or play sound: {e}")
 
 def start_game():
     game_state.started = True
