@@ -75,7 +75,11 @@ start_button_rect = asset_manager.images['start'].get_rect()
 
 # Button instantiation
 start_button_img = asset_manager.images['start']
-exit_button_img = asset_manager.images['exit'] # Already loaded by AssetManager
+# exit_button_img is loaded from asset_manager.images['exit'] directly where needed for Button creation.
+# No need for a separate global variable if only used once or if clarity is maintained.
+# Retaining for now as it was previously defined, but the comment "# Already loaded by AssetManager" is slightly misleading
+# as this line IS an assignment from the already loaded dictionary.
+exit_button_img = asset_manager.images['exit']
 
 start_button_start_screen = Button(
     start_screen_pos[0] + 787,
@@ -92,17 +96,20 @@ exit_button_start_screen = Button(
 start_screen_buttons = [start_button_start_screen, exit_button_start_screen]
 
 # Game Over screen buttons
-restart_button_img = asset_manager.images['restart'] # Already loaded by AssetManager
+# restart_button_img is loaded from asset_manager.images['restart'] directly for Button creation.
+restart_button_img = asset_manager.images['restart']
 
 restart_button_game_over_screen = Button(
-    screen_width / 2 - restart_button_rect.width - 20, # Uses restart_button_rect
+    # Positioned left of center, using its own width (from restart_button_rect) for alignment
+    screen_width / 2 - restart_button_rect.width - BUTTON_SPACING / 2,
     screen_height * 3 / 4 - restart_button_rect.height / 2,
     restart_button_img,
     reset_game # Callback for restart
 )
 exit_button_game_over_screen = Button(
-    screen_width / 2 + 20,
-    screen_height * 3 / 4 - exit_button_rect.height / 2, # Uses exit_button_rect
+    # Positioned right of center, using BUTTON_SPACING for gap
+    screen_width / 2 + BUTTON_SPACING / 2,
+    screen_height * 3 / 4 - exit_button_rect.height / 2, # Uses exit_button_rect for its height
     exit_button_img,
     quit_game # Callback for exit
 )

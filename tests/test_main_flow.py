@@ -159,25 +159,33 @@ def mock_pygame_modules(monkeypatch):
     mock_asset_manager_instance._get_path = lambda asset_name_or_path: "dummy_lambda_path"
 
     # Patch la classe AssetManager dans le module 'asset_manager' pour qu'elle retourne notre instance mockée.
-    # Cela affectera l'instanciation dans main.py lors de son import.
+    # Ce patch est appliqué pour toute la durée de la fixture (et donc pour chaque test utilisant cette fixture).
+    # unittest.mock.patch en tant que décorateur ou context manager serait utilisé au niveau de chaque test
+    # si on ne voulait pas que le patch soit actif globalement pendant la fixture.
+    # Ici, comme la fixture est autouse=True et configure l'environnement pour tous les tests du module,
+    # monkeypatch.setattr est acceptable et cohérent avec les autres patchs de la fixture.
+    # La suggestion de la revue de code d'utiliser `with patch(...)` serait plus pertinente si on importait `main`
+    # une seule fois en haut du fichier test et qu'on voulait isoler le patch de AssetManager pour des tests spécifiques.
+    # Étant donné que `main` est importé dans chaque test, le monkeypatch appliqué par la fixture
+    # sera actif au moment de cet import.
     monkeypatch.setattr(asset_manager, 'AssetManager', MagicMock(return_value=mock_asset_manager_instance))
-    # game_state.py receives the asset_manager instance from main.py, so no need to patch 'game_state.AssetManager'
-    # game_entities.py also receives the instance or uses the one from game_state, so direct patching there might also be unneeded
-    # if all instances originate from the one created in main.py.
 
+
+# NOTE: L'import de `main` est fait dans chaque fonction de test ci-dessous.
+# Idéalement, `main.py` serait structuré pour que son initialisation puisse être
+# appelée explicitement, permettant un import unique en haut du fichier de test
+# et un meilleur contrôle de l'état global pour l'isolation des tests.
+# Pour l'instant, cette approche fonctionne car la fixture `mock_pygame_modules`
+# (qui est autouse=True) réinitialise les mocks nécessaires avant chaque test,
+# y compris le patch de `asset_manager.AssetManager`.
 
 def test_game_initialization_no_errors():
     """
     Teste si l'importation de main.py et l'initialisation des variables globales
     (y compris les boutons qui utilisent start_game etc.) se passent sans erreur.
     """
-    # NOTE: L'import de `main` est fait ici et répété dans les autres tests de ce fichier.
-    # Idéalement, `main.py` serait structuré pour que son initialisation puisse être
-    # appelée explicitement, permettant un import unique en haut du fichier de test
-    # et un meilleur contrôle de l'état global pour l'isolation des tests.
-    # Pour l'instant, cette approche fonctionne car la fixture `mock_pygame_modules`
-    # réinitialise les mocks nécessaires avant chaque test.
     try:
+        # Le patch de AssetManager est déjà actif grâce à la fixture autouse=True.
         with patch('pygame.quit'), patch('sys.exit'): # Empêche la fermeture de Pygame/sys
              # L'import de main exécute le code au niveau global
             import main
