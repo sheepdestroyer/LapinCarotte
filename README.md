@@ -19,6 +19,12 @@ pip install pyinstaller
 python build_exe.py
 ```
 
+## CI/CD & Automation
+
+This project uses GitHub Actions for Continuous Integration and automation of tests, builds, and releases. Dependabot is also configured for managing dependency updates.
+
+For detailed information on the workflows and automation setup, please see [CI.md](CI.md).
+
 # Credits
 ```
 Game Design : PixelWarrior9000
