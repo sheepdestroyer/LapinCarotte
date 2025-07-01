@@ -50,7 +50,7 @@ Testing is not optional. It is a core responsibility to guarantee that changes a
     * Use `tests/test_game_entities_player.py` as a reference for creating tests for game logic.
 2.  **Run the Full Test Suite after any change:**
     * Once after each individual step of a task (after any change), and again before finally submitting the tesk result, run the entire test suite locally in verbose mode to ensure that your changes have not introduced any regressions.
-    * Execute the tests in verbose mode using the command: `pip install -r requirements.txt -r requirements_dev.txt && python -m pytest -v`.
+    * Install the requirements and Execute the tests in verbose mode using the command: `pip install -r requirements.txt -r requirements_dev.txt && python -m pytest -v`.
     * The Continuous Integration workflow (`run-tests.yml`) will also run these tests, but they must pass locally first.
 
 ---
