@@ -105,6 +105,7 @@ class TestCarrotUpdateMovement: # Testing Carrot.update, not GameState's carrot 
         carrot_instance.update(player_rect, WORLD_SIZE) # Single update
         assert carrot_instance.rect.bottomright == (WORLD_SIZE[0], WORLD_SIZE[1])
 
+    @patch('random.uniform', MagicMock(return_value=0.0))
     def test_speed_multiplier_increases_speed(self, carrot_instance):
         # Carrot.update uses speed_multiplier: 1 + (max_distance - dist)/max_distance * (MAX_SPEED_MULTIPLIER - 1)
         # max_distance = CARROT_DETECTION_RADIUS (200)
