@@ -149,10 +149,15 @@ class Carrot(GameObject):
 
     def respawn(self, world_size, player_rect):
         """Reset carrot to initial position and state"""
-        self.rect.center = self.spawn_position
+        self.rect.topleft = self.spawn_position # Use topleft as spawn_position is topleft
         self.active = True
-        self.direction = pygame.math.Vector2(random.uniform(-1, 1), 
-                                           random.uniform(-1, 1)).normalize()
+        # Ensure new direction is valid (non-zero vector) before normalizing
+        new_dir_x = random.uniform(-1, 1)
+        new_dir_y = random.uniform(-1, 1)
+        # If both are zero (unlikely but possible), default to a direction
+        if new_dir_x == 0 and new_dir_y == 0:
+            new_dir_x = 1.0
+        self.direction = pygame.math.Vector2(new_dir_x, new_dir_y).normalize()
 
     def update(self, player_rect, world_bounds):
         if self.active:

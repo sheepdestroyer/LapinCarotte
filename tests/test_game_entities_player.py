@@ -1,80 +1,37 @@
 import pytest
 import pygame
 from unittest.mock import MagicMock, patch
+import time # Import time for patching
+
+# Import fixtures from the common utility file
+from .test_utils import mock_asset_manager, mock_pygame_init_and_display, real_surface_factory, initialized_pygame
 
 from config import START_HEALTH, MAX_HEALTH, PLAYER_INVINCIBILITY_DURATION, MAX_GARLIC, PLAYER_SPEED
 from game_entities import Player
 
-@pytest.fixture(autouse=True)
-def mock_pygame_display_and_font(mocker):
-    mocker.patch('pygame.display.set_mode', return_value=MagicMock())
-    mocker.patch('pygame.display.get_surface', return_value=MagicMock())
-    mock_font_render = MagicMock(return_value=MagicMock(get_rect=MagicMock(return_value=pygame.Rect(0,0,50,20))))
-    mocker.patch('pygame.font.Font', return_value=MagicMock(render=mock_font_render))
+# The mock_pygame_init_and_display fixture is already autouse=True in test_utils.py
+# So, we don't need mock_pygame_display_and_font here anymore.
 
 @pytest.fixture
-def mock_asset_manager():
-    manager = MagicMock()
+def player_instance(mock_asset_manager, real_surface_factory): # Use real_surface_factory
+    # Use the factory to create a real surface for the player
+    # This surface will be used as player.original_image and player.image
+    player_image = real_surface_factory(32, 32) # Standard player image size
 
-    # Configure mock_image to behave more like a real Surface for get_rect
-    def mock_get_rect(**kwargs):
-        if 'topleft' in kwargs:
-            return pygame.Rect(kwargs['topleft'], (32, 32))
-        elif 'center' in kwargs:
-            return pygame.Rect((0,0), (32,32)).move(kwargs['center'][0] - 16, kwargs['center'][1] - 16) # adjust for center
-        return pygame.Rect(0, 0, 32, 32)
+    # The mock_asset_manager from test_utils already provides a mock 'rabbit' image.
+    # If a real surface is strictly needed for player.original_image for some specific tests (e.g. flip),
+    # we can either:
+    # 1. Pass player_image directly to Player constructor, and it will be copied.
+    # 2. Or, ensure the mock_asset_manager's 'rabbit' image is this real_surface if Player always gets its image from there.
 
-    mock_image = MagicMock(spec=pygame.Surface)
-    mock_image.get_rect = MagicMock(side_effect=mock_get_rect)
-    mock_image.copy = MagicMock(return_value=mock_image) # For Player.reset
-    mock_image.convert_alpha = MagicMock(return_value=mock_image) # If used
-
-    # Mock for digit images
-    mock_digit_image = MagicMock(spec=pygame.Surface)
-    mock_digit_image.get_width = MagicMock(return_value=10) # Example width
-    mock_digit_image.get_height = MagicMock(return_value=10) # Example height
-
-    manager.images = {
-        'rabbit': mock_image,
-        'carrot_juice': mock_image,
-    }
-    # Add digit images to the mock asset manager
-    for i in range(10):
-        manager.images[f'digit_{i}'] = mock_digit_image
-
-    mock_sound = MagicMock()
-    mock_sound.play = MagicMock()
-    manager.sounds = {
-        'hurt': mock_sound,
-        'get_hp': mock_sound,
-        'get_garlic': mock_sound,
-    }
-    return manager
-
-@pytest.fixture
-def player_instance(mock_asset_manager):
-    # Create a real minimal surface for testing flip
-    # Pygame needs to be initialized for Surface, but display isn't strictly needed for just Surface objects
-    if not pygame.get_init(): # Initialize pygame if not already (e.g. by display mock)
-        pygame.init()
-
-    real_surface = pygame.Surface((32, 32))
-    real_surface.fill((255, 0, 0)) # Fill with a color to make it a valid surface
-
-    # Replace the mocked 'rabbit' image in the asset manager for this player instance
-    # OR, more directly, pass this real_surface to Player constructor if asset_manager isn't used for player.image
-    mock_asset_manager.images['rabbit'] = real_surface
-
-    player = Player(100, 100, real_surface, mock_asset_manager)
-    # Player class copies the passed image to self.original_image and self.image
-    # So, player.original_image and player.image should be this real_surface
-
-    # If the Player class makes its own .copy() of the image internally for original_image,
-    # ensure that copy also works. The real Surface.copy() will work.
+    # For simplicity and consistency with how Player gets its image, let's assume
+    # Player is initialized with an image directly, not by fetching from asset_manager by key.
+    # The game_entities.Player constructor takes 'image' as an argument.
+    player = Player(100, 100, player_image, mock_asset_manager)
     return player
 
 class TestPlayer:
-    def test_player_initialization(self, player_instance, mock_asset_manager):
+    def test_player_initialization(self, player_instance, mock_asset_manager): # mock_asset_manager is still needed
         assert player_instance.rect.x == 100
         assert player_instance.rect.y == 100
         assert player_instance.health == START_HEALTH
