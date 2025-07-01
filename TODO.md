@@ -155,3 +155,59 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 -   [ ] **6. Tester et ajuster**
     -   Tester le jeu intensivement pour s'assurer que la vitesse est correcte et cohérente.
     -   Ajuster les constantes de vitesse et de timing si nécessaire.
+
+---
+
+## Tâche 6 : Implémenter l'Écran de Pause et l'Écran de Paramètres
+
+**Objectif :** Permettre au joueur de mettre le jeu en pause et d'accéder à un écran de paramètres pour modifier les configurations du jeu en direct.
+
+### Statut : ⏳ À faire
+
+### Étapes :
+
+-   [ ] **1. Détection de la Pause et État du Jeu**
+    -   Modifier `main.py` pour détecter la touche `ESCAPE`.
+    -   Ajouter un état `game_state.paused` (booléen) dans `game_state.py`.
+    -   Interrompre la logique de jeu principale (mises à jour des entités, etc.) lorsque `game_state.paused` est `True`.
+
+-   [ ] **2. Affichage de l'Écran de Pause**
+    -   Dans `main.py`, lorsque le jeu est en pause :
+        -   Dessiner l'état actuel du jeu en fond (optionnel : avec un filtre sombre).
+        -   Afficher le texte "Pause" ou "Jeu en Pause".
+        -   Créer et afficher deux boutons (classe `Button`) :
+            -   "Reprendre" : `game_state.paused = False`.
+            -   "Paramètres" : `game_state.show_settings = True`.
+    -   Gérer les événements pour ces boutons.
+
+-   [ ] **3. Structure de l'Écran des Paramètres**
+    -   Ajouter un état `game_state.show_settings` (booléen) dans `game_state.py`.
+    -   Dans `main.py`, lorsque `game_state.show_settings` est `True` :
+        -   Afficher un titre "Paramètres".
+        -   Prévoir un bouton "Retour" pour revenir à l'écran de pause (`game_state.show_settings = False`, `game_state.paused = True`).
+
+-   [ ] **4. Lister Dynamiquement les Variables de `config.py`**
+    -   Créer une fonction (dans `main.py` ou un nouveau module UI) pour lire les variables de `config.py`.
+        -   Utiliser `inspect.getmembers(config_module)` ou `config_module.__dict__`.
+        -   Filtrer pour ne garder que les variables pertinentes (ex: celles en MAJUSCULES, pas les modules importés ou les dunder methods).
+    -   Pour chaque variable : afficher son nom et sa valeur actuelle.
+
+-   [ ] **5. Afficher les Valeurs par Défaut et les Plages**
+    -   Au démarrage, sauvegarder les valeurs initiales de `config.py` dans un dictionnaire pour les "valeurs par défaut".
+    -   Définir une structure (ex: dictionnaire) associant les noms de variables de `config` à des métadonnées : `{"VARIABLE_NAME": {"default": X, "min": Y, "max": Z, "step": S, "type": "int/float/bool", "description": "..."}}`.
+    -   Afficher ces informations à côté de chaque variable dans l'écran des paramètres.
+
+-   [ ] **6. Modifier les Variables de `config.py` en Direct**
+    -   Pour chaque variable listée (initialement, se concentrer sur les numériques `int`/`float`) :
+        -   Ajouter des éléments UI simples (ex: boutons `+` / `-`, ou un champ de saisie basique) pour changer sa valeur.
+        -   Lorsqu'une valeur est modifiée via l'UI, mettre à jour la variable correspondante dans le module `config` en utilisant `setattr(config, var_name, new_value)`.
+    -   S'assurer que les changements sont immédiatement reflétés dans le jeu.
+
+-   [ ] **7. Intégration des Nouveaux Boutons et Navigation**
+    -   Assurer la navigation fluide : Jeu -> Pause -> Paramètres -> Pause -> Jeu.
+
+-   [ ] **8. Tests et Validation (Conformité AGENTS.md)**
+    -   Écrire des tests unitaires/intégration pour les nouvelles fonctionnalités (pause, accès paramètres, modification d'un paramètre test).
+    -   Exécuter la suite de tests complète : `pip install -r requirements.txt -r requirements_dev.txt && python -m pytest -v`.
+    -   Mettre à jour `TODO.md` (cette tâche) à `✅ Terminé`.
+    -   Vérifier si `README.md` nécessite des mises à jour.

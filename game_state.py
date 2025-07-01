@@ -11,6 +11,8 @@ class GameState:
         self.world_size = WORLD_SIZE
         self.game_over = False
         self.started = False
+        self.paused = False  # Added for pause state
+        self.show_settings = False # Added for settings screen
         self.asset_manager = asset_manager
         self.player = Player(200, 200, asset_manager.images['rabbit'], asset_manager)
         self.garlic_shot = None
