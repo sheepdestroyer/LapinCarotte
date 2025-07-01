@@ -7,7 +7,7 @@ import random
 import math
 import config
 from asset_manager import AssetManager
-from game_entities import Player, Bullet, Carrot, Vampire, Explosion, Collectible
+from game_entities import Player, Bullet, Carrot, Vampire, Explosion, Collectible, Button
 from game_state import GameState
 from config import *
 
@@ -44,6 +44,48 @@ pygame.mixer.music.load(asset_manager._get_path(config.MUSIC_INTRO))
 pygame.mixer.music.play(-1)
 
 current_time = 0.0
+
+# Button functions
+def quit_game():
+    global running
+    running = False
+
+# Start screen buttons
+start_button_img = asset_manager.images['start']
+exit_button_img = asset_manager.images['exit']
+
+start_button_start_screen = Button(
+    start_screen_pos[0] + 787,
+    start_screen_pos[1] + 742,
+    start_button_img,
+    start_game
+)
+exit_button_start_screen = Button(
+    start_screen_pos[0] + 787,
+    start_screen_pos[1] + 827,
+    exit_button_img,
+    quit_game
+)
+start_screen_buttons = [start_button_start_screen, exit_button_start_screen]
+
+# Game Over screen buttons
+restart_button_img = asset_manager.images['restart']
+# exit_button_img is already loaded for start screen
+
+restart_button_game_over_screen = Button(
+    screen_width / 2 - restart_button_rect.width - 20,
+    screen_height * 3 / 4 - restart_button_rect.height / 2,
+    restart_button_img,
+    reset_game # Callback for restart
+)
+exit_button_game_over_screen = Button(
+    screen_width / 2 + 20,
+    screen_height * 3 / 4 - exit_button_rect.height / 2,
+    exit_button_img, # Re-use exit image
+    quit_game # Callback for exit
+)
+game_over_buttons = [restart_button_game_over_screen, exit_button_game_over_screen]
+
 
 def distance(x1, y1, x2, y2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
@@ -99,15 +141,12 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if not game_state.started:
+            for button in start_screen_buttons:
+                button.handle_event(event)
+            # Legacy sound playback for start button, can be moved into callback if Button class supports it
             if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                if (start_screen_pos[0] + 787 <= mouse_x <= start_screen_pos[0] + 787 + start_button_rect.width and
-                    start_screen_pos[1] + 742 <= mouse_y <= start_screen_pos[1] + 742 + start_button_rect.height):
+                 if start_button_start_screen.rect.collidepoint(event.pos):
                     asset_manager.sounds['press_start'].play()
-                    start_game()
-                elif (start_screen_pos[0] + 787 <= mouse_x <= start_screen_pos[0] + 787 + exit_button_rect.width and
-                      start_screen_pos[1] + 827 <= mouse_y <= start_screen_pos[1] + 827 + exit_button_rect.height):
-                    running = False
         elif not game_state.game_over:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and not game_state.player.death_effect_active:
@@ -133,26 +172,19 @@ while running:
                     dx_norm, dy_norm = (dx/dist, dy/dist) if dist > 0 else (0,0)
                     angle = math.degrees(math.atan2(-dy_norm, dx_norm)) if dist > 0 else 0
                     game_state.garlic_shot = {"x": start_x, "y": start_y, "dx": dx_norm, "dy": dy_norm, "angle": angle, "active": True, "rotation_angle": angle}
-        else:
-             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    mouse_x, mouse_y = pygame.mouse.get_pos()
-                    restart_btn_x = screen_width / 2 - restart_button_rect.width - 20
-                    restart_btn_y = screen_height * 3 / 4 - restart_button_rect.height / 2
-                    exit_btn_x = screen_width / 2 + 20
-                    exit_btn_y = screen_height * 3 / 4 - exit_button_rect.height / 2
-                    if (restart_btn_x <= mouse_x <= restart_btn_x + restart_button_rect.width and
-                        restart_btn_y <= mouse_y <= restart_btn_y + restart_button_rect.height):
-                        asset_manager.sounds['press_start'].play()
-                        reset_game()
-                    elif (exit_btn_x <= mouse_x <= exit_btn_x + exit_button_rect.width and
-                          exit_btn_y <= mouse_y <= exit_btn_y + exit_button_rect.height):
-                        running = False
+        else: # Game Over screen
+            for button in game_over_buttons:
+                button.handle_event(event)
+            # Legacy sound playback for restart button
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if restart_button_game_over_screen.rect.collidepoint(event.pos):
+                    asset_manager.sounds['press_start'].play()
+
 
     if not game_state.started:
         screen.blit(start_screen_image, start_screen_pos)
-        screen.blit(asset_manager.images['start'], (start_screen_pos[0] + 787, start_screen_pos[1] + 742))
-        screen.blit(asset_manager.images['exit'], (start_screen_pos[0] + 787, start_screen_pos[1] + 827))
+        for button in start_screen_buttons:
+            button.draw(screen)
     elif not game_state.game_over:
         # Outer try removed, content is now directly under this elif
         if not game_state.player.death_effect_active:
@@ -235,12 +267,8 @@ while running:
         game_over_x = (screen_width - game_over_rect.width) / 2
         game_over_y = (screen_height - game_over_rect.height) / 2
         screen.blit(game_over_image, (game_over_x, game_over_y))
-        restart_btn_x = screen_width / 2 - restart_button_rect.width - 20
-        restart_btn_y = screen_height * 3 / 4 - restart_button_rect.height / 2
-        screen.blit(restart_button_image, (restart_btn_x, restart_btn_y))
-        exit_btn_x = screen_width / 2 + 20
-        exit_btn_y = screen_height * 3 / 4 - exit_button_rect.height / 2
-        screen.blit(exit_button_image, (exit_btn_x, exit_btn_y))
+        for button in game_over_buttons:
+            button.draw(screen)
 
         if not pygame.mixer.music.get_busy():
             music_path = asset_manager._get_path(config.MUSIC_GAMEOVER)

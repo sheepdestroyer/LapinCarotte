@@ -284,3 +284,21 @@ class Vampire(GameObject):
                     screen.blit(tinted_image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
         elif self.active:
             screen.blit(self.image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
+
+class Button:
+    """UI Button class"""
+    def __init__(self, x, y, image, callback):
+        self.image = image
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.callback = callback
+
+    def draw(self, screen):
+        """Draw the button on the screen."""
+        screen.blit(self.image, self.rect)
+
+    def handle_event(self, event):
+        """Handle a single event. If the button is clicked, execute the callback."""
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1: # Left mouse button
+                if self.rect.collidepoint(event.pos):
+                    self.callback()

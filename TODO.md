@@ -53,23 +53,23 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 
 **Objectif :** Créer une classe réutilisable pour tous les boutons du jeu afin de rendre le code de l'interface plus propre, plus lisible et plus facile à maintenir.
 
-### Statut : ⏳ À faire
+### Statut : ✅ Terminé
 
 ### Étapes :
 
--   [ ] **1. Créer la classe `Button`**
+-   [x] **1. Créer la classe `Button`**
     -   Dans le fichier `game_entities.py`, créez une nouvelle classe `Button`.
     -   Son `__init__` doit accepter `x`, `y`, `image` et une fonction `callback` (l'action à exécuter lors du clic).
     -   La classe doit avoir une méthode `draw(self, screen)` pour s'afficher.
     -   Elle doit aussi avoir une méthode `handle_event(self, event)` qui vérifie si l'événement est un clic de souris à l'intérieur de son rectangle. Si c'est le cas, elle appelle la fonction `callback`.
 
--   [ ] **2. Intégrer les boutons sur l'écran de démarrage**
+-   [x] **2. Intégrer les boutons sur l'écran de démarrage**
     -   Dans `main.py`, avant la boucle de jeu, créez des instances de `Button` pour les boutons "Start" et "Exit" de l'écran de démarrage.
     -   Passez les fonctions appropriées en `callback` (ex: `start_game` pour le bouton Start, et une fonction pour quitter le jeu).
     -   Dans la boucle d'événements pour l'écran de démarrage, appelez la méthode `handle_event` pour chaque bouton.
     -   Dans la section de dessin de l'écran de démarrage, appelez la méthode `draw` de chaque bouton.
 
--   [ ] **3. Intégrer les boutons sur l'écran "Game Over"**
+-   [x] **3. Intégrer les boutons sur l'écran "Game Over"**
     -   Faites de même pour les boutons "Restart" et "Exit" de l'écran "Game Over".
     -   Utilisez la fonction `reset_game` comme `callback` pour le bouton de redémarrage.
 
