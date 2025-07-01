@@ -48,8 +48,8 @@ Testing is not optional. It is a core responsibility to guarantee that changes a
     * For any new feature or bug fix, you **must** write corresponding unit or integration tests.
     * Place new tests in the `tests/` directory, following the naming convention `test_*.py`.
     * Use `tests/test_game_entities_player.py` as a reference for creating tests for game logic.
-2.  **Run the Full Test Suite:**
-    * Before submitting, run the entire test suite locally to ensure your changes have not introduced any regressions.
+2.  **Run the Full Test Suite after any change:**
+    * Once after each individual step of a task, and again before finally submitting the tesk result, run the entire test suite locally to ensure your changes have not introduced any regressions.
     * Execute the tests using the command: `pip install -r requirements.txt -r requirements_dev.txt && python -m pytest -v`.
     * The Continuous Integration workflow (`run-tests.yml`) will also run these tests, but they must pass locally first.
 
