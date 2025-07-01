@@ -316,10 +316,14 @@ def main_loop():
     time.sleep(config.FRAME_DELAY)
 
 if __name__ == '__main__':
-if __name__ == '__main__':
     try:
         main_loop()
     finally:
         pygame.quit()
-        sys.exit()
-    sys.exit()
+        # sys.exit() is not strictly necessary here as the program will exit
+        # after the main block finishes. Pygame.quit() is the important cleanup.
+        # If sys.exit() is desired, it should ideally be outside the finally
+        # if main_loop() could raise SystemExit itself, or if we want to ensure
+        # a specific exit code only after pygame.quit().
+        # For simplicity and common practice, pygame.quit() is often the last call.
+        # The original redundant sys.exit() is removed.
