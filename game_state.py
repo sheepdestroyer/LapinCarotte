@@ -255,8 +255,11 @@ class GameState:
         # Check item collisions
         for item in self.items[:]:
             if self.player.rect.colliderect(item.rect):
+                print(f"[DEBUG_ITEM_COLLECT] Item: {item.item_type}, Player health: {self.player.health}, MAX_HEALTH: {MAX_HEALTH}")
                 if item.item_type == 'hp' and self.player.health < MAX_HEALTH:
+                    print(f"[DEBUG_ITEM_COLLECT] Incrementing health from {self.player.health}")
                     self.player.health += 1
+                    print(f"[DEBUG_ITEM_COLLECT] Health is now {self.player.health}")
                     self.asset_manager.sounds['get_hp'].play()
                 elif item.item_type == 'garlic' and self.player.garlic_count < MAX_GARLIC:
                     self.player.garlic_count += 1
