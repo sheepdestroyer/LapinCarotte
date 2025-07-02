@@ -69,6 +69,17 @@ def quit_game():
     global running
     running = False
 
+def resume_game_callback():
+    """Callback function to resume the game."""
+    if game_state.paused: # Check if paused before trying to resume
+        game_state.resume_game()
+        # Maybe play a sound here if desired
+
+def open_settings_callback():
+    """Callback function for settings button. Placeholder for now."""
+    print("Settings button clicked - Not implemented yet.")
+    # In the future, this could set a new game state like game_state.show_settings = True
+
 # Define _rect variables needed by Buttons earlier
 # These are used to get width/height for button positioning.
 # The actual images are loaded by AssetManager and passed to Button constructor.
@@ -85,6 +96,16 @@ start_button_img = asset_manager.images['start']
 # Retaining for now as it was previously defined, but the comment "# Already loaded by AssetManager" is slightly misleading
 # as this line IS an assignment from the already loaded dictionary.
 exit_button_img = asset_manager.images['exit']
+
+# Get images for new pause buttons
+# Assuming 'continue_button.png' and 'settings_button.png' were added and loaded by AssetManager
+continue_button_img = asset_manager.images['continue']
+settings_button_img = asset_manager.images['settings']
+
+# Define rects for new buttons (for positioning)
+continue_button_rect = continue_button_img.get_rect()
+settings_button_rect = settings_button_img.get_rect()
+
 
 start_button_start_screen = Button(
     start_screen_pos[0] + START_SCREEN_BUTTON_START_X_OFFSET,
@@ -119,6 +140,22 @@ exit_button_game_over_screen = Button(
     quit_game # Callback for exit
 )
 game_over_buttons = [restart_button_game_over_screen, exit_button_game_over_screen]
+
+# Pause screen buttons
+# Positioned similarly to game_over_buttons: centered, settings below continue
+continue_button_pause_screen = Button(
+    screen_width / 2 - continue_button_rect.width / 2, # Centered horizontally
+    screen_height * 0.5 - continue_button_rect.height - BUTTON_SPACING / 2, # Upper button
+    continue_button_img,
+    resume_game_callback
+)
+settings_button_pause_screen = Button(
+    screen_width / 2 - settings_button_rect.width / 2, # Centered horizontally
+    screen_height * 0.5 + BUTTON_SPACING / 2, # Lower button
+    settings_button_img,
+    open_settings_callback
+)
+pause_screen_buttons = [continue_button_pause_screen, settings_button_pause_screen]
 
 
 def distance(x1, y1, x2, y2):
@@ -182,21 +219,30 @@ def main_loop():
             if not game_state.started:
                 for button in start_screen_buttons:
                     button.handle_event(event)
-            elif not game_state.game_over:
+            elif game_state.paused: # Handle events for PAUSED state
+                for button in pause_screen_buttons:
+                    button.handle_event(event)
+                # Also handle K_ESCAPE to resume from pause screen via key press
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    game_state.resume_game()
+            elif not game_state.game_over: # Active gameplay (not paused, not game over)
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE and not game_state.player.death_effect_active:
+                    if event.key == pygame.K_ESCAPE: # Pause game
+                        game_state.pause_game()
+                        # Consider pausing game music and playing pause music if you add specific tracks
+                    elif event.key == pygame.K_SPACE and not game_state.player.death_effect_active: # Shoot only if not paused (already covered by game_state.paused check for this block)
                         mouse_x, mouse_y = pygame.mouse.get_pos()
                         game_state.bullets.append(Bullet(game_state.player.rect.centerx, game_state.player.rect.centery,
                                                          mouse_x - game_state.player.rect.centerx + game_state.scroll[0],
                                                          mouse_y - game_state.player.rect.centery + game_state.scroll[1],
                                                          asset_manager.images['bullet']))
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1 and not game_state.player.death_effect_active:
+                    if event.button == 1 and not game_state.player.death_effect_active: # Shoot only if not paused
                         mouse_pos = pygame.mouse.get_pos()
                         world_mouse = (mouse_pos[0] + game_state.scroll[0], mouse_pos[1] + game_state.scroll[1])
                         game_state.bullets.append(Bullet(game_state.player.rect.centerx, game_state.player.rect.centery,
                                                          world_mouse[0], world_mouse[1], asset_manager.images['bullet']))
-                    if event.button == 3 and not game_state.player.death_effect_active and game_state.player.garlic_count > 0 and game_state.garlic_shot is None:
+                    if event.button == 3 and not game_state.player.death_effect_active and game_state.player.garlic_count > 0 and game_state.garlic_shot is None: # Garlic shot only if not paused
                         game_state.player.garlic_count -= 1
                         game_state.garlic_shot_start_time = current_time
                         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -216,9 +262,19 @@ def main_loop():
             screen.blit(start_screen_image, start_screen_pos)
             for button in start_screen_buttons:
                 button.draw(screen)
-        elif not game_state.game_over:
+        elif game_state.paused: # PAUSE SCREEN DRAWING
+            # Draw background (reuse game_over image as requested)
+            game_over_x = (screen_width - game_over_rect.width) / 2
+            game_over_y = (screen_height - game_over_rect.height) / 2
+            screen.blit(game_over_image, (game_over_x, game_over_y))
+            # Potentially draw a "PAUSED" title text here if desired
+
+            # Draw Pause Screen Buttons
+            for button in pause_screen_buttons:
+                button.draw(screen)
+        elif not game_state.game_over: # Active Gameplay Drawing (already implies not paused)
             # Outer try removed, content is now directly under this elif
-            if not game_state.player.death_effect_active:
+            if not game_state.player.death_effect_active: # Player movement only if not in death animation
                 dx, dy = 0,0
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 1
@@ -239,7 +295,7 @@ def main_loop():
 
             # Inner try...except for game logic and drawing remains
             try:
-                if not game_state.player.death_effect_active:
+                if not game_state.player.death_effect_active and not game_state.paused: # Ensure game logic doesn't run when paused
                     game_state.update(current_time)
 
                 screen.blit(grass_background, (-game_state.scroll[0], -game_state.scroll[1]))

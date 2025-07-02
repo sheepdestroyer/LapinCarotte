@@ -11,6 +11,7 @@ class GameState:
         self.world_size = WORLD_SIZE
         self.game_over = False
         self.started = False
+        self.paused = False # New pause state
         self.asset_manager = asset_manager
         self.player = Player(200, 200, asset_manager.images['rabbit'], asset_manager)
         self.garlic_shot = None
@@ -44,6 +45,7 @@ class GameState:
         self.scroll = [0, 0]
         self.game_over = False
         self.started = False
+        self.paused = False # Reset pause state
         
         # Completely reset all entity containers
         self.bullets = []
@@ -272,3 +274,11 @@ class GameState:
                     self.player.juice_changed = True
                     self.asset_manager.sounds['get_hp'].play()  # Reuse existing pickup sound
                 self.items.remove(item)
+
+    def pause_game(self):
+        """Set the game to paused state."""
+        self.paused = True
+
+    def resume_game(self):
+        """Resumes the game from paused state."""
+        self.paused = False

@@ -39,6 +39,8 @@ def mock_asset_manager():
         'hp': create_mock_surface(15, 15), # HP item
         'explosion': create_mock_surface(50, 50), # Explosion
         'carrot_juice': create_mock_surface(20, 20), # Carrot juice item
+        'continue': create_mock_surface(200, 50), # Placeholder for continue_button
+        'settings': create_mock_surface(200, 50), # Placeholder for settings_button
     }
 
     # Digit images for UI

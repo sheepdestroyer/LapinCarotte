@@ -155,3 +155,57 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 -   [ ] **6. Tester et ajuster**
     -   Tester le jeu intensivement pour s'assurer que la vitesse est correcte et cohérente.
     -   Ajuster les constantes de vitesse et de timing si nécessaire.
+
+---
+
+## Tâche 6 : Implémenter un Écran de Pause
+
+**Objectif :** Permettre au joueur de mettre le jeu en pause en appuyant sur la touche "Échap". L'écran de pause réutilisera l'écran de "Game Over" mais affichera des boutons "Continue" et "Settings".
+
+### Statut : ✅ Terminé
+
+### Étapes :
+
+-   [ ] **1. Ajouter un état "paused" à `GameState`**
+    -   Dans `game_state.py`, ajouter un attribut `self.paused = False` à la classe `GameState`.
+    -   Créer des méthodes `pause_game(self)` et `resume_game(self)` pour changer cet état.
+
+-   [ ] **2. Préparer les assets pour les nouveaux boutons**
+    -   Ajouter les images pour les boutons "Continue" et "Settings" dans le dossier `Assets/images/`.
+    -   Mettre à jour `asset_manager.py` pour charger ces nouvelles images (par exemple, `continue_button`, `settings_button`).
+
+-   [ ] **3. Créer les boutons de l'écran de pause dans `main.py`**
+    -   Définir les fonctions callback pour ces boutons :
+        -   `resume_game_callback()`: appellera `game_state.resume_game()`.
+        -   `open_settings_callback()`: pour l'instant, cette fonction ne fera rien (placeholder).
+    -   Instancier les objets `Button` pour "Continue" et "Settings", en utilisant les nouvelles images et callbacks.
+    -   Positionner ces boutons de manière similaire à ceux de l'écran "Game Over" (centrés horizontalement, espacés verticalement).
+
+-   [ ] **4. Gérer l'événement "Échap" dans `main.py`**
+    -   Dans la boucle principale d'événements (quand le jeu est démarré et non "game over"), détecter `pygame.KEYDOWN` avec `event.key == pygame.K_ESCAPE`.
+    -   Si "Échap" est pressé :
+        -   Si le jeu n'est pas en pause, appeler `game_state.pause_game()`.
+        -   Si le jeu est déjà en pause, appeler `game_state.resume_game()`.
+
+-   [ ] **5. Logique de la boucle de jeu pour l'état "paused" dans `main.py`**
+    -   Modifier la boucle principale de `main.py` pour ajouter une nouvelle section `elif game_state.paused:`.
+    -   **Affichage :**
+        -   Dessiner l'arrière-plan (par exemple, une version assombrie de l'écran de jeu ou l'image "Game Over" comme demandé).
+        -   Dessiner le titre "PAUSE" (ou réutiliser l'image "Game Over").
+        -   Dessiner les boutons "Continue" et "Settings".
+    -   **Gestion des événements :**
+        -   Dans cette section, appeler `handle_event` pour les boutons de l'écran de pause.
+    -   **Arrêt de la logique de jeu :**
+        -   S'assurer que `game_state.update()` n'est PAS appelé lorsque le jeu est en pause.
+        -   S'assurer que les mouvements du joueur et autres actions de jeu sont désactivés.
+
+-   [ ] **6. Implémenter les callbacks des boutons**
+    -   `resume_game_callback()`: doit simplement appeler `game_state.resume_game()`.
+    -   `open_settings_callback()`: pour l'instant, elle peut être vide ou afficher un message "Settings not implemented".
+
+-   [ ] **7. Tests (Manuels et/ou Automatisés)**
+    -   Vérifier que la pause s'active/se désactive avec "Échap".
+    -   Vérifier que les boutons "Continue" et "Settings" s'affichent correctement.
+    -   Vérifier que le bouton "Continue" reprend le jeu.
+    -   Vérifier que le jeu est bien figé en arrière-plan lorsque la pause est active (pas de mouvement d'ennemis, etc.).
+    -   Si possible, ajouter des tests unitaires pour les nouvelles fonctions et la logique d'état.

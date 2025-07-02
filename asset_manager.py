@@ -26,6 +26,8 @@ class AssetManager:
             'start_screen': 'images/start_screen_final.png',
             'carrot_juice': 'images/carrot_juice.png',
             'crosshair': 'images/crosshair_1.png',
+            'continue_button': 'images/continue_button.png', # New
+            'settings_button': 'images/settings_button.png', # New
             'digit_0': 'fonts/0.png',
             'digit_1': 'fonts/1.png',
             'digit_2': 'fonts/2.png',
