@@ -295,7 +295,7 @@ def main_loop():
 
             # Inner try...except for game logic and drawing remains
             try:
-                if not game_state.player.death_effect_active and not game_state.paused: # Ensure game logic doesn't run when paused
+                if not game_state.player.death_effect_active: # game_state.paused is implicitly False here
                     game_state.update(current_time)
 
                 screen.blit(grass_background, (-game_state.scroll[0], -game_state.scroll[1]))

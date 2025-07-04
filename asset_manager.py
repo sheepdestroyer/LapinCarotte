@@ -44,7 +44,7 @@ class AssetManager:
                 if not pygame.font.get_init(): # Check if font module is initialized
                     pygame.font.init()
                 self.placeholder_font = pygame.font.SysFont(None, 20) # Use default system font, size 20
-            except Exception as e:
+            except (pygame.error, AttributeError) as e: # More specific exceptions
                 print(f"WARNING: Could not initialize font for asset placeholders: {e}")
         else:
             print("WARNING: Pygame font module not available. Placeholders will not have text.")
@@ -96,7 +96,7 @@ class AssetManager:
                         text_surface = self.placeholder_font.render(key, True, (255, 255, 255)) # White text
                         text_rect = text_surface.get_rect(center=(placeholder_surface.get_width() // 2, placeholder_surface.get_height() // 2))
                         placeholder_surface.blit(text_surface, text_rect)
-                    except Exception as font_e:
+                    except pygame.error as font_e: # More specific exception
                         print(f"WARNING: Could not render text on placeholder for '{key}': {font_e}")
                 else:
                     print(f"WARNING: Placeholder font not available for asset '{key}'. Placeholder will be a plain blue rectangle.")
