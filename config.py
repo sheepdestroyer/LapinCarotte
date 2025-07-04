@@ -63,3 +63,6 @@ MUSIC_GAMEOVER = 'sounds/gameover.mp3'
 # Assuming garlic image is 32x32 based on ITEM_WIDTH/HEIGHT, adjust if different
 GARLIC_WIDTH = 32
 GARLIC_HEIGHT = 32
+
+# Asset Fallbacks
+PLACEHOLDER_TEXT_COLOR = (255, 255, 255) # White

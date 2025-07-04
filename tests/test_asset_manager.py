@@ -296,24 +296,30 @@ class TestAssetManagerFontInitialization:
             assert warning_found, f"Expected warning '{expected_warning}' not found."
 
     @patch('builtins.print')
-    @patch('asset_manager.hasattr') # Patch hasattr in the asset_manager's scope
-    def test_font_module_truly_missing(self, mock_hasattr, mock_print):
+    def test_font_module_truly_missing(self, mock_print, mocker): # Removed mock_hasattr
         """Test behavior when hasattr(pygame, 'font') is False."""
 
-        # Configure mock_hasattr to return False only when checking for 'font' on 'pygame'
-        def hasattr_side_effect(obj, name):
-            if obj == pygame and name == 'font':
-                return False
-            return __builtins__.hasattr(obj, name) # Call real hasattr for other checks
-        mock_hasattr.side_effect = hasattr_side_effect
+        original_pygame_font_attr = None
+        has_font_attr_originally = hasattr(pygame, 'font')
 
-        asset_manager_instance = AssetManager()
+        if has_font_attr_originally:
+            original_pygame_font_attr = pygame.font
+            del pygame.font
 
-        assert asset_manager_instance.placeholder_font is None
-        warning_found = False
-        expected_warning = "WARNING: Pygame font module not available. Placeholders will not have text."
-        for call_args in mock_print.call_args_list:
-            if expected_warning in str(call_args[0][0]):
-                warning_found = True
-                break
-        assert warning_found, f"Expected warning '{expected_warning}' not found."
+        try:
+            # Ensure re-import or re-evaluation if AssetManager is imported at module level
+            # For this test, AssetManager() is instantiated, so it will use current pygame state.
+            asset_manager_instance = AssetManager()
+
+            assert asset_manager_instance.placeholder_font is None
+            warning_found = False
+            expected_warning = "WARNING: Pygame font module not available. Placeholders will not have text."
+            for call_args in mock_print.call_args_list:
+                if expected_warning in str(call_args[0][0]):
+                    warning_found = True
+                    break
+            assert warning_found, f"Expected warning '{expected_warning}' not found."
+        finally:
+            if has_font_attr_originally: # Restore pygame.font if it was deleted
+                pygame.font = original_pygame_font_attr # Corrected variable name
+            # If it didn't exist originally, we don't want to add it.

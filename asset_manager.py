@@ -1,6 +1,7 @@
 import pygame
 import os
 import sys
+from config import PLACEHOLDER_TEXT_COLOR # Import the new constant
 
 # It's good practice to initialize pygame.font if you're going to use it.
 # This should ideally be done once at the start of the game (e.g., in main.py after pygame.init()).
@@ -93,7 +94,7 @@ class AssetManager:
 
                 if self.placeholder_font:
                     try:
-                        text_surface = self.placeholder_font.render(key, True, (255, 255, 255)) # White text
+                        text_surface = self.placeholder_font.render(key, True, PLACEHOLDER_TEXT_COLOR) # Use constant
                         text_rect = text_surface.get_rect(center=(placeholder_surface.get_width() // 2, placeholder_surface.get_height() // 2))
                         placeholder_surface.blit(text_surface, text_rect)
                     except pygame.error as font_e: # More specific exception

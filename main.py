@@ -230,19 +230,19 @@ def main_loop():
                     if event.key == pygame.K_ESCAPE: # Pause game
                         game_state.pause_game()
                         # Consider pausing game music and playing pause music if you add specific tracks
-                    elif event.key == pygame.K_SPACE and not game_state.player.death_effect_active: # Shoot only if not paused (already covered by game_state.paused check for this block)
+                    elif event.key == pygame.K_SPACE and not game_state.player.death_effect_active:
                         mouse_x, mouse_y = pygame.mouse.get_pos()
                         game_state.bullets.append(Bullet(game_state.player.rect.centerx, game_state.player.rect.centery,
                                                          mouse_x - game_state.player.rect.centerx + game_state.scroll[0],
                                                          mouse_y - game_state.player.rect.centery + game_state.scroll[1],
                                                          asset_manager.images['bullet']))
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1 and not game_state.player.death_effect_active: # Shoot only if not paused
+                    if event.button == 1 and not game_state.player.death_effect_active:
                         mouse_pos = pygame.mouse.get_pos()
                         world_mouse = (mouse_pos[0] + game_state.scroll[0], mouse_pos[1] + game_state.scroll[1])
                         game_state.bullets.append(Bullet(game_state.player.rect.centerx, game_state.player.rect.centery,
                                                          world_mouse[0], world_mouse[1], asset_manager.images['bullet']))
-                    if event.button == 3 and not game_state.player.death_effect_active and game_state.player.garlic_count > 0 and game_state.garlic_shot is None: # Garlic shot only if not paused
+                    if event.button == 3 and not game_state.player.death_effect_active and game_state.player.garlic_count > 0 and game_state.garlic_shot is None:
                         game_state.player.garlic_count -= 1
                         game_state.garlic_shot_start_time = current_time
                         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -295,7 +295,7 @@ def main_loop():
 
             # Inner try...except for game logic and drawing remains
             try:
-                if not game_state.player.death_effect_active: # game_state.paused is implicitly False here
+                if not game_state.player.death_effect_active:
                     game_state.update(current_time)
 
                 screen.blit(grass_background, (-game_state.scroll[0], -game_state.scroll[1]))
