@@ -2,6 +2,8 @@ import pytest
 from unittest.mock import patch, MagicMock
 import pygame # Needed for pygame.Surface, pygame.error, pygame.font, pygame.mixer types
 from asset_manager import AssetManager, DummySound # The class we're testing and DummySound
+from config import DEFAULT_PLACEHOLDER_SIZE as REAL_DEFAULT_PLACEHOLDER_SIZE # Import for type hint or comparison
+from config import IMAGE_ASSET_CONFIG as REAL_IMAGE_ASSET_CONFIG # To see its structure
 
 # Import fixtures from common utility file if needed, though AssetManager tests might be self-contained
 # from .test_utils import initialized_pygame # Might be needed for real surface creation if not mocking everything
@@ -60,51 +62,68 @@ class TestAssetManagerImageLoading:
         # For simplicity now, we assume it's called at least once for our target.
         assert mock_surface.convert_alpha.called
 
-    @patch('builtins.print') # Mock print to check warnings
-    @patch('pygame.image.load', side_effect=pygame.error("Failed to load image"))
-    @patch('asset_manager.AssetManager._get_path')
-    @patch('pygame.Surface') # Patch pygame.Surface
-    def test_load_image_failure_creates_placeholder(self, mock_pygame_surface, mock_get_path, mock_pygame_load, mock_print, am):
-        """Test image loading failure creates a placeholder and logs a warning."""
-        mock_placeholder_surf = MagicMock() # Removed spec=pygame.Surface
-        mock_placeholder_surf.convert_alpha.return_value = mock_placeholder_surf
-        mock_placeholder_surf.get_width.return_value = 100 # Match placeholder size in AssetManager
-        mock_placeholder_surf.get_height.return_value = 50
-        mock_pygame_surface.return_value = mock_placeholder_surf # Ensure pygame.Surface() returns our mock
+    @patch('builtins.print')
+    @patch('pygame.image.load', side_effect=pygame.error("Failed to load image for test"))
+    @patch('asset_manager.AssetManager._get_path', return_value="dummy/failing/path")
+    @patch('pygame.Surface')
+    def test_load_image_failure_creates_placeholder_with_correct_size(
+            self, mock_pygame_surface_constructor, mock_get_path, mock_pygame_load, mock_print, am, mocker):
+        """Test image loading failure creates placeholders with correct sizes (hinted or default)."""
 
-        dummy_path = "dummy/path/to/failing_image.png"
-        mock_get_path.return_value = dummy_path
+        hinted_asset_key = 'test_sized_asset'
+        hinted_size = (200, 150)
 
-        # Test with 'grass' asset for failure
+        no_hint_asset_key = 'test_unsized_asset'
+
+        test_default_placeholder_size = (70, 30) # Specific default for this test
+
+        # Mock IMAGE_ASSET_CONFIG and DEFAULT_PLACEHOLDER_SIZE as they are used in AssetManager
+        mock_image_config_dict = {
+            hinted_asset_key: {'path': 'path/to/sized.png', 'size': hinted_size},
+            no_hint_asset_key: {'path': 'path/to/unsized.png'}
+        }
+        # Patch where these are imported and used by AssetManager instance 'am'
+        mocker.patch.object(am, 'IMAGE_ASSET_CONFIG', mock_image_config_dict, create=True)
+        # If IMAGE_ASSET_CONFIG is a module-level import in asset_manager.py, patch 'asset_manager.IMAGE_ASSET_CONFIG'
+        # The current AssetManager imports them from config, so we patch them in asset_manager's scope.
+        mocker.patch('asset_manager.IMAGE_ASSET_CONFIG', mock_image_config_dict)
+        mocker.patch('asset_manager.DEFAULT_PLACEHOLDER_SIZE', test_default_placeholder_size)
+
+        # Setup side effect for pygame.Surface constructor to track called sizes
+        created_surface_sizes = []
+        def surface_side_effect(size_arg):
+            created_surface_sizes.append(size_arg)
+            mock_surf = MagicMock() # Removed spec=pygame.Surface
+            mock_surf.convert_alpha.return_value = mock_surf
+            mock_surf.fill = MagicMock()
+            mock_surf.blit = MagicMock()
+            mock_surf.get_rect = MagicMock(return_value=pygame.Rect(0, 0, size_arg[0], size_arg[1]))
+            mock_surf.get_width = MagicMock(return_value=size_arg[0])
+            mock_surf.get_height = MagicMock(return_value=size_arg[1])
+            return mock_surf
+        mock_pygame_surface_constructor.side_effect = surface_side_effect
+
         am.load_assets()
 
-        assert 'grass' in am.images
-        placeholder = am.images['grass']
-        # pygame.Surface is mocked in this test, placeholder is the mock_placeholder_surf instance
-        assert placeholder is mock_placeholder_surf
-        # Check for the specific DEBUG prints related to placeholder creation
-        # Example: print(f"DEBUG: Placeholder for '{key}' assigned in self.images. Type: {type(self.images[key])}")
-        #          print(f"DEBUG: Keys in self.images after trying to set '{key}': {list(self.images.keys())}")
+        assert hinted_asset_key in am.images
+        assert no_hint_asset_key in am.images
 
-        # Check that a warning was printed for 'grass'
-        # Example: print(f"WARNING: Could not load image asset '{key}' from '{path}': {e}. Creating placeholder.")
-        # We need to find the call to print that contains the relevant warning.
-        # This is tricky because other assets might load successfully or also fail.
-        # Let's check if any print call contains "WARNING: Could not load image asset 'grass'"
-        grass_warning_found = False
+        # Check that pygame.Surface was called with the correct sizes
+        assert hinted_size in created_surface_sizes, f"pygame.Surface not called with hinted size {hinted_size}"
+        assert test_default_placeholder_size in created_surface_sizes, \
+            f"pygame.Surface not called with default placeholder size {test_default_placeholder_size}"
 
-        for call_args in mock_print.call_args_list:
-            arg_str = str(call_args[0][0]) # Get the first positional argument of the print call
-            if "WARNING: Could not load image asset 'grass'" in arg_str:
-                grass_warning_found = True
-                break # Found the warning, no need to check further prints for this
-
-        assert grass_warning_found, "Warning for missing 'grass' asset not printed."
-
-        # Verify placeholder properties (e.g., size, or that it's not the mocked successful surface)
-        assert placeholder.get_width() == 100 # As defined in AssetManager for placeholder
-        assert placeholder.get_height() == 50
-
+        # Check warnings were printed
+        warning_for_hinted_found = any(
+            f"WARNING: Could not load image asset '{hinted_asset_key}'" in str(c[0][0])
+            for c in mock_print.call_args_list
+        )
+        warning_for_no_hint_found = any(
+            f"WARNING: Could not load image asset '{no_hint_asset_key}'" in str(c[0][0])
+            for c in mock_print.call_args_list
+        )
+        assert warning_for_hinted_found, f"Warning for '{hinted_asset_key}' not found."
+        assert warning_for_no_hint_found, f"Warning for '{no_hint_asset_key}' not found."
 
 class TestAssetManagerSoundLoading:
     @patch('pygame.mixer.Sound')
@@ -226,74 +245,32 @@ class TestAssetManagerFontInitialization:
         assert asset_manager_instance.placeholder_font is not None
 
     @patch('builtins.print')
-    @patch('pygame.font', None) # Attempt to effectively remove pygame.font for this test
-    def test_pygame_font_module_missing_by_patching_module(self, mock_print, mocker):
-        """Test behavior if pygame.font is None (simulating module not available)."""
-        # This approach of patching 'pygame.font' to None might not always work as expected
-        # depending on how AssetManager imports or accesses it, and Pytest's isolation.
-        # A more robust way would be to mock `hasattr(pygame, 'font')` to return False.
-        # However, let's try this simpler patch first.
+    @patch('pygame.font', None) # Patch pygame.font to be None for the scope of this test
+    def test_font_initialization_fails_if_pygame_font_is_none(self, mock_print, mocker): # Renamed test
+        """Test AssetManager font init when pygame.font is None, leading to AttributeError."""
 
-        # We need to control 'hasattr(pygame, 'font')' for the AssetManager's __init__
-        # Patching 'pygame.font' to None should make hasattr(pygame, 'font') behave as if it's not there,
-        # if pygame itself doesn't complain about its 'font' attribute being None.
-        # A more direct approach for `if hasattr(pygame, 'font')` in AssetManager:
-        with patch('asset_manager.hasattr') as mock_hasattr:
-            # Configure mock_hasattr to return False only when checking for 'font' on 'pygame'
-            def hasattr_side_effect(obj, name):
-                if obj == pygame and name == 'font':
-                    return False
-                # For any other hasattr call, use the real hasattr
-                # This requires having access to the original hasattr if we were replacing it globally.
-                # Since we are patching 'asset_manager.hasattr', it's simpler:
-                return __builtins__.hasattr(obj, name)
+        # AssetManager's __init__ does:
+        # if hasattr(pygame, 'font'):  <-- This will be True because pygame.font attribute exists (its value is None)
+        #     try:
+        #         if not pygame.font.get_init():
+        #             pygame.font.init()  <-- This will become None.init(), raising AttributeError
+        #         self.placeholder_font = pygame.font.SysFont(None, 20) <-- or this becomes None.SysFont()
+        #     except (pygame.error, AttributeError) as e:
+        #         print(f"WARNING: Could not initialize font for asset placeholders: {e}")
 
-            # It's better to patch where it's used if possible:
-            # If AssetManager did `from os import path`, we'd patch `asset_manager.path`.
-            # Since it's `hasattr(pygame, 'font')`, we patch `hasattr` in the scope of `asset_manager` module.
-            # However, `hasattr` is a builtin. Patching `asset_manager.hasattr` won't work unless
-            # `asset_manager.py` does `import builtins; builtins.hasattr`.
-            # The most reliable is to patch `hasattr` globally for the test or use `mocker.patch.object(pygame, 'font', create=True, new=None)`
-            # if that worked, but `font` is a module.
+        asset_manager_instance = AssetManager()
 
-            # Let's try patching `hasattr` globally for this test's scope using mocker.
-            # This is generally risky but can work for specific scenarios.
-            # A better solution might be to refactor AssetManager to allow injecting dependencies like `hasattr`.
+        assert asset_manager_instance.placeholder_font is None
+        warning_found = False
+        # The AttributeError from trying to use `None.init()` or `None.SysFont()`
+        # should be caught by the `except (pygame.error, AttributeError)` block.
+        expected_warning_fragment = "WARNING: Could not initialize font for asset placeholders"
 
-            # Sticking to the plan: the code in AssetManager is `if hasattr(pygame, 'font'):`
-            # So, we need `hasattr(pygame, 'font')` to be false.
-            # `mocker.patch.object(pygame, 'font', create=True)` can be used to add an attribute if it's missing.
-            # To simulate it missing, we can try to `delattr` if it exists, or ensure `hasattr` returns False.
-
-            # Let's assume the `if hasattr(pygame, 'font')` check is what we need to influence.
-            # The `AssetManager` uses `pygame.font.init()` and `pygame.font.SysFont()`.
-            # If `pygame.font` is None, these will fail.
-            # The `hasattr(pygame, 'font')` check in `AssetManager` is the first gate.
-
-            mocker.patch('asset_manager.pygame.font', None) # Make pygame.font None for this test
-            # This will cause `hasattr(pygame, 'font')` to be True (as 'font' attr exists, value is None)
-            # but subsequent `pygame.font.init()` will fail. AssetManager's `hasattr` check is too simple.
-            # AssetManager should ideally check `if getattr(pygame, 'font', None) is not None:`
-
-            # Given current AssetManager code `if hasattr(pygame, 'font'):`
-            # and then `pygame.font.init()`, if `pygame.font` is `None`, `pygame.font.init()` will raise AttributeError.
-            # The `except Exception as e:` in AssetManager should catch this.
-
-            asset_manager_instance = AssetManager() # This will now run with pygame.font = None
-
-            assert asset_manager_instance.placeholder_font is None
-            warning_found = False
-            # The warning will be "Could not initialize font" because `pygame.font.init()` will fail.
-            # The "Pygame font module not available" warning is if `hasattr(pygame, 'font')` is false.
-            expected_warning = "WARNING: Could not initialize font for asset placeholders"
-            # If `pygame.font` is truly absent (not just None), then "Pygame font module not available"
-            # For this test, patching to None makes `pygame.font.init()` fail.
-
-            for call_args in mock_print.call_args_list:
-                if expected_warning in str(call_args[0][0]):
-                    warning_found = True
-                    break
-            assert warning_found, f"Expected warning '{expected_warning}' not found."
+        for call_args in mock_print.call_args_list:
+            if expected_warning_fragment in str(call_args[0][0]):
+                warning_found = True
+                break
+        assert warning_found, f"Expected warning fragment '{expected_warning_fragment}' not found in print calls."
 
     @patch('builtins.print')
     def test_font_module_truly_missing(self, mock_print, mocker): # Removed mock_hasattr
