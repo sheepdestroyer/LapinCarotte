@@ -92,21 +92,22 @@ class TestAssetManagerImageLoading:
         # This is tricky because other assets might load successfully or also fail.
         # Let's check if any print call contains "WARNING: Could not load image asset 'grass'"
         grass_warning_found = False
-        grass_debug_assigned_found = False
-        grass_debug_keys_found = False
+        grass_debug_assigned_found = False # This check will be removed
+        grass_debug_keys_found = False # This check will be removed
 
         for call_args in mock_print.call_args_list:
             arg_str = str(call_args[0][0]) # Get the first positional argument of the print call
             if "WARNING: Could not load image asset 'grass'" in arg_str:
                 grass_warning_found = True
-            if "DEBUG: Placeholder for 'grass' assigned" in arg_str:
-                grass_debug_assigned_found = True
-            if "DEBUG: Keys in self.images after trying to set 'grass'" in arg_str:
-                grass_debug_keys_found = True
+            # Commenting out or removing checks for specific DEBUG prints as they were temporary
+            # if "DEBUG: Placeholder for 'grass' assigned" in arg_str:
+            #     grass_debug_assigned_found = True
+            # if "DEBUG: Keys in self.images after trying to set 'grass'" in arg_str:
+            #     grass_debug_keys_found = True
 
         assert grass_warning_found, "Warning for missing 'grass' asset not printed."
-        assert grass_debug_assigned_found, "DEBUG print for 'grass' assignment not found."
-        assert grass_debug_keys_found, "DEBUG print for keys after 'grass' not found."
+        # assert grass_debug_assigned_found, "DEBUG print for 'grass' assignment not found." # REMOVED
+        # assert grass_debug_keys_found, "DEBUG print for keys after 'grass' not found." # REMOVED
 
         # Verify placeholder properties (e.g., size, or that it's not the mocked successful surface)
         assert placeholder.get_width() == 100 # As defined in AssetManager for placeholder
