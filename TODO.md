@@ -209,3 +209,31 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
     -   Vérifier que le bouton "Continue" reprend le jeu.
     -   Vérifier que le jeu est bien figé en arrière-plan lorsque la pause est active (pas de mouvement d'ennemis, etc.).
     -   Si possible, ajouter des tests unitaires pour les nouvelles fonctions et la logique d'état.
+
+---
+
+## Tâche 7 : Améliorer la Robustesse du Chargement des Assets
+
+**Objectif :** Empêcher le jeu de crasher si un fichier image ou son n'est pas trouvé. Afficher un placeholder pour les images manquantes et un avertissement pour les sons.
+
+### Statut : ✅ Terminé
+
+### Étapes :
+
+-   [x] **1. Modifier `AssetManager.load_assets` pour les images**
+    -   Dans `asset_manager.py`, encadrer `pygame.image.load()` dans un bloc `try-except`.
+    -   En cas d'erreur (`FileNotFoundError`, `pygame.error`):
+        -   Afficher un message d'avertissement dans la console.
+        -   Créer une image placeholder (par exemple, un rectangle bleu avec le nom de l'asset).
+        -   Assigner ce placeholder à `self.images[key]`.
+    -   S'assurer que `pygame.font.init()` est appelé si nécessaire pour rendre le texte sur le placeholder.
+
+-   [x] **2. Modifier `AssetManager.load_assets` pour les sons**
+    -   Encadrer `pygame.mixer.Sound()` dans un bloc `try-except`.
+    -   En cas d'erreur (`pygame.error`):
+        -   Afficher un message d'avertissement.
+        -   Le son sera manquant, mais le jeu ne crashera pas.
+
+-   [x] **3. Tests**
+    -   Vérifier que les tests automatisés passent toujours.
+    -   Effectuer des tests manuels en supprimant/renommant temporairement des assets pour vérifier que les placeholders s'affichent et que des avertissements sont journalisés.

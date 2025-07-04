@@ -2,10 +2,26 @@ import pygame
 import os
 import sys
 
+# It's good practice to initialize pygame.font if you're going to use it.
+# This should ideally be done once at the start of the game (e.g., in main.py after pygame.init()).
+# However, for AssetManager to be self-contained in creating fallback surfaces,
+# we might ensure font is initialized here or rely on main.py having done it.
+# For now, let's assume main.py handles pygame.init() and pygame.font.init().
+# If not, AssetManager might need its own pygame.font.init() call,
+# or font creation might fail.
+
 class AssetManager:
     def __init__(self):
         self.images = {}
         self.sounds = {}
+        # Attempt to create a default font for placeholders
+        try:
+            if not pygame.font.get_init(): # Check if font module is initialized
+                pygame.font.init()
+            self.placeholder_font = pygame.font.SysFont(None, 20) # Use default system font, size 20
+        except Exception as e:
+            print(f"WARNING: Could not initialize font for asset placeholders: {e}")
+            self.placeholder_font = None # Fallback if font initialization fails
         
     def load_assets(self):
         # Image loading
@@ -41,7 +57,23 @@ class AssetManager:
         }
         
         for key, path in assets.items():
-            self.images[key] = pygame.image.load(self._get_path(path)).convert_alpha()
+            try:
+                image_path = self._get_path(path)
+                self.images[key] = pygame.image.load(image_path).convert_alpha()
+            except (pygame.error, FileNotFoundError) as e:
+                print(f"WARNING: Could not load image asset '{key}' from '{path}': {e}. Creating placeholder.")
+                placeholder_surface = pygame.Surface((100, 50)) # Default size e.g. 100x50
+                placeholder_surface.fill((0, 0, 255)) # Blue color for placeholder
+                if self.placeholder_font:
+                    try:
+                        text_surface = self.placeholder_font.render(key, True, (255, 255, 255)) # White text
+                        text_rect = text_surface.get_rect(center=(placeholder_surface.get_width() // 2, placeholder_surface.get_height() // 2))
+                        placeholder_surface.blit(text_surface, text_rect)
+                    except Exception as font_e:
+                        print(f"WARNING: Could not render text on placeholder for '{key}': {font_e}")
+                else:
+                    print(f"WARNING: Placeholder font not available for asset '{key}'. Placeholder will be a plain blue rectangle.")
+                self.images[key] = placeholder_surface.convert_alpha()
             
         # Sound loading
         sound_assets = {
@@ -55,7 +87,13 @@ class AssetManager:
         }
         
         for key, path in sound_assets.items():
-            self.sounds[key] = pygame.mixer.Sound(self._get_path(path))
+            try:
+                sound_file_path = self._get_path(path)
+                self.sounds[key] = pygame.mixer.Sound(sound_file_path)
+            except pygame.error as e:
+                print(f"WARNING: Could not load sound asset '{key}' from '{path}': {e}. Sound will be missing.")
+                # Optionally, assign a dummy/silent sound object if the game code expects a Sound object
+                # For now, just skipping and it will be missing from self.sounds if load fails
     
     def _get_path(self, relative_path):
         if getattr(sys, 'frozen', False):
