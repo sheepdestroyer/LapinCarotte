@@ -216,20 +216,34 @@ def main_loop():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+            # Global Escape key handling for pause/resume
+            if game_state.started and not game_state.game_over: # Only if game is active or paused (not on start/end screens)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        if can_toggle_pause:
+                            if game_state.paused:
+                                game_state.resume_game()
+                                # Potentially resume music, etc.
+                            else:
+                                game_state.pause_game()
+                                # Potentially pause music, etc.
+                            can_toggle_pause = False
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_ESCAPE:
+                        can_toggle_pause = True
+
+            # State-specific event handling (buttons, etc.)
             if not game_state.started:
                 for button in start_screen_buttons:
                     button.handle_event(event)
             elif game_state.paused: # Handle events for PAUSED state
                 for button in pause_screen_buttons:
                     button.handle_event(event)
-                # Also handle K_ESCAPE to resume from pause screen via key press
-                if event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE: # Changed to KEYUP
-                    game_state.resume_game()
+                # K_ESCAPE for resuming is now handled by the global KEYDOWN/KEYUP logic
             elif not game_state.game_over: # Active gameplay (not paused, not game over)
-                if event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE: # Changed to KEYUP
-                    game_state.pause_game()
-                    # Consider pausing game music and playing pause music if you add specific tracks
-                elif event.type == pygame.KEYDOWN: # Other KEYDOWN events
+                # K_ESCAPE for pausing is now handled by the global KEYDOWN/KEYUP logic
+                if event.type == pygame.KEYDOWN: # Other KEYDOWN events (ensure K_ESCAPE is not processed here again)
                     if event.key == pygame.K_SPACE and not game_state.player.death_effect_active:
                         mouse_x, mouse_y = pygame.mouse.get_pos()
                         game_state.bullets.append(Bullet(game_state.player.rect.centerx, game_state.player.rect.centery,
