@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 import pygame # Needed for pygame.Surface, pygame.error, pygame.font, pygame.mixer types
-from asset_manager import AssetManager # The class we're testing
+from asset_manager import AssetManager, DummySound # The class we're testing and DummySound
 
 # Import fixtures from common utility file if needed, though AssetManager tests might be self-contained
 # from .test_utils import initialized_pygame # Might be needed for real surface creation if not mocking everything
@@ -180,7 +180,8 @@ class TestAssetManagerSoundLoading:
                 break
         assert hurt_warning_found, f"Warning for missing '{asset_key_to_test}' sound not printed."
 
-        assert asset_key_to_test not in am.sounds # Key should not be added if loading failed
+        assert asset_key_to_test in am.sounds # Key should now be present
+        assert isinstance(am.sounds[asset_key_to_test], DummySound) # Value should be a DummySound instance
 
 class TestAssetManagerFontInitialization:
     @patch('pygame.font.SysFont')

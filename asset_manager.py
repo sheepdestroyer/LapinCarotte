@@ -10,6 +10,29 @@ import sys
 # If not, AssetManager might need its own pygame.font.init() call,
 # or font creation might fail.
 
+class DummySound:
+    """A dummy sound object with a no-op play method."""
+    def play(self, *args, **kwargs):
+        pass # Does nothing
+
+    def stop(self, *args, **kwargs):
+        pass # Does nothing
+
+    def fadeout(self, *args, **kwargs):
+        pass # Does nothing
+
+    def set_volume(self, *args, **kwargs):
+        pass # Does nothing
+
+    def get_volume(self, *args, **kwargs):
+        return 0.0 # Return a default volume
+
+    def get_length(self, *args, **kwargs):
+        return 0.0 # Return a default length
+
+    # Add any other methods that might be called on a Sound object to prevent AttributeErrors
+    # For now, play() is the most critical.
+
 class AssetManager:
     def __init__(self):
         self.images = {}
@@ -96,9 +119,8 @@ class AssetManager:
                 sound_file_path = self._get_path(path)
                 self.sounds[key] = pygame.mixer.Sound(sound_file_path)
             except pygame.error as e:
-                print(f"WARNING: Could not load sound asset '{key}' from '{path}': {e}. Sound will be missing.")
-                # Optionally, assign a dummy/silent sound object if the game code expects a Sound object
-                # For now, just skipping and it will be missing from self.sounds if load fails
+                print(f"WARNING: Could not load sound asset '{key}' from '{path}': {e}. Using dummy sound.")
+                self.sounds[key] = DummySound()
     
     def _get_path(self, relative_path):
         if getattr(sys, 'frozen', False):
