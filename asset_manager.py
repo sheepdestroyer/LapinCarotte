@@ -15,13 +15,16 @@ class AssetManager:
         self.images = {}
         self.sounds = {}
         # Attempt to create a default font for placeholders
-        try:
-            if not pygame.font.get_init(): # Check if font module is initialized
-                pygame.font.init()
-            self.placeholder_font = pygame.font.SysFont(None, 20) # Use default system font, size 20
-        except Exception as e:
-            print(f"WARNING: Could not initialize font for asset placeholders: {e}")
-            self.placeholder_font = None # Fallback if font initialization fails
+        self.placeholder_font = None # Initialize to None
+        if hasattr(pygame, 'font'):
+            try:
+                if not pygame.font.get_init(): # Check if font module is initialized
+                    pygame.font.init()
+                self.placeholder_font = pygame.font.SysFont(None, 20) # Use default system font, size 20
+            except Exception as e:
+                print(f"WARNING: Could not initialize font for asset placeholders: {e}")
+        else:
+            print("WARNING: Pygame font module not available. Placeholders will not have text.")
         
     def load_assets(self):
         # Image loading
@@ -64,16 +67,21 @@ class AssetManager:
                 print(f"WARNING: Could not load image asset '{key}' from '{path}': {e}. Creating placeholder.")
                 placeholder_surface = pygame.Surface((100, 50)) # Default size e.g. 100x50
                 placeholder_surface.fill((0, 0, 255)) # Blue color for placeholder
-                if self.placeholder_font:
-                    try:
-                        text_surface = self.placeholder_font.render(key, True, (255, 255, 255)) # White text
-                        text_rect = text_surface.get_rect(center=(placeholder_surface.get_width() // 2, placeholder_surface.get_height() // 2))
-                        placeholder_surface.blit(text_surface, text_rect)
-                    except Exception as font_e:
-                        print(f"WARNING: Could not render text on placeholder for '{key}': {font_e}")
-                else:
-                    print(f"WARNING: Placeholder font not available for asset '{key}'. Placeholder will be a plain blue rectangle.")
+
+                # Temporarily disable text rendering for debugging the KeyError
+                # if self.placeholder_font:
+                #     try:
+                #         text_surface = self.placeholder_font.render(key, True, (255, 255, 255)) # White text
+                #         text_rect = text_surface.get_rect(center=(placeholder_surface.get_width() // 2, placeholder_surface.get_height() // 2))
+                #         placeholder_surface.blit(text_surface, text_rect)
+                #     except Exception as font_e:
+                #         print(f"WARNING: Could not render text on placeholder for '{key}': {font_e}")
+                # else:
+                #     print(f"WARNING: Placeholder font not available for asset '{key}'. Placeholder will be a plain blue rectangle.")
+
                 self.images[key] = placeholder_surface.convert_alpha()
+                print(f"DEBUG: Placeholder for '{key}' assigned in self.images. Type: {type(self.images[key])}")
+                print(f"DEBUG: Keys in self.images after trying to set '{key}': {list(self.images.keys())}")
             
         # Sound loading
         sound_assets = {
