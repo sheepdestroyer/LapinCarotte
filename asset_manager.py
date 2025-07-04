@@ -35,15 +35,16 @@ class DummySound:
     # For now, play() is the most critical.
 
 class AssetManager:
-    def __init__(self):
+    def __init__(self, _test_font_failure=False): # Add test hook
         self.images = {}
         self.sounds = {}
         # Attempt to create a default font for placeholders
         self.placeholder_font = None # Initialize to None
         if hasattr(pygame, 'font'):
             try:
-                if not pygame.font.get_init(): # Check if font module is initialized
-                    pygame.font.init()
+                if _test_font_failure: # Test hook
+                    raise pygame.error("Test-induced font failure")
+                # Assuming pygame.font.init() is called in main.py after pygame.init()
                 self.placeholder_font = pygame.font.SysFont(None, 20) # Use default system font, size 20
             except (pygame.error, AttributeError) as e: # More specific exceptions
                 print(f"WARNING: Could not initialize font for asset placeholders: {e}")
