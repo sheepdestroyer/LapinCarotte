@@ -99,9 +99,8 @@ exit_button_img = asset_manager.images['exit']
 
 # Get images for new pause buttons
 # Assuming 'continue_button.png' and 'settings_button.png' were added and loaded by AssetManager
-print(f"DEBUG main.py: Keys in asset_manager.images BEFORE access: {list(asset_manager.images.keys())}")
-continue_button_img = asset_manager.images['continue']
-settings_button_img = asset_manager.images['settings']
+continue_button_img = asset_manager.images['continue_button'] # Corrected key
+settings_button_img = asset_manager.images['settings_button'] # Corrected key
 
 # Define rects for new buttons (for positioning)
 continue_button_rect = continue_button_img.get_rect()

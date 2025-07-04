@@ -68,20 +68,17 @@ class AssetManager:
                 placeholder_surface = pygame.Surface((100, 50)) # Default size e.g. 100x50
                 placeholder_surface.fill((0, 0, 255)) # Blue color for placeholder
 
-                # Temporarily disable text rendering for debugging the KeyError
-                # if self.placeholder_font:
-                #     try:
-                #         text_surface = self.placeholder_font.render(key, True, (255, 255, 255)) # White text
-                #         text_rect = text_surface.get_rect(center=(placeholder_surface.get_width() // 2, placeholder_surface.get_height() // 2))
-                #         placeholder_surface.blit(text_surface, text_rect)
-                #     except Exception as font_e:
-                #         print(f"WARNING: Could not render text on placeholder for '{key}': {font_e}")
-                # else:
-                #     print(f"WARNING: Placeholder font not available for asset '{key}'. Placeholder will be a plain blue rectangle.")
+                if self.placeholder_font:
+                    try:
+                        text_surface = self.placeholder_font.render(key, True, (255, 255, 255)) # White text
+                        text_rect = text_surface.get_rect(center=(placeholder_surface.get_width() // 2, placeholder_surface.get_height() // 2))
+                        placeholder_surface.blit(text_surface, text_rect)
+                    except Exception as font_e:
+                        print(f"WARNING: Could not render text on placeholder for '{key}': {font_e}")
+                else:
+                    print(f"WARNING: Placeholder font not available for asset '{key}'. Placeholder will be a plain blue rectangle.")
 
                 self.images[key] = placeholder_surface.convert_alpha()
-                print(f"DEBUG: Placeholder for '{key}' assigned in self.images. Type: {type(self.images[key])}")
-                print(f"DEBUG: Keys in self.images after trying to set '{key}': {list(self.images.keys())}")
             
         # Sound loading
         sound_assets = {
