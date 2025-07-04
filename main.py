@@ -223,20 +223,20 @@ def main_loop():
                 for button in pause_screen_buttons:
                     button.handle_event(event)
                 # Also handle K_ESCAPE to resume from pause screen via key press
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                if event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE: # Changed to KEYUP
                     game_state.resume_game()
             elif not game_state.game_over: # Active gameplay (not paused, not game over)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE: # Pause game
-                        game_state.pause_game()
-                        # Consider pausing game music and playing pause music if you add specific tracks
-                    elif event.key == pygame.K_SPACE and not game_state.player.death_effect_active:
+                if event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE: # Changed to KEYUP
+                    game_state.pause_game()
+                    # Consider pausing game music and playing pause music if you add specific tracks
+                elif event.type == pygame.KEYDOWN: # Other KEYDOWN events
+                    if event.key == pygame.K_SPACE and not game_state.player.death_effect_active:
                         mouse_x, mouse_y = pygame.mouse.get_pos()
                         game_state.bullets.append(Bullet(game_state.player.rect.centerx, game_state.player.rect.centery,
                                                          mouse_x - game_state.player.rect.centerx + game_state.scroll[0],
                                                          mouse_y - game_state.player.rect.centery + game_state.scroll[1],
                                                          asset_manager.images['bullet']))
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN: # MOUSEBUTTONDOWN events are separate
                     if event.button == 1 and not game_state.player.death_effect_active:
                         mouse_pos = pygame.mouse.get_pos()
                         world_mouse = (mouse_pos[0] + game_state.scroll[0], mouse_pos[1] + game_state.scroll[1])

@@ -66,6 +66,7 @@ GARLIC_HEIGHT = 32
 
 # Asset Fallbacks
 PLACEHOLDER_TEXT_COLOR = (255, 255, 255) # White
+PLACEHOLDER_BG_COLOR = (0, 0, 255) # Blue
 DEFAULT_PLACEHOLDER_SIZE = (100, 50)
 
 # Asset Configuration: 'path' is mandatory, 'size' (width, height) is optional for placeholders

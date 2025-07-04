@@ -1,7 +1,7 @@
 import pygame
 import os
 import sys
-from config import PLACEHOLDER_TEXT_COLOR, IMAGE_ASSET_CONFIG, SOUND_ASSET_CONFIG, DEFAULT_PLACEHOLDER_SIZE # Import new configs
+from config import PLACEHOLDER_TEXT_COLOR, PLACEHOLDER_BG_COLOR, IMAGE_ASSET_CONFIG, SOUND_ASSET_CONFIG, DEFAULT_PLACEHOLDER_SIZE # Import new configs
 
 # It's good practice to initialize pygame.font if you're going to use it.
 # This should ideally be done once at the start of the game (e.g., in main.py after pygame.init()).
@@ -64,7 +64,7 @@ class AssetManager:
 
                 placeholder_size = size_hint if size_hint else DEFAULT_PLACEHOLDER_SIZE
                 placeholder_surface = pygame.Surface(placeholder_size)
-                placeholder_surface.fill((0, 0, 255)) # Blue color for placeholder (can be made configurable too)
+                placeholder_surface.fill(PLACEHOLDER_BG_COLOR) # Use configured color
 
                 if self.placeholder_font:
                     try:
