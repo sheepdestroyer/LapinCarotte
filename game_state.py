@@ -114,10 +114,14 @@ class GameState:
         # Hard reset vampire / *Réinitialisation matérielle du vampire*
         if self.vampire:
             vampire_width = self.vampire.rect.width
+            vampire_width = self.vampire.rect.width
             vampire_height = self.vampire.rect.height
             if vampire_width == 0 and isinstance(self.asset_manager.images.get('vampire'), dict): # CLI mode with size hint
                 size_hint = self.asset_manager.images['vampire'].get('size_hint') or self.asset_manager.images['vampire'].get('size')
-                if size_hint: vampire_width, vampire_height = size_hint
+                if size_hint:
+                    vampire_width, vampire_height = size_hint
+                else: # Fallback if no size info in CLI metadata
+                    vampire_width, vampire_height = 84, 84 # Default from IMAGE_ASSET_CONFIG['vampire']['size']
 
             self.vampire.active = False
             self.vampire.death_effect_active = False

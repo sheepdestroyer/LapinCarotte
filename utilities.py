@@ -9,6 +9,8 @@
 
 import math
 import pygame
+import os # Moved to top as per PEP 8 / *Déplacé en haut conformément à PEP 8*
+import sys # Moved to top as per PEP 8 / *Déplacé en haut conformément à PEP 8*
 
 def get_direction_vector(start_x, start_y, target_x, target_y):
     """
@@ -109,8 +111,8 @@ def get_asset_path(relative_path):
     """
     # Ensure 'os' and 'sys' are imported if not already at the top of utilities.py
     # For this operation, they are typically needed.
-    import os
-    import sys
+    # import os  # Now at the top of the file / *Maintenant en haut du fichier*
+    # import sys # Now at the top of the file / *Maintenant en haut du fichier*
 
     if getattr(sys, 'frozen', False):
         # If the application is run as a bundle/frozen executable (e.g., PyInstaller)
