@@ -60,6 +60,77 @@ Ce jeu est écrit en Python et utilise la bibliothèque Pygame.
     *   Détecter lorsque tu appuies sur des touches ou cliques avec la souris.
 
 ## Project Structure (EN)
+```mermaid
+graph TD
+    %% ----- Node Definitions -----
+    subgraph "Main Loop (main.py)"
+        A[Start main_loop]
+        B{Choose Mode}
+        C[Create PygameRenderer]
+        D[Create TerminalRenderer]
+        E[Create InputHandler]
+        F{Run Game}
+        G[Get Actions]
+        H[Update GameState]
+        I[Pass to Renderer]
+        J[Render Frame]
+    end
+
+    subgraph "Model (game_state.py)"
+        K[GameState]
+        L[Game Entities]
+    end
+
+    subgraph "View (Renderer Abstraction)"
+        M(Abstract Renderer)
+        N[PygameRenderer]
+        O(GUI Window)
+        P[TerminalRenderer]
+        Q(Terminal)
+    end
+
+    subgraph "Controller (Input Abstraction)"
+        R(Abstract InputHandler)
+        S[PygameInputHandler]
+        T(Keyboard/Mouse Events)
+        U[TerminalInputHandler]
+        V(Non-blocking Key Presses)
+    end
+
+    %% ----- Link Definitions (Simplified) -----
+
+    %% Main Loop Flow
+    A --> B
+    B -->|GUI| C
+    B -->|CLI| D
+    B --> E
+    C --> F
+    D --> F
+    E --> F
+    F --> G
+    G --> H
+    H --> I
+    I --> J
+    J --> F
+
+    %% Internal Links
+    K --> L
+    N --> O
+    P --> Q
+    S --> T
+    U --> V
+    
+    %% "Inheritance" Links (using standard arrows)
+    N --> M
+    P --> M
+    S --> R
+    U --> R
+
+    %% Cross-Subgraph Connections
+    H --> K
+    I --> M
+    G --> R
+```
 
 Here's a brief overview of the main files in this project:
 
