@@ -180,9 +180,9 @@ class TestAssetManagerSoundLoading:
         for call_args in mock_print.call_args_list:
             arg_str = str(call_args[0][0])
             if f"WARNING: Could not load sound asset '{asset_key_to_test}'" in arg_str:
-                hurt_warning_found = True
+                load_failure_warning_found = True # Corrected variable name
                 break
-        assert hurt_warning_found, f"Warning for missing '{asset_key_to_test}' sound not printed."
+        assert load_failure_warning_found, f"Warning for missing '{asset_key_to_test}' sound not printed." # Corrected assertion
 
         assert asset_key_to_test in am.sounds # Key should now be present
         assert isinstance(am.sounds[asset_key_to_test], DummySound) # Value should be a DummySound instance

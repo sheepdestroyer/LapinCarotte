@@ -223,266 +223,305 @@ def handle_player_death():
 
 
 running = True
-can_toggle_pause = True
+can_toggle_pause = True # Used by both GUI and CLI pause logic
 
-def main_loop():
-    global running
-    global current_time
-    global can_toggle_pause
+# Store current_time globally for functions that need it (e.g. handle_player_death, GUI animations)
+# It will be updated primarily by run_gui_mode. CLI mode doesn't use it for its loop timing.
+current_time = 0.0
 
-    while running:
-        if not args.cli: #################### GUI MODE ####################
-            current_time = time.time()
+def run_gui_mode():
+    """Handles the entire game loop for GUI mode."""
+    global running, current_time, can_toggle_pause, game_state, asset_manager, screen, args
+    global screen_width, screen_height # For UI positioning
+    global start_screen_buttons, pause_screen_buttons, game_over_buttons # Button lists
+    global start_screen_image, start_screen_pos, game_over_image_ui, grass_background, garlic_image, hp_image_ui # UI assets
+    # Note: rects like game_over_rect are used for positioning and come from asset_manager or are calculated
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
+    current_time = time.time()
 
-                if game_state.started and not game_state.game_over:
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_ESCAPE:
-                            if can_toggle_pause:
-                                if game_state.paused:
-                                    game_state.resume_game()
-                                else:
-                                    game_state.pause_game()
-                                can_toggle_pause = False
-                    elif event.type == pygame.KEYUP:
-                        if event.key == pygame.K_ESCAPE:
-                            can_toggle_pause = True
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False # Signal main_loop to exit
+            return # Exit run_gui_mode for this iteration
 
-                if not game_state.started:
-                    for button in start_screen_buttons:
-                        button.handle_event(event)
-                elif game_state.paused:
-                    for button in pause_screen_buttons:
-                        button.handle_event(event)
-                elif not game_state.game_over:
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_SPACE and not game_state.player.death_effect_active:
-                            mouse_x, mouse_y = pygame.mouse.get_pos()
-                            game_state.bullets.append(Bullet(game_state.player.rect.centerx, game_state.player.rect.centery,
-                                                             mouse_x - game_state.player.rect.centerx + game_state.scroll[0],
-                                                             mouse_y - game_state.player.rect.centery + game_state.scroll[1],
-                                                             asset_manager.images['bullet'], cli_mode=args.cli))
-                    if event.type == pygame.MOUSEBUTTONDOWN:
-                        if event.button == 1 and not game_state.player.death_effect_active:
-                            mouse_pos = pygame.mouse.get_pos()
-                            world_mouse = (mouse_pos[0] + game_state.scroll[0], mouse_pos[1] + game_state.scroll[1])
-                            game_state.bullets.append(Bullet(game_state.player.rect.centerx, game_state.player.rect.centery,
-                                                             world_mouse[0], world_mouse[1], asset_manager.images['bullet'], cli_mode=args.cli))
-                        if event.button == 3 and not game_state.player.death_effect_active and game_state.player.garlic_count > 0 and game_state.garlic_shot is None:
-                            game_state.player.garlic_count -= 1
-                            game_state.garlic_shot_start_time = current_time
-                            mouse_x, mouse_y = pygame.mouse.get_pos()
-                            world_mouse_x, world_mouse_y = mouse_x + game_state.scroll[0], mouse_y + game_state.scroll[1]
-                            start_x, start_y = game_state.player.rect.centerx, game_state.player.rect.centery
-                            dx, dy = world_mouse_x - start_x, world_mouse_y - start_y
-                            dist = math.hypot(dx, dy)
-                            dx_norm, dy_norm = (dx/dist, dy/dist) if dist > 0 else (0,0)
-                            angle = math.degrees(math.atan2(-dy_norm, dx_norm)) if dist > 0 else 0
-                            game_state.garlic_shot = {"x": start_x, "y": start_y, "dx": dx_norm, "dy": dy_norm, "angle": angle, "active": True, "rotation_angle": angle}
-                else:
-                    for button in game_over_buttons:
-                        button.handle_event(event)
-
-            # GUI Drawing Logic
-            if not game_state.started:
-                if screen and start_screen_image: screen.blit(start_screen_image, start_screen_pos)
-                for button in start_screen_buttons:
-                    if screen: button.draw(screen)
-            elif game_state.paused:
-                if screen and game_over_image_ui: # Reusing game_over_image for pause bg
-                    game_over_x_pos = (screen_width - game_over_rect.width) / 2
-                    game_over_y_pos = (screen_height - game_over_rect.height) / 2
-                    screen.blit(game_over_image_ui, (game_over_x_pos, game_over_y_pos))
-                for button in pause_screen_buttons:
-                    if screen: button.draw(screen)
-            elif not game_state.game_over:
-                if not game_state.player.death_effect_active:
-                    dx, dy = 0,0
-                    keys = pygame.key.get_pressed()
-                    if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 1
-                    if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
-                    if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 1
-                    if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
-                    if dx != 0 or dy != 0:
-                        game_state.player.move(dx, dy, game_state.world_size)
-
-                if game_state.player.rect.x < game_state.scroll[0] + screen_width * game_state.scroll_trigger:
-                    game_state.scroll[0] = max(0, game_state.player.rect.x - screen_width * game_state.scroll_trigger)
-                elif game_state.player.rect.x + game_state.player.rect.width > game_state.scroll[0] + screen_width * (1 - game_state.scroll_trigger):
-                    game_state.scroll[0] = min(game_state.world_size[0] - screen_width, game_state.player.rect.x - screen_width*(1-game_state.scroll_trigger) + game_state.player.rect.width)
-                if game_state.player.rect.y < game_state.scroll[1] + screen_height * game_state.scroll_trigger:
-                    game_state.scroll[1] = max(0, game_state.player.rect.y - screen_height * game_state.scroll_trigger)
-                elif game_state.player.rect.y + game_state.player.rect.height > game_state.scroll[1] + screen_height * (1 - game_state.scroll_trigger):
-                    game_state.scroll[1] = min(game_state.world_size[1] - screen_height, game_state.player.rect.y - screen_height*(1-game_state.scroll_trigger) + game_state.player.rect.height)
-
-                try:
-                    if not game_state.player.death_effect_active:
-                        game_state.update(current_time)
-
-                    if screen and grass_background: screen.blit(grass_background, (-game_state.scroll[0], -game_state.scroll[1]))
-                    for carrot in game_state.carrots:
-                        if carrot.active and screen and carrot.image: screen.blit(carrot.image, (carrot.rect.x - game_state.scroll[0], carrot.rect.y - game_state.scroll[1]))
-
-                    player_pos = (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1])
-                    if game_state.player.death_effect_active and int((current_time - game_state.player.death_effect_start_time) / 0.1) % 2 == 0:
-                        if screen and game_state.player.image :
-                            tinted_image = game_state.player.image.copy()
-                            tinted_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
-                            screen.blit(tinted_image, player_pos)
-                    elif not game_state.player.death_effect_active and game_state.player.invincible and int(current_time * PLAYER_INVINCIBILITY_FLASH_FREQUENCY) % 2 == 1:
-                        pass
-                    else:
-                        if screen and game_state.player.image: screen.blit(game_state.player.image, player_pos)
-
-                    for bullet in game_state.bullets:
-                        if screen and bullet.image: screen.blit(bullet.rotated_image, (bullet.rect.x - game_state.scroll[0], bullet.rect.y - game_state.scroll[1]))
-                    if game_state.garlic_shot and game_state.garlic_shot["active"]:
-                        if screen and garlic_image:
-                            rotated_garlic = pygame.transform.rotate(garlic_image, game_state.garlic_shot["rotation_angle"])
-                            rotated_rect = rotated_garlic.get_rect(center=(game_state.garlic_shot["x"], game_state.garlic_shot["y"]))
-                            screen.blit(rotated_garlic, (rotated_rect.x - game_state.scroll[0], rotated_rect.y - game_state.scroll[1]))
-                    for explosion in game_state.explosions:
-                        if screen: explosion.draw(screen, game_state.scroll) # Explosion draw handles active check
-                    if screen: game_state.vampire.draw(screen, game_state.scroll, current_time)
-                    if screen and hp_image_ui and garlic_image: game_state.player.draw_ui(screen, hp_image_ui, garlic_image, MAX_GARLIC)
-
-                    if game_state.player.health_changed or game_state.player.garlic_changed or game_state.player.juice_changed:
-                        print(f"[DEBUG] Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count}")
-                        game_state.player.health_changed = False
-                        game_state.player.garlic_changed = False
-                        game_state.player.juice_changed = False
-
-                    for item in game_state.items:
-                        if item.active and screen and item.image: screen.blit(item.image, (item.rect.x - game_state.scroll[0], item.rect.y - game_state.scroll[1]))
-                except Exception as e:
-                    print(f"ERROR during game logic/draw: {e}")
-                    running = False
-
-                if game_state.player.health <= 0 and not game_state.game_over:
-                    handle_player_death()
-
-                if game_state.player.death_effect_active:
-                    time_elapsed = current_time - game_state.player.death_effect_start_time
-                    if time_elapsed >= config.PLAYER_DEATH_DURATION:
-                        game_state.game_over = True
-                        game_state.player.death_effect_active = False
-            else:
-                if screen and game_over_image_ui:
-                    game_over_x_pos = (screen_width - game_over_rect.width) / 2
-                    game_over_y_pos = (screen_height - game_over_rect.height) / 2
-                    screen.blit(game_over_image_ui, (game_over_x_pos, game_over_y_pos))
-                for button in game_over_buttons:
-                    if screen: button.draw(screen)
-
-                if not pygame.mixer.music.get_busy():
-                    music_path = asset_manager._get_path(config.MUSIC_GAMEOVER)
-                    if music_path:
-                        try:
-                            pygame.mixer.music.load(music_path)
-                            pygame.mixer.music.play(-1)
-                        except pygame.error as e:
-                            print(f"Error playing game over music: {e}")
-
-            if screen: # These are GUI specific last drawing steps
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                crosshair_img_ref = asset_manager.images['crosshair']
-                if hasattr(crosshair_img_ref, 'get_rect'):
-                    crosshair_rect = crosshair_img_ref.get_rect(center=(mouse_x, mouse_y))
-                    screen.blit(crosshair_img_ref, crosshair_rect)
-            # These must be outside the `if screen:` for crosshair, but still inside `if not args.cli:`
-            pygame.display.flip()
-            time.sleep(config.FRAME_DELAY)
-        else: # #################### CLI MODE ####################
-            if not game_state.started:
-                print("\n--- LapinCarotte ---")
-                print("Start Screen (CLI Mode)")
-                print("1. Start Game")
-                print("2. Exit")
-                choice = ""
-                try: choice = input("Enter choice: ").strip()
-                except EOFError: quit_game()
-
-                if choice == '1':
-                    start_game()
-                elif choice == '2':
-                    quit_game()
-                elif running: # Avoid printing if quit_game was called by EOF
-                    print("Invalid choice. Please enter 1 or 2.")
-            elif game_state.paused:
-                print("\n--- PAUSED (CLI Mode) ---")
-                print("1. Continue")
-                print("2. Settings (Not Implemented)")
-                print("3. Quit Game")
-                choice = ""
-                try: choice = input("Enter choice: ").strip()
-                except EOFError: quit_game()
-
-                if choice == '1':
-                    resume_game_callback()
-                elif choice == '2':
-                    open_settings_callback()
-                elif choice == '3':
-                    quit_game()
-                elif running:
-                    print("Invalid choice.")
-            elif game_state.game_over:
-                print("\n--- GAME OVER (CLI Mode) ---")
-                print("1. Restart")
-                print("2. Exit")
-                choice = ""
-                try: choice = input("Enter choice: ").strip()
-                except EOFError: quit_game()
-
-                if choice == '1':
-                    reset_game()
-                elif choice == '2':
-                    quit_game()
-                elif running:
-                    print("Invalid choice.")
-            else: # Game is active (and not paused, not game over)
-                print("\n--- Game Active (CLI Mode) ---")
-                print(f"Player HP: {game_state.player.health} (Note: Game logic not running in CLI yet)")
-                print("Options: (p)ause, (q)uit, (d)ie (simulate death for testing)")
-
-                cli_action = ""
-                try:
-                    cli_action = input("Action: ").strip().lower()
-                    print(f"DEBUG: cli_action received: '{cli_action}'"); sys.stdout.flush() # DEBUG + FLUSH
-                except EOFError:
-                    print("EOF received, quitting."); sys.stdout.flush()
-                    quit_game()
-
-                if cli_action == 'p':
-                    if can_toggle_pause: # Check flag before pausing
-                        game_state.pause_game()
-                        print("Game paused (CLI).") # Added feedback
+        if game_state.started and not game_state.game_over:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    if can_toggle_pause:
+                        if game_state.paused:
+                            game_state.resume_game()
+                        else:
+                            game_state.pause_game()
                         can_toggle_pause = False
-                    # Removed the 'else resume' from here as 'p' should only pause.
-                    # Resume is handled by the PAUSED state menu.
-                elif cli_action == 'q':
-                    quit_game()
-                elif cli_action == 'd': # Simulate death - CORRECTED CONDITION
-                    print(f"DEBUG: ENTERING 'd' (die) block. cli_action is '{cli_action}'"); sys.stdout.flush()
-                    print(f"DEBUG: game_state.game_over before setting: {game_state.game_over}"); sys.stdout.flush()
-                    game_state.player.health = 0 # Ensure health is 0 for any subsequent logic
-                    game_state.game_over = True
-                    print(f"DEBUG: game_state.game_over after setting: {game_state.game_over}"); sys.stdout.flush()
-                    print("Simulating player death for CLI testing..."); sys.stdout.flush() # Test assertion relies on this
-                    # No need for "Player died. Game Over." here as the main loop will go to game_over state display
-
-                # Logic for can_toggle_pause for CLI 'p' (pause) action:
-                # If 'p' was just pressed and game is now paused, can_toggle_pause is False.
-                # If any other action is taken, or if 'p' is pressed while already paused (which CLI state handles separately),
-                # then can_toggle_pause should be True for the next "Game Active" input cycle.
-                if cli_action != 'p' or not game_state.paused: # Reset if not pausing or if pause failed
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_ESCAPE:
                     can_toggle_pause = True
 
+        # Button event handling based on game state
+        if not game_state.started:
+            for button in start_screen_buttons:
+                button.handle_event(event)
+        elif game_state.paused:
+            for button in pause_screen_buttons:
+                button.handle_event(event)
+        elif not game_state.game_over: # Active game event handling
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and not game_state.player.death_effect_active:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    game_state.bullets.append(Bullet(game_state.player.rect.centerx, game_state.player.rect.centery,
+                                                     mouse_x - game_state.player.rect.centerx + game_state.scroll[0],
+                                                     mouse_y - game_state.player.rect.centery + game_state.scroll[1],
+                                                     asset_manager.images['bullet'], cli_mode=args.cli))
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1 and not game_state.player.death_effect_active: # Left click
+                    mouse_pos = pygame.mouse.get_pos()
+                    world_mouse = (mouse_pos[0] + game_state.scroll[0], mouse_pos[1] + game_state.scroll[1])
+                    game_state.bullets.append(Bullet(game_state.player.rect.centerx, game_state.player.rect.centery,
+                                                     world_mouse[0], world_mouse[1], asset_manager.images['bullet'], cli_mode=args.cli))
+                if event.button == 3 and not game_state.player.death_effect_active and game_state.player.garlic_count > 0 and game_state.garlic_shot is None: # Right click for garlic
+                    game_state.player.garlic_count -= 1
+                    game_state.garlic_shot_start_time = current_time # Uses global current_time
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    world_mouse_x, world_mouse_y = mouse_x + game_state.scroll[0], mouse_y + game_state.scroll[1]
+                    start_x, start_y = game_state.player.rect.centerx, game_state.player.rect.centery
+                    dx, dy = world_mouse_x - start_x, world_mouse_y - start_y
+                    dist = math.hypot(dx, dy)
+                    dx_norm, dy_norm = (dx/dist, dy/dist) if dist > 0 else (0,0)
+                    angle = math.degrees(math.atan2(-dy_norm, dx_norm)) if dist > 0 else 0
+                    game_state.garlic_shot = {"x": start_x, "y": start_y, "dx": dx_norm, "dy": dy_norm, "angle": angle, "active": True, "rotation_angle": angle}
+        else: # Game over state
+            for button in game_over_buttons:
+                button.handle_event(event)
 
-            if running and args.cli:
-                time.sleep(0.1) # Small delay for CLI loop readability
+    # GUI Drawing Logic
+    if not game_state.started:
+        if screen and start_screen_image: screen.blit(start_screen_image, start_screen_pos)
+        for button in start_screen_buttons:
+            if screen: button.draw(screen)
+    elif game_state.paused:
+        if screen and game_over_image_ui: # Reusing game_over_image for pause bg
+            game_over_x_pos = (screen_width - game_over_image_ui.get_width()) / 2
+            game_over_y_pos = (screen_height - game_over_image_ui.get_height()) / 2
+            screen.blit(game_over_image_ui, (game_over_x_pos, game_over_y_pos))
+        for button in pause_screen_buttons:
+            if screen: button.draw(screen)
+    elif not game_state.game_over: # Active game drawing
+        if not game_state.player.death_effect_active:
+            dx, dy = 0,0
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_LEFT] or keys[pygame.K_q]: dx -= 1
+            if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
+            if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 1
+            if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
+            if dx != 0 or dy != 0:
+                game_state.player.move(dx, dy, game_state.world_size)
+
+        # Scrolling logic
+        if game_state.player.rect.x < game_state.scroll[0] + screen_width * game_state.scroll_trigger:
+            game_state.scroll[0] = max(0, game_state.player.rect.x - screen_width * game_state.scroll_trigger)
+        elif game_state.player.rect.x + game_state.player.rect.width > game_state.scroll[0] + screen_width * (1 - game_state.scroll_trigger):
+            game_state.scroll[0] = min(game_state.world_size[0] - screen_width, game_state.player.rect.x - screen_width*(1-game_state.scroll_trigger) + game_state.player.rect.width)
+        if game_state.player.rect.y < game_state.scroll[1] + screen_height * game_state.scroll_trigger:
+            game_state.scroll[1] = max(0, game_state.player.rect.y - screen_height * game_state.scroll_trigger)
+        elif game_state.player.rect.y + game_state.player.rect.height > game_state.scroll[1] + screen_height * (1 - game_state.scroll_trigger):
+            game_state.scroll[1] = min(game_state.world_size[1] - screen_height, game_state.player.rect.y - screen_height*(1-game_state.scroll_trigger) + game_state.player.rect.height)
+
+        try:
+            if not game_state.player.death_effect_active:
+                game_state.update(current_time) # Uses global current_time
+
+            if screen and grass_background: screen.blit(grass_background, (-game_state.scroll[0], -game_state.scroll[1]))
+            for carrot_enemy in game_state.carrots: # Renamed to avoid conflict with carrot collectible image
+                if carrot_enemy.active and screen and carrot_enemy.image: screen.blit(carrot_enemy.image, (carrot_enemy.rect.x - game_state.scroll[0], carrot_enemy.rect.y - game_state.scroll[1]))
+
+            player_pos = (game_state.player.rect.x - game_state.scroll[0], game_state.player.rect.y - game_state.scroll[1])
+            if game_state.player.death_effect_active and int((current_time - game_state.player.death_effect_start_time) / 0.1) % 2 == 0:
+                if screen and game_state.player.image :
+                    tinted_image = game_state.player.image.copy()
+                    tinted_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
+                    screen.blit(tinted_image, player_pos)
+            elif not game_state.player.death_effect_active and game_state.player.invincible and int(current_time * PLAYER_INVINCIBILITY_FLASH_FREQUENCY) % 2 == 1:
+                pass # Flash effect by not drawing
+            else:
+                if screen and game_state.player.image: screen.blit(game_state.player.image, player_pos)
+
+            for bullet in game_state.bullets:
+                if screen and bullet.image: screen.blit(bullet.rotated_image, (bullet.rect.x - game_state.scroll[0], bullet.rect.y - game_state.scroll[1]))
+
+            if game_state.garlic_shot and game_state.garlic_shot["active"]:
+                if screen and garlic_image: # garlic_image is global
+                    rotated_garlic = pygame.transform.rotate(garlic_image, game_state.garlic_shot["rotation_angle"])
+                    rotated_rect = rotated_garlic.get_rect(center=(game_state.garlic_shot["x"], game_state.garlic_shot["y"]))
+                    screen.blit(rotated_garlic, (rotated_rect.x - game_state.scroll[0], rotated_rect.y - game_state.scroll[1]))
+
+            for explosion in game_state.explosions:
+                if screen: explosion.draw(screen, game_state.scroll)
+
+            if screen: game_state.vampire.draw(screen, game_state.scroll, current_time) # Uses global current_time
+
+            if screen and hp_image_ui and garlic_image: # hp_image_ui is global
+                game_state.player.draw_ui(screen, hp_image_ui, garlic_image, MAX_GARLIC)
+
+            if game_state.player.health_changed or game_state.player.garlic_changed or game_state.player.juice_changed:
+                print(f"[DEBUG] Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count}")
+                game_state.player.health_changed = False
+                game_state.player.garlic_changed = False
+                game_state.player.juice_changed = False
+
+            for item in game_state.items:
+                if item.active and screen and item.image: screen.blit(item.image, (item.rect.x - game_state.scroll[0], item.rect.y - game_state.scroll[1]))
+
+        except Exception as e:
+            print(f"ERROR during game logic/draw: {e}")
+            running = False # Signal main_loop to exit
+            return
+
+        if game_state.player.health <= 0 and not game_state.game_over:
+            handle_player_death() # Uses global current_time
+
+        if game_state.player.death_effect_active:
+            time_elapsed_death = current_time - game_state.player.death_effect_start_time # Uses global current_time
+            if time_elapsed_death >= config.PLAYER_DEATH_DURATION:
+                game_state.game_over = True
+                game_state.player.death_effect_active = False
+    else: # Game over drawing
+        if screen and game_over_image_ui: # game_over_image_ui is global
+            # Use game_over_image_ui.get_width() etc. if rect not pre-calculated or reliable
+            game_over_x_pos = (screen_width - game_over_image_ui.get_width()) / 2
+            game_over_y_pos = (screen_height - game_over_image_ui.get_height()) / 2
+            screen.blit(game_over_image_ui, (game_over_x_pos, game_over_y_pos))
+        for button in game_over_buttons:
+            if screen: button.draw(screen)
+
+        if not pygame.mixer.music.get_busy():
+            music_path_game_over = asset_manager._get_path(config.MUSIC_GAMEOVER) # Use a different var name
+            if music_path_game_over:
+                try:
+                    pygame.mixer.music.load(music_path_game_over)
+                    pygame.mixer.music.play(-1)
+                except pygame.error as e:
+                    print(f"Error playing game over music: {e}")
+
+    if screen:
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        crosshair_img_ref = asset_manager.images['crosshair']
+        if hasattr(crosshair_img_ref, 'get_rect'):
+            crosshair_rect_instance = crosshair_img_ref.get_rect(center=(mouse_x, mouse_y)) # Use different var name
+            screen.blit(crosshair_img_ref, crosshair_rect_instance)
+
+    pygame.display.flip()
+    time.sleep(config.FRAME_DELAY)
+
+
+def run_cli_mode():
+    """Handles the entire game loop for CLI mode."""
+    global running, can_toggle_pause, game_state, args
+    # Callbacks like start_game, quit_game, reset_game, resume_game_callback, open_settings_callback
+    # are still global and access global 'game_state', 'args', etc.
+    # 'quit_game' modifies global 'running'.
+
+    if not game_state.started:
+        print("\n--- LapinCarotte ---")
+        print("Start Screen (CLI Mode)")
+        print("1. Start Game")
+        print("2. Exit")
+        choice = ""
+        try:
+            choice = input("Enter choice: ").strip()
+        except EOFError:
+            quit_game() # Modifies global running
+            return # Exit run_cli_mode for this iteration
+
+        if choice == '1':
+            start_game()
+        elif choice == '2':
+            quit_game() # Modifies global running
+        elif running: # Avoid printing if quit_game was called
+            print("Invalid choice. Please enter 1 or 2.")
+
+    elif game_state.paused:
+        print("\n--- PAUSED (CLI Mode) ---")
+        print("1. Continue")
+        print("2. Settings (Not Implemented)")
+        print("3. Quit Game")
+        choice = ""
+        try:
+            choice = input("Enter choice: ").strip()
+        except EOFError:
+            quit_game()
+            return
+
+        if choice == '1':
+            resume_game_callback()
+        elif choice == '2':
+            open_settings_callback()
+        elif choice == '3':
+            quit_game()
+        elif running:
+            print("Invalid choice.")
+
+    elif game_state.game_over:
+        print("\n--- GAME OVER (CLI Mode) ---")
+        print("1. Restart")
+        print("2. Exit")
+        choice = ""
+        try:
+            choice = input("Enter choice: ").strip()
+        except EOFError:
+            quit_game()
+            return
+
+        if choice == '1':
+            reset_game()
+        elif choice == '2':
+            quit_game()
+        elif running:
+            print("Invalid choice.")
+
+    else:  # Game is active (and not paused, not game over)
+        print("\n--- Game Active (CLI Mode) ---")
+        print(f"Player HP: {game_state.player.health} (Note: Game logic not running in CLI yet)")
+        print("Options: (p)ause, (q)uit, (d)ie (simulate death for testing)")
+
+        cli_action = ""
+        try:
+            cli_action = input("Action: ").strip().lower()
+            print(f"DEBUG: cli_action received: '{cli_action}'"); sys.stdout.flush()
+        except EOFError:
+            print("EOF received, quitting."); sys.stdout.flush()
+            quit_game()
+            return
+
+        if cli_action == 'p':
+            if can_toggle_pause:
+                game_state.pause_game()
+                print("Game paused (CLI).")
+                can_toggle_pause = False
+        elif cli_action == 'q':
+            quit_game()
+        elif cli_action == 'd': # Simulate death
+            print(f"DEBUG: ENTERING 'd' (die) block. cli_action is '{cli_action}'"); sys.stdout.flush()
+            print(f"DEBUG: game_state.game_over before setting: {game_state.game_over}"); sys.stdout.flush()
+            game_state.player.health = 0
+            game_state.game_over = True
+            print(f"DEBUG: game_state.game_over after setting: {game_state.game_over}"); sys.stdout.flush()
+            print("Simulating player death for CLI testing..."); sys.stdout.flush()
+
+        if cli_action != 'p' or not game_state.paused:
+            can_toggle_pause = True
+
+    if running and args.cli: # Check running again in case quit_game was called
+        time.sleep(0.1) # Small delay for CLI loop readability
+
+
+def main_loop():
+    global running # main_loop controls the 'running' state via the while condition
+
+    while running:
+        if not args.cli:
+            run_gui_mode()
+        else:
+            run_cli_mode()
 
 if __name__ == '__main__':
     try:

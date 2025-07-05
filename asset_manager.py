@@ -102,7 +102,7 @@ class AssetManager:
                     self.sounds[key] = pygame.mixer.Sound(sound_file_path)
                 except pygame.error as e:
                     print(f"WARNING: Could not load sound asset '{key}' from '{path}': {e}. Using dummy sound.")
-                self.sounds[key] = DummySound()
+                    self.sounds[key] = DummySound() # Moved inside the except block
     
     def _get_path(self, relative_path):
         if getattr(sys, 'frozen', False):
