@@ -4,14 +4,15 @@ Un lapin combat les carottes vampires / *A rabbit fights vampire carrots*
 ![image](https://github.com/user-attachments/assets/577473aa-4569-43aa-9c7a-0c6f26821257)
 
 
-# Download latest Windows executable
-# Télécharger le dernier exécutable Windows
-Get [LapinCarotte.exe](https://github.com/sheepdestroyer/LapinCarotte/releases/download/v0.3-beta/LapinCarotte.exe) here: https://github.com/sheepdestroyer/LapinCarotte/releases
-*Téléchargez [LapinCarotte.exe](https://github.com/sheepdestroyer/LapinCarotte/releases/download/v0.3-beta/LapinCarotte.exe) ici : https://github.com/sheepdestroyer/LapinCarotte/releases*
+# Download latest Windows & Linux binaries
+# Télécharger les derniers exécutables Windows & Linux
+Get it here / *Téléchargez le ici* : https://github.com/sheepdestroyer/LapinCarotte/releases
 
 # Run dev env
 # Exécuter l'environnement de développement
 ```
+git clone https://github.com/sheepdestroyer/LapinCarotte
+cd LapinCarotte
 pip install pygame-ce
 python main.py
 ```
