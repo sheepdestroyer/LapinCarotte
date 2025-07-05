@@ -92,9 +92,9 @@ If you wish to contribute to this project, please follow these guidelines:
 *   **Read `AGENTS.md`**: This file contains important rules and protocols for making changes to the codebase, including testing procedures.
 *   **Bilingual Documentation**: As per `AGENTS.md`, all new code comments and logging messages must be bilingual (English first, then French). Please maintain this standard for any modifications.
 
-*Si vous souhaitez contribuer à ce projet, veuillez suivre ces directives :*
-*   ***Lisez `AGENTS.md`*** : *Ce fichier contient des règles et protocoles importants pour apporter des modifications au code, y compris les procédures de test.*
-*   ***Documentation Bilingue*** : *Conformément à `AGENTS.md`, tous les nouveaux commentaires de code et messages de log doivent être bilingues (anglais d'abord, puis français). Veuillez maintenir cette norme pour toute modification.*
+Si vous souhaitez contribuer à ce projet, veuillez suivre ces directives :
+*   **Lisez `AGENTS.md`** : Ce fichier contient des règles et protocoles importants pour apporter des modifications au code, y compris les procédures de test.
+*   **Documentation Bilingue** : Conformément à `AGENTS.md`, tous les nouveaux commentaires de code et messages de log doivent être bilingues (anglais d'abord, puis français). Veuillez maintenir cette norme pour toute modification.
 
 ## Command Line Interface (CLI) Mode
 ## Mode Interface en Ligne de Commande (CLI)
