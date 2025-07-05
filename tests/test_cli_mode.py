@@ -75,22 +75,32 @@ class TestCLIPassThrough: # Renamed to avoid conflict with Pytest's own 'TestCLI
         assert "Exiting game." in stdout # Final exit message
 
     def test_cli_start_pause_continue_quit(self):
-        """Test starting, pausing, continuing, and then quitting."""
+        """Test starting, pausing, continuing multiple times, and then quitting."""
         inputs = [
-            '1', # Start Game
-            'p', # Pause
-            '1', # Continue
-            'q'  # Quit from active game
+            '1',   # Start Game
+            'esc', # Pause 1
+            '1',   # Continue 1 from pause menu
+            'esc', # Pause 2
+            '1',   # Continue 2 from pause menu
+            'q'    # Quit from active game
         ]
         returncode, stdout, stderr = run_cli_test(inputs)
 
         assert returncode == 0, f"CLI process exited with code {returncode}. Stderr:\n{stderr}"
-        print(f"STDOUT:\n{stdout}")
-        if stderr:
-            print(f"STDERR:\n{stderr}")
 
-        assert "Start Screen (CLI Mode)" in stdout
-        assert stdout.count("Game Active (CLI Mode)") >= 2 # Before pause, and after continue
-        assert "PAUSED (CLI Mode)" in stdout
-        # Check that the game doesn't show game over screen
-        assert "GAME OVER (CLI Mode)" not in stdout
+        # Print for debugging in CI if needed
+        # print(f"STDOUT:\n{stdout}")
+        # if stderr:
+        #     print(f"STDERR:\n{stderr}")
+
+        assert "Start Screen (CLI Mode)" in stdout # Initial start screen
+
+        # Expect "Game Active" 3 times: initial, after continue 1, after continue 2
+        # However, the prompt for action is part of the "Game Active" block.
+        # Let's count the "Game Active (CLI Mode)" title.
+        assert stdout.count("--- Game Active (CLI Mode) ---") == 3
+
+        assert stdout.count("--- PAUSED (CLI Mode) ---") == 2 # Paused twice
+        assert stdout.count("Game resumed (CLI).") == 2      # Resumed twice
+        assert "Exiting game." in stdout                     # Final quit
+        assert "--- GAME OVER (CLI Mode) ---" not in stdout  # Should not be game over

@@ -429,7 +429,7 @@ def run_gui_mode():
 
 def run_cli_mode():
     """Handles the entire game loop for CLI mode."""
-    global running, can_toggle_pause, game_state, args
+    global running, game_state, args # Removed can_toggle_pause
     # Callbacks like start_game, quit_game, reset_game, resume_game_callback, open_settings_callback
     # are still global and access global 'game_state', 'args', etc.
     # 'quit_game' modifies global 'running'.
@@ -503,7 +503,7 @@ def run_cli_mode():
         logging.debug("run_cli_mode: Game active, displaying active game options.")
         logging.info("\n--- Game Active (CLI Mode) ---")
         logging.info(f"Player HP: {game_state.player.health} (Note: Game logic not running in CLI yet)")
-        logging.info("Options: (p)ause, (q)uit, (d)ie (simulate death for testing)")
+        logging.info("Options: (esc)ause, (q)uit, (d)ie (simulate death for testing)") # Changed (p)ause to (esc)ause
 
         cli_action = ""
         try:
@@ -514,26 +514,22 @@ def run_cli_mode():
             quit_game()
             return
 
-        if cli_action == 'p':
-            logging.debug(f"CLI action 'p' received. can_toggle_pause: {can_toggle_pause}")
-            if can_toggle_pause:
-                game_state.pause_game()
-                # logging.info("Game paused (CLI).") # This is handled by game_state.pause_game() or the next state print
-                can_toggle_pause = False
+        if cli_action == 'esc': # Changed 'p' to 'esc'
+            logging.debug("CLI action 'esc' received, pausing game.")
+            game_state.pause_game()
+            # can_toggle_pause logic removed
         elif cli_action == 'q':
-            logging.debug("CLI action 'q' received.")
+            logging.debug("CLI action 'q' received, quitting game.") # Corrected log message
             quit_game()
         elif cli_action == 'd': # Simulate death
-            logging.debug(f"CLI action 'd' received. Entering 'die' block. cli_action is '{cli_action}'") # Combined previous two
-            logging.debug(f"game_state.game_over before setting: {game_state.game_over}")
+            logging.debug("CLI action 'd' received, simulating player death.") # Corrected log message
+            # logging.debug(f"game_state.game_over before setting: {game_state.game_over}") # Already part of GameState log
             game_state.player.health = 0
             game_state.game_over = True
-            logging.debug(f"game_state.game_over after setting: {game_state.game_over}")
+            # logging.debug(f"game_state.game_over after setting: {game_state.game_over}") # Already part of GameState log
             logging.info("Simulating player death for CLI testing...") # This is for test assertion
 
-        if cli_action != 'p' or not game_state.paused: # if not (cli_action == 'p' and game_state.paused)
-            logging.debug(f"Resetting can_toggle_pause to True. cli_action: '{cli_action}', game_state.paused: {game_state.paused}")
-            can_toggle_pause = True
+        # Removed can_toggle_pause reset logic
 
     if running and args.cli: # Check running again in case quit_game was called
         time.sleep(0.1) # Small delay for CLI loop readability
