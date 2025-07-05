@@ -244,26 +244,26 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 
 **Objectif :** Permettre au jeu de fonctionner sans initialisation graphique via une option `--cli`. Afficher les menus et options sous forme de texte, sélectionnables par numéro. Ceci est une première étape pour améliorer la testabilité et la flexibilité.
 
-### Statut : ⏳ À faire
+### Statut : ✅ Terminé
 
 ### Étapes Initiales :
 
--   [ ] **1. Analyse d'Arguments en Ligne de Commande**
+-   [x] **1. Analyse d'Arguments en Ligne de Commande**
     -   Dans `main.py`, utiliser `argparse` pour ajouter et gérer une option `--cli`.
     -   Rendre la valeur de ce drapeau (mode CLI actif/inactif) accessible globalement ou la passer aux modules concernés.
 
--   [ ] **2. Initialisation Conditionnelle de Pygame**
+-   [x] **2. Initialisation Conditionnelle de Pygame**
     *   Dans `main.py`, rendre l'initialisation des modules Pygame (surtout `pygame.display`, `pygame.font`, `pygame.mixer`) conditionnelle à l'absence du mode CLI.
     *   Gérer les variables globales dépendantes de l'écran (ex: `screen`, `screen_width`, `screen_height`) pour qu'elles ne causent pas d'erreur en mode CLI (peuvent être `None` ou des valeurs par défaut non graphiques).
 
--   [ ] **3. Adaptation de `AssetManager` pour le Mode CLI**
+-   [x] **3. Adaptation de `AssetManager` pour le Mode CLI**
     *   Modifier `AssetManager` pour qu'il accepte un indicateur `cli_mode`.
     *   Si en mode CLI :
         -   Pour les images : Ne pas charger les surfaces `pygame.Surface`. `self.images` pourrait stocker des chemins, des métadonnées (comme les dimensions de `config.ASSET_CONFIG`), ou `None`. La logique de placeholder visuel doit être sautée.
         -   Pour les sons : Sauter les appels à `pygame.mixer.Sound()` ou utiliser `DummySound` si `pygame.mixer` n'est pas initialisé.
         -   La création de `self.placeholder_font` doit être sautée si `pygame.font` n'est pas initialisé.
 
--   [ ] **4. Affichage Textuel de Base pour les États de Jeu**
+-   [x] **4. Affichage Textuel de Base pour les États de Jeu**
     *   Dans `main.py` (`main_loop`) :
         -   Si en mode CLI, utiliser `print()` au lieu de `screen.blit()`.
         -   Écran de Démarrage : Afficher "Écran de Démarrage\n1. Commencer\n2. Quitter".
@@ -271,18 +271,18 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
         -   Game Over : Afficher "GAME OVER\n1. Recommencer\n2. Quitter".
         -   Jeu Actif : Afficher un message simple comme "Jeu en cours... (interactions CLI à venir)".
 
--   [ ] **5. Interaction Basique par Menu Textuel**
+-   [x] **5. Interaction Basique par Menu Textuel**
     *   En mode CLI, utiliser `input()` pour récupérer le choix de l'utilisateur dans les menus.
     *   Traiter l'entrée pour appeler les fonctions correspondantes (`start_game`, `quit_game`, etc.).
     *   Pour cette étape initiale, la logique de jeu (`game_state.update()`, mouvements) n'est pas exécutée en mode CLI ; se concentrer sur la navigation dans les menus.
 
--   [ ] **6. Tests (Manuels Initiaux & Stratégie CLI)**
+-   [x] **6. Tests (Manuels Initiaux & Stratégie CLI)**
     *   Exécuter `python main.py --cli`.
     *   Vérifier l'absence de fenêtre Pygame.
     *   Vérifier l'affichage des menus textuels et la possibilité de naviguer (ex: commencer, quitter).
     *   Définir une stratégie pour les tests automatisés du mode CLI (à développer dans les étapes suivantes).
 
--   [ ] **7. Mettre à Jour la Documentation (.md files) & Workflows (placeholder)**
+-   [x] **7. Mettre à Jour la Documentation (.md files) & Workflows (placeholder)**
     *   Ajouter une section à `README.md` sur l'option `--cli`.
     *   Planifier les mises à jour de `CI.md` et `AGENTS.md` pour inclure les tests CLI.
     *   (Les modifications réelles des workflows et des tests CI seront des sous-tâches ultérieures).
