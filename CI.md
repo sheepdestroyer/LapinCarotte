@@ -34,7 +34,7 @@ Our CI/CD setup automates testing, building, releasing, and dependency managemen
         -   Upgrades `pip`.
         -   Installs dependencies from `requirements.txt`.
         -   Conditionally installs dependencies from `requirements_dev.txt` if it exists.
-    4.  **Run Tests:** Executes `python -m pytest -v` to run the test suite.
+    4.  **Run Tests:** Executes `python -m pytest -v` to run the test suite. This suite includes tests for core game logic, entity behavior, asset management, and command-line interface functionality.
 
 ## 3. Build and Release Workflow (`release.yml`)
 

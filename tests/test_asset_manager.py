@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock, DEFAULT as MOCK_DEFAULT # Import DEF
 import pygame # Needed for pygame.Surface, pygame.error, pygame.font, pygame.mixer types
 from asset_manager import AssetManager, DummySound # The class we're testing and DummySound
 from config import DEFAULT_PLACEHOLDER_SIZE as REAL_DEFAULT_PLACEHOLDER_SIZE # Import for type hint or comparison
-from config import IMAGE_ASSET_CONFIG as REAL_IMAGE_ASSET_CONFIG # To see its structure
+from config import IMAGE_ASSET_CONFIG as REAL_IMAGE_ASSET_CONFIG, SOUND_ASSET_CONFIG as REAL_SOUND_ASSET_CONFIG # To see its structure
 
 # Import fixtures from common utility file if needed, though AssetManager tests might be self-contained
 # from .test_utils import initialized_pygame # Might be needed for real surface creation if not mocking everything
@@ -123,64 +123,60 @@ class TestAssetManagerImageLoading:
         assert warning_for_no_hint_found, f"Warning for '{no_hint_asset_key}' not found."
 
 class TestAssetManagerSoundLoading:
-    @patch('pygame.mixer.Sound')
-    @patch('asset_manager.AssetManager._get_path')
-    @patch('pygame.Surface') # Add patch for pygame.Surface here
-    def test_load_sound_success(self, mock_pygame_surface, mock_get_path, mock_pygame_sound, am):
-        """Test successful sound loading."""
-        # Mock the behavior of any pygame.Surface created (e.g. placeholders for images)
-        mock_created_surface = MagicMock()
-        mock_created_surface.convert_alpha.return_value = mock_created_surface
-        mock_pygame_surface.return_value = mock_created_surface
+    @patch('builtins.print') # To check for warnings
+    @patch('asset_manager.IMAGE_ASSET_CONFIG', {}) # Ensure no images are processed
+    def test_load_sound_when_mixer_not_initialized(self, mock_print, am, mocker):
+        """Test that DummySound is used if pygame.mixer is not initialized."""
+        # Ensure mixer.get_init() returns False for this test
+        mocker.patch('pygame.mixer.get_init', return_value=False)
+        # Also mock hasattr for mixer to be safe, though get_init is primary
+        mocker.patch('asset_manager.hasattr')
+        mock_hasattr_instance = mocker.patch('asset_manager.hasattr')
+        def hasattr_side_effect(obj, name):
+            if obj == pygame and name == 'mixer':
+                return True # Mixer module exists
+            return __builtins__.hasattr(obj, name)
+        mock_hasattr_instance.side_effect = hasattr_side_effect
 
-        mock_sound_object = MagicMock() # Removed spec=pygame.mixer.Sound
-        mock_pygame_sound.return_value = mock_sound_object
+        am.load_assets() # Will now use SOUND_ASSET_CONFIG from config.py
 
-        asset_key_to_test = 'explosion' # A key defined in AssetManager.sound_assets
-        original_asset_path = 'sounds/explosion.mp3'
-        expected_resolved_path = "resolved/dummy/path/to/explosion.mp3"
-
-        def get_path_side_effect(path_arg):
-            if path_arg == original_asset_path:
-                return expected_resolved_path
-            return f"default_resolved_{path_arg}"
-        mock_get_path.side_effect = get_path_side_effect
-
-        am.load_assets()
-
-        mock_get_path.assert_any_call(original_asset_path)
-        mock_pygame_sound.assert_any_call(expected_resolved_path)
+        asset_key_to_test = 'explosion' # A key from SOUND_ASSET_CONFIG
         assert asset_key_to_test in am.sounds
-        assert am.sounds[asset_key_to_test] is mock_sound_object
+        assert isinstance(am.sounds[asset_key_to_test], DummySound)
+
+        warning_found = any(
+            f"WARNING: Pygame mixer not initialized. Using dummy sound for '{asset_key_to_test}'" in str(c[0][0])
+            for c in mock_print.call_args_list
+        )
+        assert warning_found, "Warning for uninitialized mixer not found."
 
     @patch('builtins.print')
     @patch('pygame.mixer.Sound', side_effect=pygame.error("Failed to load sound"))
     @patch('asset_manager.AssetManager._get_path')
-    def test_load_sound_failure_logs_warning(self, mock_get_path, mock_pygame_sound, mock_print, am):
-        """Test sound loading failure logs a warning and key is not in sounds."""
-        asset_key_to_test = 'hurt' # A key defined in AssetManager.sound_assets
-        original_asset_path = 'sounds/hurt.mp3'
-        expected_resolved_path = "resolved/dummy/path/to/hurt.mp3"
+    @patch('asset_manager.IMAGE_ASSET_CONFIG', {}) # Ensure no images are processed
+    def test_load_sound_failure_logs_warning_and_uses_dummy(self, mock_get_path, mock_pygame_sound, mock_print, am, mocker):
+        """Test sound loading failure (e.g. file not found) uses DummySound and logs a warning."""
+        # Ensure mixer.get_init() returns True so it attempts to load
+        mocker.patch('pygame.mixer.get_init', return_value=True)
+        mocker.patch('asset_manager.hasattr')
+        mock_hasattr_instance = mocker.patch('asset_manager.hasattr')
+        def hasattr_side_effect(obj, name): # Ensure it thinks mixer module exists
+            if obj == pygame and name == 'mixer': return True
+            return __builtins__.hasattr(obj,name)
+        mock_hasattr_instance.side_effect = hasattr_side_effect
 
-        def get_path_side_effect(path_arg):
-            if path_arg == original_asset_path:
-                return expected_resolved_path
-            # For other image/sound assets that might be loaded by am.load_assets()
-            # we should ensure they don't also raise errors, or mock them to succeed.
-            # For simplicity, assume this test focuses on 'hurt' failing.
-            # We can mock pygame.image.load to prevent it from failing for images.
-            return f"default_resolved_{path_arg}"
+        asset_key_to_test = 'hurt'
+        original_asset_path = REAL_SOUND_ASSET_CONFIG[asset_key_to_test] # Use real config path
+        mock_get_path.return_value = f"resolved/dummy/{original_asset_path}"
 
-        mock_get_path.side_effect = get_path_side_effect
-
-        with patch('pygame.image.load', MagicMock(return_value=MagicMock(spec=pygame.Surface))): # Prevent image load errors
-            am.load_assets()
+        am.load_assets()
 
         mock_get_path.assert_any_call(original_asset_path)
-        mock_pygame_sound.assert_any_call(expected_resolved_path)
+        mock_pygame_sound.assert_any_call(f"resolved/dummy/{original_asset_path}")
 
-        # Check that a warning was printed for 'hurt' sound
-        hurt_warning_found = False
+        # Check that a specific warning for load failure was printed
+        expected_warning_fragment = f"WARNING: Could not load sound asset '{asset_key_to_test}'"
+        load_failure_warning_found = False
         for call_args in mock_print.call_args_list:
             arg_str = str(call_args[0][0])
             if f"WARNING: Could not load sound asset '{asset_key_to_test}'" in arg_str:

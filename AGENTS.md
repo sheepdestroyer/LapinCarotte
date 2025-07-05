@@ -45,11 +45,11 @@ All code must be written in a consistent and maintainable manner.
 Testing is not optional. It is a core responsibility to guarantee that changes are correct and do not break existing functionality.
 
 1.  **Write New, Relevant Tests:**
-    * For any new feature or bug fix, you **must** write corresponding unit or integration tests.
+    * For any new feature or bug fix, you **must** write corresponding unit or integration tests. This includes testing different game states, CLI interactions (if applicable to the feature), and any new modules like asset handlers.
     * Place new tests in the `tests/` directory, following the naming convention `test_*.py`.
     * Use `tests/test_game_entities_player.py` as a reference for creating tests for game logic.
 2.  **Run the Full Test Suite after any change:**
-    * Once after each individual step of a task (after any change), and again before finally submitting the tesk result, run the entire test suite locally in verbose mode to ensure that your changes have not introduced any regressions.
+    * Once after each individual step of a task (after any change), and again before finally submitting the tesk result, run the entire test suite locally in verbose mode to ensure that your changes have not introduced any regressions. The suite covers various aspects including core game logic, entity behavior, asset management, and CLI functionality.
     * Install the requirements and Execute the tests in verbose mode using the command: `pip install -r requirements.txt -r requirements_dev.txt && python -m pytest -v`.
     * The Continuous Integration workflow (`run-tests.yml`) will also run these tests, but they must pass locally first.
 
@@ -60,7 +60,7 @@ Testing is not optional. It is a core responsibility to guarantee that changes a
 After implementation and testing, the agent must update all relevant documentation.
 
 1.  **Update `TODO.md`:** Modify the `TODO.md` file to reflect the work completed. Update the status of your assigned task (e.g., from `⏳ À faire` to `✅ Terminé`).
-2.  **Update `README.md`:** If your changes affect how a user runs the application, builds it, or understands its features, you must update the `README.md` accordingly.
+2.  **Update `README.md`:** If your changes affect how a user runs the application, builds it, or understands its features, you must update the `README.md` accordingly. For instance, adding a new command-line argument, a significant feature like asset fallbacks, or changes to game controls should be documented.
 3.  **Update `CI.md`:** This is only required if you have made changes to any of the GitHub Actions workflows in the `.github/workflows/` directory. Your changes must be clearly documented in `CI.md`.
 
 ---

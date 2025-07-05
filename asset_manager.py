@@ -35,57 +35,73 @@ class DummySound:
     # For now, play() is the most critical.
 
 class AssetManager:
-    def __init__(self, _test_font_failure=False): # Add test hook
+    def __init__(self, cli_mode=False, _test_font_failure=False): # Add cli_mode and test hook
+        self.cli_mode = cli_mode
         self.images = {}
         self.sounds = {}
-        # Attempt to create a default font for placeholders
-        self.placeholder_font = None # Initialize to None
-        if hasattr(pygame, 'font'):
-            try:
-                if _test_font_failure: # Test hook
-                    raise pygame.error("Test-induced font failure")
-                # Assuming pygame.font.init() is called in main.py after pygame.init()
-                self.placeholder_font = pygame.font.SysFont(None, 20) # Use default system font, size 20
-            except (pygame.error, AttributeError) as e: # More specific exceptions
-                print(f"WARNING: Could not initialize font for asset placeholders: {e}")
-        else:
-            print("WARNING: Pygame font module not available. Placeholders will not have text.")
+        self.placeholder_font = None
+
+        if not self.cli_mode: # Only attempt font initialization if not in CLI mode
+            if hasattr(pygame, 'font'):
+                try:
+                    if _test_font_failure: # Test hook
+                        raise pygame.error("Test-induced font failure")
+                    # Assuming pygame.font.init() is called in main.py after pygame.init()
+                    if pygame.font.get_init(): # Check if font module is truly initialized
+                        self.placeholder_font = pygame.font.SysFont(None, 20)
+                    else:
+                        print("WARNING: Pygame font module not initialized. Cannot create placeholder font.")
+                except (pygame.error, AttributeError) as e:
+                    print(f"WARNING: Could not initialize font for asset placeholders: {e}")
+            else:
+                print("WARNING: Pygame font module not available. Placeholders will not have text.")
         
     def load_assets(self):
         # Image loading using IMAGE_ASSET_CONFIG
         for key, config_entry in IMAGE_ASSET_CONFIG.items():
             path = config_entry['path']
-            size_hint = config_entry.get('size') # Get optional size hint
+            size_hint = config_entry.get('size')
 
-            try:
-                image_path = self._get_path(path)
-                self.images[key] = pygame.image.load(image_path).convert_alpha()
-            except (pygame.error, FileNotFoundError) as e:
-                print(f"WARNING: Could not load image asset '{key}' from '{path}': {e}. Creating placeholder.")
+            if self.cli_mode:
+                # In CLI mode, store metadata or None. For now, just path and size hint.
+                self.images[key] = {'path': path, 'size_hint': size_hint, 'type': 'cli_placeholder'}
+                # No actual image loading or Pygame surface creation
+            else: # GUI mode
+                try:
+                    image_path = self._get_path(path)
+                    self.images[key] = pygame.image.load(image_path).convert_alpha()
+                except (pygame.error, FileNotFoundError) as e:
+                    print(f"WARNING: Could not load image asset '{key}' from '{path}': {e}. Creating placeholder.")
 
-                placeholder_size = size_hint if size_hint else DEFAULT_PLACEHOLDER_SIZE
-                placeholder_surface = pygame.Surface(placeholder_size)
-                placeholder_surface.fill(PLACEHOLDER_BG_COLOR) # Use configured color
+                    placeholder_size = size_hint if size_hint else DEFAULT_PLACEHOLDER_SIZE
+                    placeholder_surface = pygame.Surface(placeholder_size)
+                    placeholder_surface.fill(PLACEHOLDER_BG_COLOR)
 
-                if self.placeholder_font:
-                    try:
-                        text_surface = self.placeholder_font.render(key, True, PLACEHOLDER_TEXT_COLOR)
-                        text_rect = text_surface.get_rect(center=(placeholder_surface.get_width() // 2, placeholder_surface.get_height() // 2))
-                        placeholder_surface.blit(text_surface, text_rect)
-                    except pygame.error as font_e:
-                        print(f"WARNING: Could not render text on placeholder for '{key}': {font_e}")
-                else:
-                    print(f"WARNING: Placeholder font not available for asset '{key}'. Placeholder will be a plain blue rectangle.")
+                    if self.placeholder_font:
+                        try:
+                            text_surface = self.placeholder_font.render(key, True, PLACEHOLDER_TEXT_COLOR)
+                            text_rect = text_surface.get_rect(center=(placeholder_surface.get_width() // 2, placeholder_surface.get_height() // 2))
+                            placeholder_surface.blit(text_surface, text_rect)
+                        except pygame.error as font_e:
+                            print(f"WARNING: Could not render text on placeholder for '{key}': {font_e}")
+                    else:
+                        print(f"WARNING: Placeholder font not available for asset '{key}'. Placeholder will be a plain blue rectangle.")
 
-                self.images[key] = placeholder_surface.convert_alpha()
+                    self.images[key] = placeholder_surface.convert_alpha()
             
         # Sound loading using SOUND_ASSET_CONFIG
         for key, path in SOUND_ASSET_CONFIG.items():
-            try:
-                sound_file_path = self._get_path(path)
-                self.sounds[key] = pygame.mixer.Sound(sound_file_path)
-            except pygame.error as e:
-                print(f"WARNING: Could not load sound asset '{key}' from '{path}': {e}. Using dummy sound.")
+            if self.cli_mode or not (hasattr(pygame, 'mixer') and pygame.mixer.get_init()):
+                # If in CLI mode, or if mixer is not initialized (e.g. no sound card or init failed)
+                if not self.cli_mode: # Only print this specific warning if not in CLI (CLI implies no sound hardware focus)
+                    print(f"WARNING: Pygame mixer not initialized. Using dummy sound for '{key}'.")
+                self.sounds[key] = DummySound()
+            else: # GUI mode with mixer initialized
+                try:
+                    sound_file_path = self._get_path(path)
+                    self.sounds[key] = pygame.mixer.Sound(sound_file_path)
+                except pygame.error as e:
+                    print(f"WARNING: Could not load sound asset '{key}' from '{path}': {e}. Using dummy sound.")
                 self.sounds[key] = DummySound()
     
     def _get_path(self, relative_path):
