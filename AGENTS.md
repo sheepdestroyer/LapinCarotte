@@ -52,6 +52,10 @@ Testing is not optional. It is a core responsibility to guarantee that changes a
     * Once after each individual step of a task (after any change), and again before finally submitting the tesk result, run the entire test suite locally in verbose mode to ensure that your changes have not introduced any regressions. The suite covers various aspects including core game logic, entity behavior, asset management, and CLI functionality.
     * Install the requirements and Execute the tests in verbose mode using the command: `pip install -r requirements.txt -r requirements_dev.txt && python -m pytest -v`.
     * The Continuous Integration workflow (`run-tests.yml`) will also run these tests, but they must pass locally first.
+3.  **Maintain Test Scenario Coverage (`full_adventure_game_test.yml`):**
+    * Any addition or significant modification to automated tests (in the `tests/` directory) **must** be reflected in `full_adventure_game_test.yml`.
+    * This includes adding new narrative steps if new broad functionality is tested, updating existing steps to reference new/modified test functions, or adjusting `coverage_status`.
+    * The `full_adventure_game_test.yml` file, located in the repository root, serves as a high-level map of test coverage against a narrative game scenario and must be kept synchronized with the actual test suite. Its purpose is to provide a human-readable overview of what aspects of the game are tested and by which specific test cases.
 
 ---
 
