@@ -43,6 +43,13 @@ All code must be written in a consistent and maintainable manner.
     *   Warnings about potential issues that don't stop execution should use `logging.warning()`.
     *   Errors that are caught but represent a problem should use `logging.error()` or `logging.exception()` (if within an `except` block to include traceback).
     *   When adding new features or complex logic, include relevant `logging.debug()` statements to trace execution flow and variable states. This aids in future troubleshooting. Avoid using `print()` for debugging; use the logging framework.
+5.  **Bilingual Documentation (EN/FR):**
+    *   All code comments and logging messages must be bilingual: English first, then French.
+    *   *Tous les commentaires de code et messages de log doivent être bilingues : anglais d'abord, puis français.*
+    *   Keep comments and logs concise and clear in both languages.
+    *   *Gardez les commentaires et les logs concis et clairs dans les deux langues.*
+    *   Brief introductory paragraphs (docstrings or comments) should be added to important files and major functions/classes, also in bilingual format (EN then FR).
+    *   *De brefs paragraphes d'introduction (docstrings ou commentaires) doivent être ajoutés aux fichiers importants et aux fonctions/classes majeures, également en format bilingue (EN puis FR).*
 
 ---
 

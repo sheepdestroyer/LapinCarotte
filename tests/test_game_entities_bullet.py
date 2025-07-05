@@ -20,17 +20,18 @@ def bullet_instance(bullet_image):
 
 class TestBulletInitialization:
     def test_initial_values_horizontal(self, bullet_instance, bullet_image):
-        # Bullet(x,y, target_x, target_y, image) uses x,y as topleft
-        assert bullet_instance.rect.topleft == (50,50)
+        # Bullet(x,y, target_x, target_y, image) uses x,y as topleft for rect, but as origin for shot vector
+        assert bullet_instance.rect.topleft == (50,50) # Rect is still based on x,y topleft
         assert bullet_instance.original_image is bullet_image
 
-        # For (50,50) to (150,50), dir_x=1, dir_y=0
+        # For shot originating at (50,50) to (150,50), dir_x=1, dir_y=0
         expected_vel_x = 1 * BULLET_SPEED
         expected_vel_y = 0 * BULLET_SPEED
-        assert bullet_instance.velocity == (expected_vel_x, expected_vel_y)
+        assert bullet_instance.velocity[0] == pytest.approx(expected_vel_x)
+        assert bullet_instance.velocity[1] == pytest.approx(expected_vel_y)
 
         # Angle for (1,0) vector (math.atan2(-0, 1)) is 0 degrees
-        assert bullet_instance.angle == 0
+        assert bullet_instance.angle == pytest.approx(0.0)
 
     def test_initial_values_diagonal(self, bullet_image):
         # Bullet going from (0,0) towards (10,10)
@@ -58,16 +59,17 @@ class TestBulletInitialization:
 class TestBulletUpdate:
     def test_update_moves_rect(self, bullet_instance):
         initial_x, initial_y = bullet_instance.rect.x, bullet_instance.rect.y
-        vel_x, vel_y = bullet_instance.velocity
+        vel_x, vel_y = bullet_instance.velocity # This velocity is now correctly calculated from (50,50)
 
         bullet_instance.update()
 
-        assert bullet_instance.rect.x == initial_x + vel_x
-        assert bullet_instance.rect.y == initial_y + vel_y
+        # The rect's topleft should move by the velocity
+        assert bullet_instance.rect.x == pytest.approx(initial_x + vel_x)
+        assert bullet_instance.rect.y == pytest.approx(initial_y + vel_y)
 
         bullet_instance.update()
-        assert bullet_instance.rect.x == initial_x + 2 * vel_x
-        assert bullet_instance.rect.y == initial_y + 2 * vel_y
+        assert bullet_instance.rect.x == pytest.approx(initial_x + 2 * vel_x)
+        assert bullet_instance.rect.y == pytest.approx(initial_y + 2 * vel_y)
 
 class TestBulletRotatedImage:
     @patch('pygame.transform.rotate')

@@ -28,8 +28,8 @@ def am():
 
 class TestAssetManagerImageLoading:
     @patch('pygame.image.load')
-    @patch('asset_manager.AssetManager._get_path') # Mock _get_path to control returned path
-    def test_load_image_success(self, mock_get_path, mock_pygame_load, am):
+    @patch('asset_manager.get_asset_path') # Target where it's used
+    def test_load_image_success(self, mock_am_get_asset_path, mock_pygame_load, am):
         """Test successful image loading."""
         mock_surface = MagicMock(spec=pygame.Surface)
         mock_surface.convert_alpha.return_value = mock_surface
@@ -40,16 +40,16 @@ class TestAssetManagerImageLoading:
         original_asset_path = 'images/rabbit.png' # Path defined in AssetManager.assets
         expected_resolved_path = "resolved/dummy/path/to/rabbit.png"
 
-        # Make mock_get_path return a specific path when called with original_asset_path
+        # Make mock_am_get_asset_path return a specific path when called with original_asset_path
         def get_path_side_effect(path_arg):
             if path_arg == original_asset_path:
                 return expected_resolved_path
             return f"default_resolved_{path_arg}" # Default for other assets
-        mock_get_path.side_effect = get_path_side_effect
+        mock_am_get_asset_path.side_effect = get_path_side_effect
 
         am.load_assets()
 
-        mock_get_path.assert_any_call(original_asset_path)
+        mock_am_get_asset_path.assert_any_call(original_asset_path)
         # Pygame.image.load should have been called with the path returned by _get_path for this specific asset
         mock_pygame_load.assert_any_call(expected_resolved_path)
 
@@ -64,10 +64,10 @@ class TestAssetManagerImageLoading:
 
     # Removed @patch('builtins.print')
     @patch('pygame.image.load', side_effect=pygame.error("Failed to load image for test"))
-    @patch('asset_manager.AssetManager._get_path', return_value="dummy/failing/path")
+    @patch('asset_manager.get_asset_path', return_value="dummy/failing/path") # Target where it's used
     @patch('pygame.Surface')
     def test_load_image_failure_creates_placeholder_with_correct_size(
-            self, mock_pygame_surface_constructor, mock_get_path, mock_pygame_load, am, mocker, caplog): # Added caplog, removed mock_print
+            self, mock_pygame_surface_constructor, mock_am_get_asset_path, mock_pygame_load, am, mocker, caplog): # Renamed mock variable
         """Test image loading failure creates placeholders with correct sizes (hinted or default)."""
 
         hinted_asset_key = 'test_sized_asset'
@@ -148,9 +148,9 @@ class TestAssetManagerSoundLoading:
 
     # Removed @patch('builtins.print')
     @patch('pygame.mixer.Sound', side_effect=pygame.error("Failed to load sound"))
-    @patch('asset_manager.AssetManager._get_path')
+    @patch('asset_manager.get_asset_path') # Target where it's used
     @patch('asset_manager.IMAGE_ASSET_CONFIG', {}) # Ensure no images are processed
-    def test_load_sound_failure_logs_warning_and_uses_dummy(self, mock_get_path, mock_pygame_sound, am, mocker, caplog): # Added caplog, removed mock_print
+    def test_load_sound_failure_logs_warning_and_uses_dummy(self, mock_am_get_asset_path, mock_pygame_sound, am, mocker, caplog): # Renamed mock variable
         """Test sound loading failure (e.g. file not found) uses DummySound and logs a warning."""
         # Ensure mixer.get_init() returns True so it attempts to load
         mocker.patch('pygame.mixer.get_init', return_value=True)
@@ -163,11 +163,11 @@ class TestAssetManagerSoundLoading:
 
         asset_key_to_test = 'hurt'
         original_asset_path = REAL_SOUND_ASSET_CONFIG[asset_key_to_test] # Use real config path
-        mock_get_path.return_value = f"resolved/dummy/{original_asset_path}"
+        mock_am_get_asset_path.return_value = f"resolved/dummy/{original_asset_path}"
 
         am.load_assets()
 
-        mock_get_path.assert_any_call(original_asset_path)
+        mock_am_get_asset_path.assert_any_call(original_asset_path)
         mock_pygame_sound.assert_any_call(f"resolved/dummy/{original_asset_path}")
 
         # Check that a specific warning for load failure was logged
