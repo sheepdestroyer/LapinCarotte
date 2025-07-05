@@ -62,12 +62,12 @@ class TestAssetManagerImageLoading:
         # For simplicity now, we assume it's called at least once for our target.
         assert mock_surface.convert_alpha.called
 
-    @patch('builtins.print')
+    # Removed @patch('builtins.print')
     @patch('pygame.image.load', side_effect=pygame.error("Failed to load image for test"))
     @patch('asset_manager.AssetManager._get_path', return_value="dummy/failing/path")
     @patch('pygame.Surface')
     def test_load_image_failure_creates_placeholder_with_correct_size(
-            self, mock_pygame_surface_constructor, mock_get_path, mock_pygame_load, mock_print, am, mocker):
+            self, mock_pygame_surface_constructor, mock_get_path, mock_pygame_load, am, mocker, caplog): # Added caplog, removed mock_print
         """Test image loading failure creates placeholders with correct sizes (hinted or default)."""
 
         hinted_asset_key = 'test_sized_asset'
@@ -110,22 +110,20 @@ class TestAssetManagerImageLoading:
         assert test_default_placeholder_size in created_surface_sizes, \
             f"pygame.Surface not called with default placeholder size {test_default_placeholder_size}"
 
-        # Check warnings were printed
-        warning_for_hinted_found = any(
-            f"WARNING: Could not load image asset '{hinted_asset_key}'" in str(c[0][0])
-            for c in mock_print.call_args_list
-        )
-        warning_for_no_hint_found = any(
-            f"WARNING: Could not load image asset '{no_hint_asset_key}'" in str(c[0][0])
-            for c in mock_print.call_args_list
-        )
-        assert warning_for_hinted_found, f"Warning for '{hinted_asset_key}' not found."
-        assert warning_for_no_hint_found, f"Warning for '{no_hint_asset_key}' not found."
+        # Check warnings were logged
+        # The actual log message includes "WARNING:root:" and the path, so we check for key phrases.
+        assert f"Could not load image asset '{hinted_asset_key}'" in caplog.text
+        assert f"Could not load image asset '{no_hint_asset_key}'" in caplog.text
+        # Also check for the placeholder font not available warning, as it's part of this flow if font init fails
+        # (which it does in the default test setup due to no display)
+        assert f"Placeholder font not available for asset '{hinted_asset_key}'" in caplog.text
+        assert f"Placeholder font not available for asset '{no_hint_asset_key}'" in caplog.text
+
 
 class TestAssetManagerSoundLoading:
-    @patch('builtins.print') # To check for warnings
+    # Removed @patch('builtins.print')
     @patch('asset_manager.IMAGE_ASSET_CONFIG', {}) # Ensure no images are processed
-    def test_load_sound_when_mixer_not_initialized(self, mock_print, am, mocker):
+    def test_load_sound_when_mixer_not_initialized(self, am, mocker, caplog): # Added caplog, removed mock_print
         """Test that DummySound is used if pygame.mixer is not initialized."""
         # Ensure mixer.get_init() returns False for this test
         mocker.patch('pygame.mixer.get_init', return_value=False)
@@ -144,17 +142,15 @@ class TestAssetManagerSoundLoading:
         assert asset_key_to_test in am.sounds
         assert isinstance(am.sounds[asset_key_to_test], DummySound)
 
-        warning_found = any(
-            f"WARNING: Pygame mixer not initialized. Using dummy sound for '{asset_key_to_test}'" in str(c[0][0])
-            for c in mock_print.call_args_list
-        )
-        assert warning_found, "Warning for uninitialized mixer not found."
+        # Check that the specific warning was logged
+        expected_log_message = f"Pygame mixer not initialized. Using dummy sound for '{asset_key_to_test}'"
+        assert expected_log_message in caplog.text
 
-    @patch('builtins.print')
+    # Removed @patch('builtins.print')
     @patch('pygame.mixer.Sound', side_effect=pygame.error("Failed to load sound"))
     @patch('asset_manager.AssetManager._get_path')
     @patch('asset_manager.IMAGE_ASSET_CONFIG', {}) # Ensure no images are processed
-    def test_load_sound_failure_logs_warning_and_uses_dummy(self, mock_get_path, mock_pygame_sound, mock_print, am, mocker):
+    def test_load_sound_failure_logs_warning_and_uses_dummy(self, mock_get_path, mock_pygame_sound, am, mocker, caplog): # Added caplog, removed mock_print
         """Test sound loading failure (e.g. file not found) uses DummySound and logs a warning."""
         # Ensure mixer.get_init() returns True so it attempts to load
         mocker.patch('pygame.mixer.get_init', return_value=True)
@@ -174,15 +170,9 @@ class TestAssetManagerSoundLoading:
         mock_get_path.assert_any_call(original_asset_path)
         mock_pygame_sound.assert_any_call(f"resolved/dummy/{original_asset_path}")
 
-        # Check that a specific warning for load failure was printed
-        expected_warning_fragment = f"WARNING: Could not load sound asset '{asset_key_to_test}'"
-        load_failure_warning_found = False
-        for call_args in mock_print.call_args_list:
-            arg_str = str(call_args[0][0])
-            if f"WARNING: Could not load sound asset '{asset_key_to_test}'" in arg_str:
-                load_failure_warning_found = True # Corrected variable name
-                break
-        assert load_failure_warning_found, f"Warning for missing '{asset_key_to_test}' sound not printed." # Corrected assertion
+        # Check that a specific warning for load failure was logged
+        expected_log_message = f"Could not load sound asset '{asset_key_to_test}'"
+        assert expected_log_message in caplog.text # Check if the fragment is in the captured log text
 
         assert asset_key_to_test in am.sounds # Key should now be present
         assert isinstance(am.sounds[asset_key_to_test], DummySound) # Value should be a DummySound instance
@@ -223,8 +213,8 @@ class TestAssetManagerFontInitialization:
             assert asset_manager_instance.placeholder_font is None
 
     @patch('builtins.hasattr')
-    @patch('builtins.print')
-    def test_font_initialization_failure_via_hook(self, mock_print, mock_builtin_hasattr):
+    # Removed @patch('builtins.print')
+    def test_font_initialization_failure_via_hook(self, mock_builtin_hasattr, caplog): # Added caplog, removed mock_print
         """Test font initialization failure using the _test_font_failure hook."""
         def hasattr_side_effect(obj, name):
             if obj == pygame and name == 'font':
@@ -236,41 +226,38 @@ class TestAssetManagerFontInitialization:
 
         assert asset_manager_instance.placeholder_font is None
 
-        warning_found = False
-        expected_warning_fragment = "WARNING: Could not initialize font for asset placeholders"
+        expected_warning_fragment = "Could not initialize font for asset placeholders"
         expected_error_detail = "Test-induced font failure" # From the hook
-        full_warning_found = False
 
-        for call_args in mock_print.call_args_list:
-            log_message = str(call_args[0][0])
-            if expected_warning_fragment in log_message and expected_error_detail in log_message:
-                full_warning_found = True
-                break
-        assert full_warning_found, f"Expected warning '{expected_warning_fragment}' with detail '{expected_error_detail}' not found."
+        # Check caplog.text for the combined message
+        assert expected_warning_fragment in caplog.text
+        assert expected_error_detail in caplog.text
 
     # Removing test_font_already_initialized due to persistent INTERNALERRORs
     # related to patching pygame.font.init and pytest's error reporting.
     # The AssetManager class no longer calls pygame.font.init(), so this test's
     # primary purpose is achieved by the current code structure.
 
-    @patch('builtins.print')
+    # Removed @patch('builtins.print')
     @patch('pygame.font', None)
-    def test_font_initialization_fails_if_pygame_font_is_none(self, mock_print, mocker):
+    def test_font_initialization_fails_if_pygame_font_is_none(self, mocker, caplog): # Added caplog, removed mock_print
         """Test AssetManager font init when pygame.font is None, leading to AttributeError."""
         # This setup makes hasattr(pygame, 'font') True, but pygame.font is None.
         # AssetManager will try `pygame.font.SysFont` which becomes `None.SysFont`, an AttributeError.
+        # The actual error message will be about 'NoneType' object has no attribute 'get_init'
+        # or 'SysFont' depending on precise internal checks.
+
         asset_manager_instance = AssetManager()
         assert asset_manager_instance.placeholder_font is None
-        warning_found = False
-        expected_warning_fragment = "WARNING: Could not initialize font for asset placeholders"
 
-        printed_messages = [str(c[0][0]) for c in mock_print.call_args_list]
-        assert any(expected_warning_fragment in msg for msg in printed_messages), \
-            f"Expected warning fragment '{expected_warning_fragment}' not found in {printed_messages}"
+        expected_warning_fragment = "Could not initialize font for asset placeholders"
+        # Check for the general warning and the specific 'NoneType' part of the exception message
+        assert expected_warning_fragment in caplog.text
+        assert "'NoneType' object has no attribute" in caplog.text # More specific check for the NoneType error
 
     # Removed @patch('builtins.print')
     @patch('builtins.hasattr') # Patch builtins.hasattr for this specific test
-    def test_font_module_truly_missing(self, mock_builtin_hasattr, mocker): # Added mocker, mock_print removed from args
+    def test_font_module_truly_missing(self, mock_builtin_hasattr, mocker, caplog): # Added caplog
         """Test behavior when hasattr(pygame, 'font') is False."""
         # mock_print = mocker.patch('builtins.print') # Removed print mocking
 
@@ -282,10 +269,5 @@ class TestAssetManagerFontInitialization:
 
         asset_manager_instance = AssetManager()
         assert asset_manager_instance.placeholder_font is None
-        # warning_found = False # Print check removed
-        # expected_warning = "WARNING: Pygame font module not available. Placeholders will not have text."
-        # for call_args in mock_print.call_args_list:
-        #     if expected_warning in str(call_args[0][0]):
-        #         warning_found = True
-        #         break
-        # assert warning_found, f"Expected warning '{expected_warning}' not found."
+        expected_warning = "Pygame font module not available. Placeholders will not have text."
+        assert expected_warning in caplog.text

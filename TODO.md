@@ -286,3 +286,44 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
     *   Ajouter une section à `README.md` sur l'option `--cli`.
     *   Planifier les mises à jour de `CI.md` et `AGENTS.md` pour inclure les tests CLI.
     *   (Les modifications réelles des workflows et des tests CI seront des sous-tâches ultérieures).
+
+---
+
+## Tâche 9 : Implémenter un Système de Logging Configurable
+
+**Objectif :** Remplacer les `print()` de débogage par un système de logging structuré utilisant le module `logging` de Python. Permettre l'activation des logs de débogage via une option en ligne de commande (`--debug`).
+
+### Statut : ✅ Terminé
+
+### Étapes :
+
+-   [x] **1. Intégrer le Module `logging`**
+    -   Importer `logging` dans `main.py`.
+    -   Ajouter un argument `--debug` (ou `-d`) via `argparse`.
+    -   Configurer le logger racine au démarrage pour définir le niveau (`INFO` par défaut, `DEBUG` si flag) et le format des messages. Diriger les logs vers `stdout` pour la compatibilité avec les tests CLI.
+
+-   [x] **2. Remplacer les `print()` Existants**
+    -   Parcourir `main.py`, `asset_manager.py`, `game_state.py`, `game_entities.py`.
+    -   Convertir les `print("DEBUG: ...")` en `logging.debug(...)`.
+    -   Convertir les `print("INFO: ...")` ou les impressions CLI en `logging.info(...)`.
+    -   Convertir les `print("WARNING: ...")` en `logging.warning(...)`.
+    -   Convertir les `print("ERROR: ...")` en `logging.error(...)` ou `logging.exception(...)`.
+    -   Supprimer les appels `sys.stdout.flush()` associés aux anciens `print` de débogage.
+
+-   [x] **3. Ajouter de Nouveaux Logs de Débogage Pertinents**
+    -   Identifier les chemins critiques dans le code (changements d'état, gestion d'événements majeurs, traitement des entrées, mises à jour importantes de `GameState`).
+    -   Ajouter des instructions `logging.debug()` pour tracer le flux d'exécution et les valeurs des variables importantes dans ces sections.
+
+-   [x] **4. Adapter les Tests CLI**
+    -   Modifier la fonction utilitaire `run_cli_test` dans `tests/test_cli_mode.py` pour qu'elle passe le drapeau `--debug` à `main.py`.
+    -   Vérifier que les assertions existantes dans les tests CLI fonctionnent toujours avec les messages de log formatés (elles devraient si elles vérifient la présence de sous-chaînes du message original).
+
+-   [x] **5. Mettre à Jour la Documentation**
+    -   `README.md` : Expliquer le nouveau drapeau `--debug`.
+    -   `AGENTS.md` : Noter l'utilisation du framework de logging pour le débogage et le développement.
+    -   `TODO.md` : Ajouter cette tâche (Tâche 9) et la marquer comme terminée.
+
+-   [x] **6. Tester Intensivement**
+    -   Exécuter le jeu avec et sans `--debug` (GUI et CLI) pour vérifier la verbosité et la correction des logs.
+    -   S'assurer que le mode CLI reste utilisable et que les menus s'affichent correctement via `logging.info()`.
+    -   Exécuter tous les tests automatisés pour confirmer l'absence de régressions.

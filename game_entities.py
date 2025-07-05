@@ -243,26 +243,25 @@ class Explosion:
                         self.rect.y - scroll[1]))
 
 class Collectible(GameObject):
-    def __init__(self, x, y, image, item_type, scale=0.5, cli_mode=False): # Added cli_mode
-        # In CLI mode, 'image' is metadata, so scaling is not applicable / different.
-        # For now, pass original 'image' (metadata) to super if cli_mode.
-        # Scaling logic should only apply if not cli_mode and image is a Surface.
-        if not cli_mode and hasattr(image, 'get_width') and hasattr(image, 'get_height'):
-            scaled_image = pygame.transform.scale(image,
-                (int(image.get_width() * scale),
-                 int(image.get_height() * scale)))
-            super().__init__(x, y, scaled_image, cli_mode=cli_mode) # Pass cli_mode
-        else: # CLI mode or image is not a surface
-            super().__init__(x, y, image, cli_mode=cli_mode) # Pass original image (metadata) and cli_mode
+    def __init__(self, x, y, image, item_type, scale=0.5, cli_mode=False):
+        # In CLI mode, 'image' is metadata, so scaling is not applicable.
+        # This logic applies scaling only in GUI mode when a valid surface is provided.
+        final_image = image
+        if not cli_mode and hasattr(image, 'get_width'): # Check if it's a surface before scaling
+            final_image = pygame.transform.scale(
+                image,
+                (int(image.get_width() * scale), int(image.get_height() * scale))
+            )
 
-        # Rect centering might need adjustment if super().__init__ already uses size_hint from metadata
-        # If self.rect was already created by super with proper dimensions from metadata, this might be okay.
-        # If super created a 0,0 rect in CLI, this re-centering won't use proper width/height.
-        # The GameObject.__init__ was updated to use size_hint if image is dict.
-        # So, self.rect should be somewhat correct after super call.
-        # This line might be redundant or needs care if self.image is not a Surface.
-        if not cli_mode and hasattr(self.image, 'get_rect'):
-            self.rect = self.image.get_rect(center=(x, y))  # Re-center if it's a surface
+        # Initialize GameObject. x, y are treated as topleft for GameObject's constructor.
+        # The GameObject.__init__ handles using size_hint from metadata if final_image is a dict (CLI mode).
+        super().__init__(x, y, final_image, cli_mode=cli_mode)
+
+        # For Collectibles, the initial x and y are intended as the center.
+        # GameObject.__init__ sets self.rect using x,y as topleft.
+        # So, now we re-center self.rect based on the original x,y.
+        if hasattr(self.rect, 'center'): # Ensure self.rect exists and has a center attribute
+            self.rect.center = (x, y)
 
         self.active = True
         self.item_type = item_type

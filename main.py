@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import os
-import argparse # Import argparse
+import argparse
 import pygame
 import time
+import logging # Import logging
 import sys
 import random
 import math
@@ -22,6 +23,7 @@ def get_asset_path(relative_path):
 # Argument parsing
 parser = argparse.ArgumentParser(description="LapinCarotte - A game about a rabbit fighting vampire carrots.")
 parser.add_argument("--cli", action="store_true", help="Run the game in Command Line Interface mode (no graphics).")
+parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logging output.")
 args = parser.parse_args()
 
 # Initialize screen and dimensions
@@ -34,8 +36,8 @@ if not args.cli:
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
     screen_width, screen_height = screen.get_size()
     pygame.mouse.set_visible(False)
-else:
-    print("Running in CLI mode.")
+# else: # This print is handled by initial logging config now
+    # logging.info("Running in CLI mode.")
 
 asset_manager = AssetManager(cli_mode=args.cli)
 asset_manager.load_assets()
@@ -132,32 +134,43 @@ def _play_game_music_and_sound(sound_to_play=None):
         if sound_to_play and sound_to_play in asset_manager.sounds:
             asset_manager.sounds[sound_to_play].play()
     except pygame.error as e:
-        print(f"ERROR: Could not load or play sound: {e}")
+        logging.exception(f"Could not load or play sound: {e}") # Use logging.exception for error with traceback
 
 def start_game():
+    logging.debug("start_game called.")
     game_state.started = True
     if not args.cli: _play_game_music_and_sound('press_start')
-    else: print("Game started (CLI).")
+    else: logging.info("Game started (CLI).")
+    logging.debug(f"game_state.started set to {game_state.started}")
 
 
 def reset_game():
+    logging.debug("reset_game called.")
     game_state.reset()
     if not args.cli: _play_game_music_and_sound('press_start')
-    else: print("Game reset (CLI).")
+    else: logging.info("Game reset (CLI).")
+    logging.debug("Game state reset.")
 
 
 def quit_game():
+    logging.debug("quit_game called.")
     global running
     running = False
-    if args.cli: print("Exiting game.")
+    if args.cli: logging.info("Exiting game.") # Changed to logging.info
+    logging.debug("Global 'running' flag set to False.")
 
 def resume_game_callback():
+    logging.debug("resume_game_callback called.")
     if game_state.paused:
+        logging.debug("Game was paused, calling game_state.resume_game()")
         game_state.resume_game()
-        if args.cli: print("Game resumed (CLI).")
+        if args.cli: logging.info("Game resumed (CLI).") # Changed to logging.info
+    else:
+        logging.debug("Game was not paused, resume_game_callback did nothing.")
 
 def open_settings_callback():
-    print("Settings button clicked - Not implemented yet.")
+    logging.debug("open_settings_callback called.")
+    logging.info("Settings button clicked - Not implemented yet.") # Changed to logging.info
 
 start_button_start_screen = Button(
     start_screen_pos[0] + START_SCREEN_BUTTON_START_X_OFFSET,
@@ -217,9 +230,9 @@ def handle_player_death():
             pygame.mixer.music.stop()
             asset_manager.sounds['death'].play()
         except pygame.error as e:
-            print(f"ERROR: Could not load or play sound: {e}")
+            logging.exception(f"Could not load or play sound during player death: {e}")
     else:
-        print("Player has died (CLI).")
+        logging.info("Player has died (CLI).")
 
 
 running = True
@@ -231,6 +244,7 @@ current_time = 0.0
 
 def run_gui_mode():
     """Handles the entire game loop for GUI mode."""
+    logging.debug("run_gui_mode: Frame started.")
     global running, current_time, can_toggle_pause, game_state, asset_manager, screen, args
     global screen_width, screen_height # For UI positioning
     global start_screen_buttons, pause_screen_buttons, game_over_buttons # Button lists
@@ -363,7 +377,7 @@ def run_gui_mode():
                 game_state.player.draw_ui(screen, hp_image_ui, garlic_image, MAX_GARLIC)
 
             if game_state.player.health_changed or game_state.player.garlic_changed or game_state.player.juice_changed:
-                print(f"[DEBUG] Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count}")
+                logging.debug(f"Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count}")
                 game_state.player.health_changed = False
                 game_state.player.garlic_changed = False
                 game_state.player.juice_changed = False
@@ -372,7 +386,7 @@ def run_gui_mode():
                 if item.active and screen and item.image: screen.blit(item.image, (item.rect.x - game_state.scroll[0], item.rect.y - game_state.scroll[1]))
 
         except Exception as e:
-            print(f"ERROR during game logic/draw: {e}")
+            logging.exception(f"ERROR during game logic/draw: {e}") # Use logging.exception
             running = False # Signal main_loop to exit
             return
 
@@ -400,7 +414,7 @@ def run_gui_mode():
                     pygame.mixer.music.load(music_path_game_over)
                     pygame.mixer.music.play(-1)
                 except pygame.error as e:
-                    print(f"Error playing game over music: {e}")
+                    logging.exception(f"Error playing game over music: {e}") # Use logging.exception
 
     if screen:
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -419,16 +433,19 @@ def run_cli_mode():
     # Callbacks like start_game, quit_game, reset_game, resume_game_callback, open_settings_callback
     # are still global and access global 'game_state', 'args', etc.
     # 'quit_game' modifies global 'running'.
+    logging.debug("run_cli_mode: Iteration started.")
 
     if not game_state.started:
-        print("\n--- LapinCarotte ---")
-        print("Start Screen (CLI Mode)")
-        print("1. Start Game")
-        print("2. Exit")
+        logging.debug("run_cli_mode: Game not started, displaying start menu.")
+        logging.info("\n--- LapinCarotte ---")
+        logging.info("Start Screen (CLI Mode)")
+        logging.info("1. Start Game")
+        logging.info("2. Exit")
         choice = ""
         try:
             choice = input("Enter choice: ").strip()
         except EOFError:
+            logging.info("EOF received on main menu, quitting.")
             quit_game() # Modifies global running
             return # Exit run_cli_mode for this iteration
 
@@ -437,17 +454,19 @@ def run_cli_mode():
         elif choice == '2':
             quit_game() # Modifies global running
         elif running: # Avoid printing if quit_game was called
-            print("Invalid choice. Please enter 1 or 2.")
+            logging.warning("Invalid choice on start screen. Please enter 1 or 2.")
 
     elif game_state.paused:
-        print("\n--- PAUSED (CLI Mode) ---")
-        print("1. Continue")
-        print("2. Settings (Not Implemented)")
-        print("3. Quit Game")
+        logging.debug("run_cli_mode: Game paused, displaying pause menu.")
+        logging.info("\n--- PAUSED (CLI Mode) ---")
+        logging.info("1. Continue")
+        logging.info("2. Settings (Not Implemented)")
+        logging.info("3. Quit Game")
         choice = ""
         try:
             choice = input("Enter choice: ").strip()
         except EOFError:
+            logging.info("EOF received on pause menu, quitting.")
             quit_game()
             return
 
@@ -458,16 +477,18 @@ def run_cli_mode():
         elif choice == '3':
             quit_game()
         elif running:
-            print("Invalid choice.")
+            logging.warning("Invalid choice on pause menu.")
 
     elif game_state.game_over:
-        print("\n--- GAME OVER (CLI Mode) ---")
-        print("1. Restart")
-        print("2. Exit")
+        logging.debug("run_cli_mode: Game over, displaying game over menu.")
+        logging.info("\n--- GAME OVER (CLI Mode) ---")
+        logging.info("1. Restart")
+        logging.info("2. Exit")
         choice = ""
         try:
             choice = input("Enter choice: ").strip()
         except EOFError:
+            logging.info("EOF received on game over menu, quitting.")
             quit_game()
             return
 
@@ -476,59 +497,95 @@ def run_cli_mode():
         elif choice == '2':
             quit_game()
         elif running:
-            print("Invalid choice.")
+            logging.warning("Invalid choice on game over menu.")
 
     else:  # Game is active (and not paused, not game over)
-        print("\n--- Game Active (CLI Mode) ---")
-        print(f"Player HP: {game_state.player.health} (Note: Game logic not running in CLI yet)")
-        print("Options: (p)ause, (q)uit, (d)ie (simulate death for testing)")
+        logging.debug("run_cli_mode: Game active, displaying active game options.")
+        logging.info("\n--- Game Active (CLI Mode) ---")
+        logging.info(f"Player HP: {game_state.player.health} (Note: Game logic not running in CLI yet)")
+        logging.info("Options: (p)ause, (q)uit, (d)ie (simulate death for testing)")
 
         cli_action = ""
         try:
             cli_action = input("Action: ").strip().lower()
-            print(f"DEBUG: cli_action received: '{cli_action}'"); sys.stdout.flush()
+            logging.debug(f"CLI action received: '{cli_action}'")
         except EOFError:
-            print("EOF received, quitting."); sys.stdout.flush()
+            logging.info("EOF received during active game, quitting.")
             quit_game()
             return
 
         if cli_action == 'p':
+            logging.debug(f"CLI action 'p' received. can_toggle_pause: {can_toggle_pause}")
             if can_toggle_pause:
                 game_state.pause_game()
-                print("Game paused (CLI).")
+                # logging.info("Game paused (CLI).") # This is handled by game_state.pause_game() or the next state print
                 can_toggle_pause = False
         elif cli_action == 'q':
+            logging.debug("CLI action 'q' received.")
             quit_game()
         elif cli_action == 'd': # Simulate death
-            print(f"DEBUG: ENTERING 'd' (die) block. cli_action is '{cli_action}'"); sys.stdout.flush()
-            print(f"DEBUG: game_state.game_over before setting: {game_state.game_over}"); sys.stdout.flush()
+            logging.debug(f"CLI action 'd' received. Entering 'die' block. cli_action is '{cli_action}'") # Combined previous two
+            logging.debug(f"game_state.game_over before setting: {game_state.game_over}")
             game_state.player.health = 0
             game_state.game_over = True
-            print(f"DEBUG: game_state.game_over after setting: {game_state.game_over}"); sys.stdout.flush()
-            print("Simulating player death for CLI testing..."); sys.stdout.flush()
+            logging.debug(f"game_state.game_over after setting: {game_state.game_over}")
+            logging.info("Simulating player death for CLI testing...") # This is for test assertion
 
-        if cli_action != 'p' or not game_state.paused:
+        if cli_action != 'p' or not game_state.paused: # if not (cli_action == 'p' and game_state.paused)
+            logging.debug(f"Resetting can_toggle_pause to True. cli_action: '{cli_action}', game_state.paused: {game_state.paused}")
             can_toggle_pause = True
 
     if running and args.cli: # Check running again in case quit_game was called
         time.sleep(0.1) # Small delay for CLI loop readability
+    logging.debug("run_cli_mode: Iteration ended.")
 
 
 def main_loop():
     global running # main_loop controls the 'running' state via the while condition
-
+    logging.debug("Main loop started.")
     while running:
         if not args.cli:
             run_gui_mode()
         else:
             run_cli_mode()
+    logging.debug("Main loop ended.")
 
 if __name__ == '__main__':
+    # Configure logging
+    log_level = logging.DEBUG if args.debug else logging.INFO
+
+    # Get the root logger
+    logger = logging.getLogger()
+    logger.setLevel(log_level) # Set the level for the root logger
+
+    # Clear any existing handlers
+    if logger.hasHandlers():
+        logger.handlers.clear()
+
+    # Create a stream handler for stdout
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(log_level) # Ensure handler respects the same level
+
+    # Create a formatter and set it for the handler
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s")
+    stdout_handler.setFormatter(formatter)
+
+    # Add the handler to the root logger
+    logger.addHandler(stdout_handler)
+
+    logging.info("Application starting...")
+    if args.cli:
+        logging.info("CLI mode enabled.")
+    if args.debug:
+        logging.info("Debug logging enabled.")
+
     try:
         main_loop()
     finally:
+        logging.info("Application shutting down...")
         if not args.cli: # Only quit pygame if it was initialized
             pygame.quit()
+            logging.info("Pygame quit.")
         # sys.exit() is not strictly necessary here as the program will exit
         # after the main block finishes. Pygame.quit() is the important cleanup.
         # If sys.exit() is desired, it should ideally be outside the finally

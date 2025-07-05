@@ -37,6 +37,12 @@ All code must be written in a consistent and maintainable manner.
 1.  **Adhere to Existing Patterns:** Write code that matches the style and architectural patterns already present in the project. For example, entity logic belongs in `game_entities.py`, state management changes go into `game_state.py`, and the main loop in `main.py` should remain clean.
 2.  **Use Centralized Configuration:** Do not use hard-coded "magic numbers." All constants (e.g., speeds, sizes, colors, timings) must be defined in and imported from `config.py`.
 3.  **Manage Assets Correctly:** All images and sounds must be loaded through the `AssetManager` class to ensure they are correctly located and packaged in the final executable.
+4.  **Utilize the Logging System:**
+    *   The game uses Python's `logging` module. Informational messages suitable for general console output (like CLI menus or major game state changes) should use `logging.info()`.
+    *   For detailed diagnostic information useful during development and debugging, use `logging.debug()`. These messages will only be visible when the `--debug` flag is used.
+    *   Warnings about potential issues that don't stop execution should use `logging.warning()`.
+    *   Errors that are caught but represent a problem should use `logging.error()` or `logging.exception()` (if within an `except` block to include traceback).
+    *   When adding new features or complex logic, include relevant `logging.debug()` statements to trace execution flow and variable states. This aids in future troubleshooting. Avoid using `print()` for debugging; use the logging framework.
 
 ---
 

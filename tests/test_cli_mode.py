@@ -6,10 +6,14 @@ import pytest
 # Determine the correct path to main.py relative to the tests directory
 MAIN_PY_PATH = os.path.join(os.path.dirname(__file__), '..', 'main.py')
 
-def run_cli_test(inputs):
+def run_cli_test(inputs, include_debug_flag=True): # Added include_debug_flag
     """Helper function to run main.py --cli with given inputs."""
+    cmd = [sys.executable, MAIN_PY_PATH, '--cli']
+    if include_debug_flag:
+        cmd.append('--debug')
+
     process = subprocess.Popen(
-        [sys.executable, MAIN_PY_PATH, '--cli'],
+        cmd, # Use the constructed command
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -25,7 +29,9 @@ class TestCLIPassThrough: # Renamed to avoid conflict with Pytest's own 'TestCLI
         returncode, stdout, stderr = run_cli_test(inputs)
 
         assert returncode == 0, f"CLI process exited with code {returncode}. Stderr:\n{stderr}"
-        assert "Running in CLI mode." in stdout
+        # "Running in CLI mode." is now an INFO log, so it will be in stdout with formatting.
+        # We check for the core message.
+        assert "CLI mode enabled." in stdout # This is the new INFO log message
         assert "Start Screen (CLI Mode)" in stdout
         assert "1. Start Game" in stdout
         assert "2. Exit" in stdout

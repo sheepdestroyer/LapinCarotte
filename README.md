@@ -28,6 +28,17 @@ Basic interactions in CLI mode include:
 - Simulating player death (by inputting 'd' when the game is active)
 - Quitting the game
 
+### Debug Logging
+
+To get more detailed output for debugging purposes, you can run the game with the `--debug` (or `-d`) flag. This will print more verbose logs to the console, including detailed information about game states, events, and potential issues.
+
+Example:
+```bash
+python main.py --cli --debug
+# or for GUI mode
+python main.py --debug
+```
+
 ## Asset Loading
 
 The game is designed to be robust against missing assets. If an image or sound file cannot be found at startup:
