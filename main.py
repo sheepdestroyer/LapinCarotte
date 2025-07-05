@@ -58,6 +58,31 @@ current_time = 0.0
 running = True
 can_toggle_pause = True
 
+def handle_player_death():
+    """
+    Handles the player's death event. Activates death effect, plays sound.
+    Uses the global 'current_time' for timing the death effect.
+
+    *Gère l'événement de la mort du joueur. Active l'effet de mort, joue le son.*
+    *Utilise le 'current_time' global pour synchroniser l'effet de mort.*
+    """
+    global current_time
+    if not game_state.game_over and not game_state.player.death_effect_active:
+        game_state.player.death_effect_active = True
+        game_state.player.death_effect_start_time = current_time
+        logging.info("Player death sequence initiated. / Séquence de mort du joueur initiée.")
+
+    if not args.cli and pygame.mixer.get_init():
+        try:
+            pygame.mixer.music.stop()
+            death_sound = asset_manager.sounds.get('death')
+            if death_sound and not isinstance(death_sound, DummySound):
+                death_sound.play()
+        except pygame.error as e:
+            logging.exception(f"Could not play player death sound: {e} / Impossible de jouer le son de mort du joueur : {e}")
+    elif args.cli:
+        logging.info("Player has died (CLI mode). / Le joueur est mort (mode CLI).")
+
 def _play_game_music_and_sound(sound_to_play=None):
     """
     Helper function to switch to main game music and optionally play a sound effect.
