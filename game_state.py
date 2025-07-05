@@ -5,23 +5,26 @@ from game_entities import Carrot, Vampire, Player, Bullet, GarlicShot, Explosion
 from config import *
 
 class GameState:
-    def __init__(self, asset_manager):
+    def __init__(self, asset_manager, cli_mode=False): # Added cli_mode
+        self.cli_mode = cli_mode # Store cli_mode
         self.scroll = [0, 0]
         self.scroll_trigger = SCROLL_TRIGGER
         self.world_size = WORLD_SIZE
         self.game_over = False
         self.started = False
+        self.paused = False
         self.asset_manager = asset_manager
-        self.player = Player(200, 200, asset_manager.images['rabbit'], asset_manager)
+        self.player = Player(200, 200, asset_manager.images['rabbit'], asset_manager, cli_mode=self.cli_mode)
         self.garlic_shot = None
         self.garlic_shot_start_time = 0
         self.garlic_shot_travel = 0
         self.vampire = Vampire(
             random.randint(0, WORLD_SIZE[0]), 
             random.randint(0, WORLD_SIZE[1]),
-            asset_manager.images['vampire']
+            asset_manager.images['vampire'],
+            cli_mode=self.cli_mode
         )
-        self.vampire.active = True
+        self.vampire.active = True # This might need to be conditional if Vampire init changes based on cli_mode
         self.bullets = []
         self.carrots = []
         self.explosions = []
@@ -44,6 +47,7 @@ class GameState:
         self.scroll = [0, 0]
         self.game_over = False
         self.started = False
+        self.paused = False # Reset pause state
         
         # Completely reset all entity containers
         self.bullets = []
@@ -108,7 +112,7 @@ class GameState:
             if not self.player or \
                ((x - self.player.rect.centerx)**2 + 
                 (y - self.player.rect.centery)**2 > (min(self.world_size)/CARROT_SPAWN_SAFE_RATIO)**2):
-                self.carrots.append(Carrot(x, y, asset_manager.images['carrot']))
+                self.carrots.append(Carrot(x, y, asset_manager.images['carrot'], cli_mode=self.cli_mode))
                 break
 
     def update(self, current_time):
@@ -272,3 +276,11 @@ class GameState:
                     self.player.juice_changed = True
                     self.asset_manager.sounds['get_hp'].play()  # Reuse existing pickup sound
                 self.items.remove(item)
+
+    def pause_game(self):
+        """Set the game to paused state."""
+        self.paused = True
+
+    def resume_game(self):
+        """Resumes the game from paused state."""
+        self.paused = False

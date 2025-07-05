@@ -139,6 +139,9 @@ def mock_pygame_modules(monkeypatch):
     mock_asset_manager_instance.images['start'] = start_button_mock_img
     mock_asset_manager_instance.images['exit'] = exit_button_mock_img
     mock_asset_manager_instance.images['restart'] = restart_button_mock_img
+    mock_asset_manager_instance.images['continue_button'] = mock_image_surface # Corrected key
+    mock_asset_manager_instance.images['settings_button'] = mock_image_surface # Corrected key
+
 
     # The general mock_image_surface already has a get_rect returning a 50x50 rect.
     # This should be sufficient for other images like 'carrot', 'vampire', 'hp', 'game_over', 'crosshair'

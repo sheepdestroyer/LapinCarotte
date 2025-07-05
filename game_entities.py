@@ -7,10 +7,21 @@ from utilities import *
 
 class GameObject:
     """Base class for all game entities"""
-    def __init__(self, x, y, image):
-        self.original_image = image
-        self.image = image
-        self.rect = image.get_rect(topleft=(x, y))
+    def __init__(self, x, y, image, cli_mode=False): # Added cli_mode
+        self.cli_mode = cli_mode
+        self.original_image = image # In CLI, this could be metadata dict
+        self.image = image         # In CLI, this could be metadata dict
+
+        if not self.cli_mode and hasattr(image, 'get_rect'):
+            self.rect = image.get_rect(topleft=(x, y))
+        else:
+            # For CLI, or if image is not a surface (e.g. placeholder failed even more)
+            width, height = 0, 0 # Default size
+            if isinstance(image, dict): # Check if it's metadata from AssetManager CLI mode
+                size_info = image.get('size_hint') or image.get('size') # Prefer 'size_hint' if available from config
+                if size_info:
+                    width, height = size_info
+            self.rect = pygame.Rect(x, y, width, height)
         self.active = True
         
     def update(self, *args):
@@ -22,8 +33,8 @@ class GameObject:
         screen.blit(self.image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
 
 class Player(GameObject):
-    def __init__(self, x, y, image, asset_manager):
-        super().__init__(x, y, image)
+    def __init__(self, x, y, image, asset_manager, cli_mode=False): # Added cli_mode
+        super().__init__(x, y, image, cli_mode=cli_mode) # Pass cli_mode to super
         self.initial_x = x
         self.initial_y = y
         self.flipped = False
@@ -123,8 +134,8 @@ class Player(GameObject):
             screen.blit(juice_image, (x + total_width + spacing, y))
 
 class Bullet(GameObject):
-    def __init__(self, x, y, target_x, target_y, image):
-        super().__init__(x, y, image)
+    def __init__(self, x, y, target_x, target_y, image, cli_mode=False): # Added cli_mode
+        super().__init__(x, y, image, cli_mode=cli_mode) # Pass cli_mode
         dir_x, dir_y = get_direction_vector(x, y, target_x, target_y)
         self.velocity = (dir_x * BULLET_SPEED, dir_y * BULLET_SPEED)
         self.angle = math.degrees(math.atan2(-dir_y, dir_x))
@@ -138,8 +149,8 @@ class Bullet(GameObject):
         return pygame.transform.rotate(self.original_image, self.angle)
 
 class Carrot(GameObject):
-    def __init__(self, x, y, image):
-        super().__init__(x, y, image)
+    def __init__(self, x, y, image, cli_mode=False): # Added cli_mode
+        super().__init__(x, y, image, cli_mode=cli_mode) # Pass cli_mode
         self.speed = CARROT_SPEED
         self.active = True
         self.respawn_timer = 0
@@ -184,8 +195,8 @@ class Carrot(GameObject):
             self.rect.y = max(0, min(world_bounds[1] - self.rect.height, self.rect.y))
 
 class GarlicShot(GameObject):
-    def __init__(self, start_x, start_y, target_x, target_y, image):
-        super().__init__(start_x, start_y, image)
+    def __init__(self, start_x, start_y, target_x, target_y, image, cli_mode=False): # Added cli_mode
+        super().__init__(start_x, start_y, image, cli_mode=cli_mode) # Pass cli_mode
         dir_x, dir_y = get_direction_vector(start_x, start_y, target_x, target_y)
         self.direction = pygame.math.Vector2(dir_x, dir_y)
         self.rotation_angle = 0
@@ -232,18 +243,32 @@ class Explosion:
                         self.rect.y - scroll[1]))
 
 class Collectible(GameObject):
-    def __init__(self, x, y, image, item_type, scale=0.5):
-        scaled_image = pygame.transform.scale(image, 
-            (int(image.get_width() * scale), 
-             int(image.get_height() * scale)))
-        super().__init__(x, y, scaled_image)
-        self.rect = self.image.get_rect(center=(x, y))  # Center the rect
+    def __init__(self, x, y, image, item_type, scale=0.5, cli_mode=False):
+        # In CLI mode, 'image' is metadata, so scaling is not applicable.
+        # This logic applies scaling only in GUI mode when a valid surface is provided.
+        final_image = image
+        if not cli_mode and hasattr(image, 'get_width'): # Check if it's a surface before scaling
+            final_image = pygame.transform.scale(
+                image,
+                (int(image.get_width() * scale), int(image.get_height() * scale))
+            )
+
+        # Initialize GameObject. x, y are treated as topleft for GameObject's constructor.
+        # The GameObject.__init__ handles using size_hint from metadata if final_image is a dict (CLI mode).
+        super().__init__(x, y, final_image, cli_mode=cli_mode)
+
+        # For Collectibles, the initial x and y are intended as the center.
+        # GameObject.__init__ sets self.rect using x,y as topleft.
+        # So, now we re-center self.rect based on the original x,y.
+        if hasattr(self.rect, 'center'): # Ensure self.rect exists and has a center attribute
+            self.rect.center = (x, y)
+
         self.active = True
         self.item_type = item_type
 
 class Vampire(GameObject):
-    def __init__(self, x, y, image):
-        super().__init__(x, y, image)
+    def __init__(self, x, y, image, cli_mode=False):
+        super().__init__(x, y, image, cli_mode=cli_mode)
         self.active = False
         self.respawn_timer = 0
         self.death_effect_active = False
@@ -292,10 +317,25 @@ class Vampire(GameObject):
 
 class Button:
     """UI Button class"""
-    def __init__(self, x, y, image, callback):
-        self.image = image
-        self.rect = self.image.get_rect(topleft=(x,y))
+    def __init__(self, x, y, image, callback, cli_mode=False): # Added cli_mode
+        self.image = image # In CLI, this might be metadata
         self.callback = callback
+        self.cli_mode = cli_mode
+
+        if not self.cli_mode and hasattr(image, 'get_rect'):
+            self.rect = self.image.get_rect(topleft=(x,y))
+        else:
+            # In CLI mode, buttons might not need a rect, or a default one.
+            # Or, main.py should not instantiate Button objects with image metadata if not needed.
+            # For now, create a default rect to prevent crashes during instantiation.
+            # Button positioning logic in main.py might need to be CLI-aware too.
+            width, height = 0,0
+            if isinstance(image, dict): # Check if it's metadata from AssetManager CLI mode
+                size_info = image.get('size_hint') or image.get('size')
+                if size_info:
+                    width, height = size_info
+            self.rect = pygame.Rect(x, y, width, height)
+
 
     def draw(self, screen):
         """Draw the button on the screen."""

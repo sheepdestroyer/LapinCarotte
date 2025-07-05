@@ -13,6 +13,39 @@ pip install pygame-ce
 python main.py
 ```
 
+## Command Line Interface (CLI) Mode
+
+This project includes a Command Line Interface (CLI) mode, which runs the game logic without rendering graphics. This is primarily intended for automated testing and can be useful in headless environments.
+
+To run in CLI mode:
+```bash
+python main.py --cli
+```
+
+Basic interactions in CLI mode include:
+- Starting the game
+- Pausing and continuing the game
+- Simulating player death (by inputting 'd' when the game is active)
+- Quitting the game
+
+### Debug Logging
+
+To get more detailed output for debugging purposes, you can run the game with the `--debug` (or `-d`) flag. This will print more verbose logs to the console, including detailed information about game states, events, and potential issues.
+
+Example:
+```bash
+python main.py --cli --debug
+# or for GUI mode
+python main.py --debug
+```
+
+## Asset Loading
+
+The game is designed to be robust against missing assets. If an image or sound file cannot be found at startup:
+- A placeholder visual (for images) or a silent dummy sound (for sounds) will be used.
+- A warning will be logged to the console.
+This allows the game to continue running for development and testing purposes even if some assets are not currently available.
+
 # Build executable in dist\
 ```
 pip install pyinstaller

@@ -63,3 +63,63 @@ MUSIC_GAMEOVER = 'sounds/gameover.mp3'
 # Assuming garlic image is 32x32 based on ITEM_WIDTH/HEIGHT, adjust if different
 GARLIC_WIDTH = 32
 GARLIC_HEIGHT = 32
+
+# Asset Fallbacks
+PLACEHOLDER_TEXT_COLOR = (255, 255, 255) # White
+PLACEHOLDER_BG_COLOR = (0, 0, 255) # Blue
+DEFAULT_PLACEHOLDER_SIZE = (100, 50)
+
+# Asset Configuration: 'path' is mandatory, 'size' (width, height) is optional for placeholders
+# Keys should match what AssetManager and main.py expect.
+IMAGE_ASSET_CONFIG = {
+    # Backgrounds & UI Elements
+    'grass': {'path': 'images/grass.png'},
+    'start_screen': {'path': 'images/start_screen_final.png', 'size': (1920, 1080)}, # Critical for layout
+    'game_over': {'path': 'images/GameOver.png', 'size': (1920, 1080)}, # Critical for layout
+    'icon': {'path': 'images/HP.png', 'size': (32, 32)}, # Common icon size
+    'crosshair': {'path': 'images/crosshair_1.png'},
+
+    # Player & Entities (Example sizes, should be verified against actual assets)
+    'rabbit': {'path': 'images/rabbit.png', 'size': (72, 72)},
+    'carrot': {'path': 'images/carrot.png', 'size': (48, 48)},
+    'vampire': {'path': 'images/vampire.png', 'size': (84, 84)},
+
+    # Projectiles & Effects
+    'bullet': {'path': 'images/bullet.png'},
+    'explosion': {'path': 'images/explosion.png'},
+
+    # Items
+    'hp': {'path': 'images/HP.png', 'size': (32,32)}, # Often same as icon
+    'garlic': {'path': 'images/garlic.png'},
+    'carrot_juice': {'path': 'images/carrot_juice.png'},
+
+    # Buttons - using existing keys from AssetManager's old dict
+    'restart': {'path': 'images/restart.png'},
+    'exit': {'path': 'images/exit.png'},
+    'start': {'path': 'images/start.png'},
+    'continue_button': {'path': 'images/continue_button.png'}, # New button
+    'settings_button': {'path': 'images/settings_button.png'}, # New button
+
+    # Fonts (Digits treated as images)
+    'digit_0': {'path': 'fonts/0.png'},
+    'digit_1': {'path': 'fonts/1.png'},
+    'digit_2': {'path': 'fonts/2.png'},
+    'digit_3': {'path': 'fonts/3.png'},
+    'digit_4': {'path': 'fonts/4.png'},
+    'digit_5': {'path': 'fonts/5.png'},
+    'digit_6': {'path': 'fonts/6.png'},
+    'digit_7': {'path': 'fonts/7.png'},
+    'digit_8': {'path': 'fonts/8.png'},
+    'digit_9': {'path': 'fonts/9.png'},
+}
+
+# Sound Asset Configuration (path only for now)
+SOUND_ASSET_CONFIG = {
+    'explosion': 'sounds/explosion.mp3',
+    'press_start': 'sounds/press_start.mp3',
+    'hurt': 'sounds/hurt.mp3',
+    'get_hp': 'sounds/item_hp.mp3',
+    'get_garlic': 'sounds/item_garlic.mp3',
+    'death': 'sounds/death.mp3',
+    'vampire_death': 'sounds/VampireDeath.mp3'
+}
