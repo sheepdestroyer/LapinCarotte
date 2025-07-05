@@ -1,13 +1,18 @@
-# TODO - Refactorisation LapinCarotte
+# TODO - LapinCarotte Project Tasks
+# TODO - Tâches du Projet LapinCarotte
 
-Ce document détaille les étapes nécessaires pour refactoriser la boucle de jeu principale et améliorer la gestion de l'interface utilisateur.
+This document details the necessary steps for refactoring the main game loop, improving UI management, and other ongoing tasks.
+*Ce document détaille les étapes nécessaires pour refactoriser la boucle de jeu principale, améliorer la gestion de l'interface utilisateur, et autres tâches en cours.*
 
 ---
 
+## Task 1: Refactor Entity Management
 ## Tâche 1 : Refactoriser la Gestion des Entités
 
-**Objectif :** Centraliser toute la logique de mise à jour des entités du jeu (joueur, ennemis, projectiles, etc.) dans la classe `GameState` pour simplifier la boucle principale de `main.py`.
+**Objective:** Centralize all game entity update logic (player, enemies, projectiles, etc.) within the `GameState` class to simplify the main loop in `main.py`.
+***Objectif :** Centraliser toute la logique de mise à jour des entités du jeu (joueur, ennemis, projectiles, etc.) dans la classe `GameState` pour simplifier la boucle principale de `main.py`.*
 
+### Status: ✅ Done
 ### Statut : ✅ Terminé
 
 ### Étapes :
@@ -49,10 +54,13 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 
 ---
 
+## Task 2: Improve UI with a `Button` Class
 ## Tâche 2 : Améliorer l'UI avec une Classe `Button`
 
-**Objectif :** Créer une classe réutilisable pour tous les boutons du jeu afin de rendre le code de l'interface plus propre, plus lisible et plus facile à maintenir.
+**Objective:** Create a reusable class for all game buttons to make the interface code cleaner, more readable, and easier to maintain.
+***Objectif :** Créer une classe réutilisable pour tous les boutons du jeu afin de rendre le code de l'interface plus propre, plus lisible et plus facile à maintenir.*
 
+### Status: ✅ Done
 ### Statut : ✅ Terminé
 
 ### Étapes :
@@ -75,10 +83,13 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 
 ---
 
+## Task 3: Externalize UI Constants
 ## Tâche 3 : Externaliser les Constantes de l'UI
 
-**Objectif :** Supprimer les valeurs "magiques" (nombres codés en dur) du code en les déplaçant dans `config.py` pour une configuration centralisée.
+**Objective:** Remove "magic numbers" (hard-coded values) from the code by moving them to `config.py` for centralized configuration.
+***Objectif :** Supprimer les valeurs "magiques" (nombres codés en dur) du code en les déplaçant dans `config.py` pour une configuration centralisée.*
 
+### Status: ✅ Done
 ### Statut : ✅ Terminé
 
 ### Étapes :
@@ -94,10 +105,13 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 
 ---
 
-## Tâche 4 : Ajouter un Nouvel Item (Fonctionnalité)
+## Task 4: Add New Item (Feature) - Speed Boost
+## Tâche 4 : Ajouter un Nouvel Item (Fonctionnalité) - Boost de Vitesse
 
-**Objectif :** Ajouter un item de "Boost de Vitesse" pour rendre le jeu plus dynamique. *Note : Ceci est une nouvelle fonctionnalité, pas seulement de la refactorisation.*
+**Objective:** Add a "Speed Boost" item to make the game more dynamic. *Note: This is a new feature, not just refactoring.*
+***Objectif :** Ajouter un item de "Boost de Vitesse" pour rendre le jeu plus dynamique. *Note : Ceci est une nouvelle fonctionnalité, pas seulement de la refactorisation.*
 
+### Status: ⏳ To Do
 ### Statut : ⏳ À faire
 
 ### Étapes :
@@ -121,10 +135,13 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 
 ---
 
+## Task 5: Normalize Game Speed with Delta Time (dt)
 ## Tâche 5 : Normaliser la Vitesse du Jeu avec Delta Time (dt)
 
-**Objectif :** Rendre la vitesse du jeu indépendante du framerate (FPS) en intégrant un calcul de delta time (dt) dans la boucle de jeu et en l'utilisant pour les mises à jour de mouvement et de physique. Cela corrigera les problèmes d'accélération du jeu et assurera une expérience cohérente à différentes fréquences de rafraîchissement.
+**Objective:** Make the game speed independent of the framerate (FPS) by integrating a delta time (dt) calculation into the game loop and using it for movement and physics updates. This will fix game speed issues and ensure a consistent experience across different refresh rates.
+***Objectif :** Rendre la vitesse du jeu indépendante du framerate (FPS) en intégrant un calcul de delta time (dt) dans la boucle de jeu et en l'utilisant pour les mises à jour de mouvement et de physique. Cela corrigera les problèmes d'accélération du jeu et assurera une expérience cohérente à différentes fréquences de rafraîchissement.*
 
+### Status: ⏳ To Do
 ### Statut : ⏳ À faire
 
 ### Étapes :
@@ -158,10 +175,13 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 
 ---
 
+## Task 6: Implement a Pause Screen
 ## Tâche 6 : Implémenter un Écran de Pause
 
-**Objectif :** Permettre au joueur de mettre le jeu en pause en appuyant sur la touche "Échap". L'écran de pause réutilisera l'écran de "Game Over" mais affichera des boutons "Continue" et "Settings".
+**Objective:** Allow the player to pause the game by pressing the "Escape" key. The pause screen will reuse the "Game Over" screen but display "Continue" and "Settings" buttons.
+***Objectif :** Permettre au joueur de mettre le jeu en pause en appuyant sur la touche "Échap". L'écran de pause réutilisera l'écran de "Game Over" mais affichera des boutons "Continue" et "Settings".*
 
+### Status: ✅ Done
 ### Statut : ✅ Terminé
 
 ### Étapes :
@@ -212,10 +232,13 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 
 ---
 
+## Task 7: Improve Asset Loading Robustness
 ## Tâche 7 : Améliorer la Robustesse du Chargement des Assets
 
-**Objectif :** Empêcher le jeu de crasher si un fichier image ou son n'est pas trouvé. Afficher un placeholder pour les images manquantes et un avertissement pour les sons.
+**Objective:** Prevent the game from crashing if an image or sound file is not found. Display a placeholder for missing images and a warning for sounds.
+***Objectif :** Empêcher le jeu de crasher si un fichier image ou son n'est pas trouvé. Afficher un placeholder pour les images manquantes et un avertissement pour les sons.*
 
+### Status: ✅ Done
 ### Statut : ✅ Terminé
 
 ### Étapes :
@@ -240,10 +263,13 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 
 ---
 
+## Task 8: Implement Basic CLI Mode (Foundation)
 ## Tâche 8 : Implémenter un Mode CLI de Base (Fondation)
 
-**Objectif :** Permettre au jeu de fonctionner sans initialisation graphique via une option `--cli`. Afficher les menus et options sous forme de texte, sélectionnables par numéro. Ceci est une première étape pour améliorer la testabilité et la flexibilité.
+**Objective:** Allow the game to run without graphics initialization via a `--cli` option. Display menus and options as text, selectable by number. This is a first step to improve testability and flexibility.
+***Objectif :** Permettre au jeu de fonctionner sans initialisation graphique via une option `--cli`. Afficher les menus et options sous forme de texte, sélectionnables par numéro. Ceci est une première étape pour améliorer la testabilité et la flexibilité.*
 
+### Status: ✅ Done
 ### Statut : ✅ Terminé
 
 ### Étapes Initiales :
@@ -289,10 +315,13 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
 
 ---
 
+## Task 9: Implement Configurable Logging System
 ## Tâche 9 : Implémenter un Système de Logging Configurable
 
-**Objectif :** Remplacer les `print()` de débogage par un système de logging structuré utilisant le module `logging` de Python. Permettre l'activation des logs de débogage via une option en ligne de commande (`--debug`).
+**Objective:** Replace debug `print()` statements with a structured logging system using Python's `logging` module. Allow activation of debug logs via a command-line option (`--debug`).
+***Objectif :** Remplacer les `print()` de débogage par un système de logging structuré utilisant le module `logging` de Python. Permettre l'activation des logs de débogage via une option en ligne de commande (`--debug`).*
 
+### Status: ✅ Done
 ### Statut : ✅ Terminé
 
 ### Étapes :
@@ -327,3 +356,42 @@ Ce document détaille les étapes nécessaires pour refactoriser la boucle de je
     -   Exécuter le jeu avec et sans `--debug` (GUI et CLI) pour vérifier la verbosité et la correction des logs.
     -   S'assurer que le mode CLI reste utilisable et que les menus s'affichent correctement via `logging.info()`.
     -   Exécuter tous les tests automatisés pour confirmer l'absence de régressions.
+
+---
+
+## Task 10: Enhance Documentation and Implement Bilingual Support (EN/FR)
+## Tâche 10 : Améliorer la Documentation et Implémenter le Support Bilingue (EN/FR)
+
+**Objective:** Improve overall project documentation for clarity, especially for beginners, and implement full bilingual support (English and French) for all user-facing documents and in-code comments/logs, with English as the primary language.
+***Objectif :** Améliorer la documentation globale du projet pour plus de clarté, en particulier pour les débutants, et implémenter un support bilingue complet (anglais et français) pour tous les documents destinés à l'utilisateur et les commentaires/logs dans le code, avec l'anglais comme langue principale.*
+
+### Status: 🚧 In Progress
+### Statut : 🚧 En Cours
+
+### Steps:
+### Étapes :
+
+-   [x] **1. Update `AGENTS.md` with bilingual documentation rule.**
+    -   *Mettre à jour `AGENTS.md` avec la règle de documentation bilingue.*
+-   [x] **2. Update `README.md`:**
+    -   *Mettre à jour `README.md` :*
+    -   [x] Add beginner-friendly introduction to Python and Pygame (EN/FR).
+        -   *Ajouter une introduction à Python et Pygame pour débutants (EN/FR).*
+    -   [x] Add project structure overview (EN/FR).
+        -   *Ajouter un aperçu de la structure du projet (EN/FR).*
+    -   [x] Add contribution guidelines, emphasizing bilingualism (EN/FR).
+        -   *Ajouter des directives de contribution, soulignant le bilinguisme (EN/FR).*
+-   [x] **3. Update `TODO.md`:**
+    -   *Mettre à jour `TODO.md` :*
+    -   [x] Translate existing task titles and objectives into EN/FR.
+        -   *Traduire les titres et objectifs des tâches existantes en EN/FR.*
+    -   [x] Add this current task (Task 10) to `TODO.md`.
+        -   *Ajouter cette tâche actuelle (Tâche 10) à `TODO.md`.*
+-   [ ] **4. Internationalize code comments and logs:**
+    -   *Internationaliser les commentaires de code et les logs :*
+    -   [ ] Review and translate comments/logs in `main.py`, `game_entities.py`, `game_state.py`, `config.py`, `asset_manager.py`, `utilities.py`.
+        -   *Relire et traduire les commentaires/logs dans `main.py`, `game_entities.py`, `game_state.py`, `config.py`, `asset_manager.py`, `utilities.py`.*
+    -   [ ] Add bilingual introductory docstrings/comments to key files and classes/functions.
+        -   *Ajouter des docstrings/commentaires d'introduction bilingues aux fichiers et classes/fonctions clés.*
+-   [ ] **5. Final review and testing.**
+    -   *Revue finale et tests.*

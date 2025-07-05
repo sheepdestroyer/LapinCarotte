@@ -68,25 +68,44 @@ class TestGameStateReset:
         gs.player.rect.topleft = (500,500)
         gs.vampire.active = False; gs.carrots = [MagicMock()]
 
-        vamp_x1_dummy, vamp_y1_dummy = -1, -2 # For first (overwritten) vampire respawn
-        vamp_x2_effective, vamp_y2_effective = 300, 400 # For the second (final) vampire respawn
+        vamp_x_effective, vamp_y_effective = 300, 400 # For the single vampire respawn
 
-        expected_reset_carrot_coords = []
+        expected_carrot_coords = []
         player_image_for_reset = mock_asset_manager.images['rabbit']
-        player_center_x_reset = gs.player.initial_x + player_image_for_reset.get_width() // 2
-        player_center_y_reset = gs.player.initial_y + player_image_for_reset.get_height() // 2
+        # Get player initial position and image dimensions for safe carrot spawning calculation
+        player_initial_x = gs.player.initial_x
+        player_initial_y = gs.player.initial_y
+
+        player_width = 0
+        player_height = 0
+        if hasattr(player_image_for_reset, 'get_width'): # GUI mode with valid surface
+            player_width = player_image_for_reset.get_width()
+            player_height = player_image_for_reset.get_height()
+        elif isinstance(player_image_for_reset, dict): # CLI mode with metadata
+             size_hint = player_image_for_reset.get('size_hint') or player_image_for_reset.get('size')
+             if size_hint: player_width, player_height = size_hint
+
+        PLAYER_PLACEHOLDER_WIDTH = 72
+        PLAYER_PLACEHOLDER_HEIGHT = 72
+        if player_width == 0: player_width = PLAYER_PLACEHOLDER_WIDTH
+        if player_height == 0: player_height = PLAYER_PLACEHOLDER_HEIGHT
+
+
+        player_center_x_reset = player_initial_x + player_width // 2
+        player_center_y_reset = player_initial_y + player_height // 2
+
         for i in range(CARROT_COUNT):
-            expected_reset_carrot_coords.extend([player_center_x_reset + 1600 + i * 50, player_center_y_reset + i*10])
+            # Provide coordinates far from the player for carrot creation to avoid excessive randint calls
+            expected_carrot_coords.extend([player_center_x_reset + 1600 + i * 50, player_center_y_reset + i*10])
 
-        # GameState.reset() calls vampire.respawn twice (4 randint calls)
+        # GameState.reset() now calls vampire.respawn once (2 randint calls)
         # Then CARROT_COUNT * 2 randint calls for carrots.
-        # Total expected = 4 + CARROT_COUNT * 2 = 14 (if CARROT_COUNT=5)
-        # This assumes create_carrot does not loop with the safe coordinates provided.
-        mock_values_for_reset = ([vamp_x1_dummy, vamp_y1_dummy,
-                                 vamp_x2_effective, vamp_y2_effective] +
-                                 expected_reset_carrot_coords)
+        # Total expected = 2 + CARROT_COUNT * 2
+        mock_values_for_reset = ([vamp_x_effective, vamp_y_effective] +
+                                 expected_carrot_coords)
 
-        assert len(mock_values_for_reset) == 4 + (CARROT_COUNT * 2)
+        assert len(mock_values_for_reset) == 2 + (CARROT_COUNT * 2), \
+               f"Expected {2 + CARROT_COUNT * 2} mock values, got {len(mock_values_for_reset)}"
 
         mock_values_iter = list(mock_values_for_reset)
         def side_effect_pop_func(*args):
@@ -103,13 +122,13 @@ class TestGameStateReset:
         assert gs.player.rect.topleft == (gs.player.initial_x, gs.player.initial_y)
         assert gs.bullets == []; assert gs.explosions == []; assert gs.items == []
 
-        assert gs.vampire.rect.topleft == (vamp_x2_effective, vamp_y2_effective)
+        assert gs.vampire.rect.topleft == (vamp_x_effective, vamp_y_effective) # Already corrected in previous mental step, this should be the target line
         assert gs.vampire.active; assert not gs.vampire.death_effect_active
 
         assert len(gs.carrots) == CARROT_COUNT
         assert mock_randint.call_count == len(mock_values_for_reset)
         for i in range(CARROT_COUNT):
-            assert gs.carrots[i].rect.topleft == (expected_reset_carrot_coords[i*2], expected_reset_carrot_coords[i*2+1])
+            assert gs.carrots[i].rect.topleft == (expected_carrot_coords[i*2], expected_carrot_coords[i*2+1])
         assert not mock_values_iter, "Not all mock_randint values for reset were consumed"
 
     def test_reset_clears_garlic_shot_state(self, game_state_instance):
@@ -218,12 +237,15 @@ class TestGameStateUpdate:
         gs.garlic_shot_start_time = current_time - 0.1; gs.garlic_shot_travel = 0
         gs.garlic_shot_speed = GARLIC_SHOT_SPEED; gs.garlic_shot_duration = GARLIC_SHOT_DURATION
 
-        expected_x_at_collision_check = gs.garlic_shot["x"] + gs.garlic_shot["dx"] * gs.garlic_shot_speed
-        expected_y_at_collision_check = gs.garlic_shot["y"] + gs.garlic_shot["dy"] * gs.garlic_shot_speed
+        expected_center_x_after_move = gs.garlic_shot["x"] + gs.garlic_shot["dx"] * gs.garlic_shot_speed
+        expected_center_y_after_move = gs.garlic_shot["y"] + gs.garlic_shot["dy"] * gs.garlic_shot_speed
+
+        expected_topleft_x = expected_center_x_after_move - GARLIC_WIDTH / 2
+        expected_topleft_y = expected_center_y_after_move - GARLIC_HEIGHT / 2
 
         gs.update(current_time)
 
-        mock_pygame_rect_class.assert_called_with(expected_x_at_collision_check, expected_y_at_collision_check, GARLIC_WIDTH, GARLIC_HEIGHT)
+        mock_pygame_rect_class.assert_called_with(pytest.approx(expected_topleft_x), pytest.approx(expected_topleft_y), GARLIC_WIDTH, GARLIC_HEIGHT)
         mock_pygame_rect_class.return_value.colliderect.assert_called_once_with(vampire.rect)
         assert vampire.death_effect_active
 
