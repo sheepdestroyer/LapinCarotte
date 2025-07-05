@@ -86,6 +86,37 @@ def calculate_movement_towards(source_rect, target_rect, speed, world_bounds):
     # *Appliquer les limites du monde à la nouvelle position en haut à gauche*
     final_x_tl = max(0, min(world_bounds[0] - source_rect.width, new_x_tl))
     final_y_tl = max(0, min(world_bounds[1] - source_rect.height, new_y_tl))
-    
+
     # Return the actual delta to apply / *Retourner le delta réel à appliquer*
     return (final_x_tl - source_rect.x, final_y_tl - source_rect.y)
+
+def get_asset_path(relative_path):
+    """
+    Constructs the absolute path to an asset, correctly handling running from source vs. frozen executable.
+    Args:
+        relative_path (str): The path relative to the 'Assets' directory (e.g., 'images/player.png').
+                             *Le chemin relatif au répertoire 'Assets' (par ex. 'images/player.png').*
+    Returns:
+        str: The absolute path to the asset.
+             *Le chemin absolu vers la ressource.*
+
+    *Construit le chemin absolu vers une ressource, gérant correctement l'exécution depuis les sources*
+    *par rapport à un exécutable figé.*
+    *Args:*
+        *relative_path (str): Le chemin relatif au répertoire 'Assets' (par ex. 'images/player.png').*
+    *Returns:*
+        *str: Le chemin absolu vers la ressource.*
+    """
+    # Ensure 'os' and 'sys' are imported if not already at the top of utilities.py
+    # For this operation, they are typically needed.
+    import os
+    import sys
+
+    if getattr(sys, 'frozen', False):
+        # If the application is run as a bundle/frozen executable (e.g., PyInstaller)
+        # *Si l'application est exécutée en tant que bundle/exécutable figé (par ex. PyInstaller)*
+        base_path = sys._MEIPASS
+    else:
+        # If run from source code / *Si exécuté depuis le code source*
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, 'Assets', relative_path)

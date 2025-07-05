@@ -81,8 +81,8 @@ MUSIC_GAMEOVER = 'sounds/gameover.mp3' # Path to game over music file / *Chemin 
 # *Dimensions des images (chargées à l'exécution, mais des constantes peuvent être définies si elles sont fixes)*
 # Assuming garlic image is 32x32 based on ITEM_WIDTH/HEIGHT, adjust if different
 # *En supposant que l'image de l'ail est de 32x32 d'après ITEM_WIDTH/HEIGHT, ajustez si différent*
-GARLIC_WIDTH = 32
-GARLIC_HEIGHT = 32
+GARLIC_WIDTH = ITEM_WIDTH  # Use ITEM_WIDTH for consistency / *Utiliser ITEM_WIDTH pour la cohérence*
+GARLIC_HEIGHT = ITEM_HEIGHT # Use ITEM_HEIGHT for consistency / *Utiliser ITEM_HEIGHT pour la cohérence*
 
 # Asset Fallbacks
 # *Ressources de Remplacement (Fallback)*

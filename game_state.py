@@ -86,9 +86,7 @@ class GameState:
         *Réinitialise l'état du jeu à ses conditions initiales, typiquement pour commencer une nouvelle partie.*
         *Cela inclut la réinitialisation du joueur, des ennemis, des objets et des indicateurs de jeu.*
         """
-        logging.info("Resetting game state.")
-        # EN: Resetting game state.
-        # FR: Réinitialisation de l'état du jeu.
+        logging.info("Resetting game state. / Réinitialisation de l'état du jeu.")
         self.scroll = [0, 0]
         self.game_over = False
         self.started = False
@@ -130,7 +128,7 @@ class GameState:
                 random.randint(0, self.world_size[0] - vampire_width if self.world_size[0] > vampire_width else 0),
                 random.randint(0, self.world_size[1] - vampire_height if self.world_size[1] > vampire_height else 0)
             )
-            self.vampire.active = True
+            # self.vampire.active = True # This is redundant as Vampire.respawn() sets self.active = True
 
         self.vampire_killed_count = 0 # Reset kill count / *Réinitialiser le compteur de victimes*
             
@@ -252,9 +250,7 @@ class GameState:
                         self.bullets.remove(bullet)
                     except ValueError: # Bullet might have been removed by another collision in same frame
                                        # *Le projectile a peut-être été supprimé par une autre collision dans la même frame*
-                        logging.debug("Bullet already removed, skipping.")
-                        # EN: Bullet already removed, skipping.
-                        # FR: Projectile déjà supprimé, on ignore.
+                        logging.debug("Bullet already removed, skipping. / Projectile déjà supprimé, on ignore.")
                     break # Bullet is consumed, no need to check other carrots
                           # *Le projectile est consommé, pas besoin de vérifier les autres carottes*
 
@@ -301,9 +297,7 @@ class GameState:
                     self.garlic_shot_travel = 0
                     self.vampire_killed_count += 1
                     self.last_vampire_death_pos = self.vampire.rect.center  # Store death position / *Stocker la position de la mort*
-                    logging.info(f"Vampire killed by garlic! Total kills: {self.vampire_killed_count}")
-                    # EN: Vampire killed by garlic! Total kills: {self.vampire_killed_count}
-                    # FR: Vampire tué par l'ail ! Total victimes : {self.vampire_killed_count}
+                    logging.info(f"Vampire killed by garlic! Total kills: {self.vampire_killed_count} / Vampire tué par l'ail ! Total victimes : {self.vampire_killed_count}")
 
 
         # Update vampire / *Mettre à jour le vampire*
@@ -330,9 +324,7 @@ class GameState:
                     cli_mode=self.cli_mode
                 )
             )
-            logging.debug(f"Carrot juice dropped at {self.last_vampire_death_pos}")
-            # EN: Carrot juice dropped at {self.last_vampire_death_pos}
-            # FR: Jus de carotte déposé à {self.last_vampire_death_pos}
+            logging.debug(f"Carrot juice dropped at {self.last_vampire_death_pos} / Jus de carotte déposé à {self.last_vampire_death_pos}")
 
         # Check collision between player and active vampire / *Vérifier la collision entre le joueur et le vampire actif*
         if self.vampire.active and self.player.rect.colliderect(self.vampire.rect):
@@ -343,9 +335,7 @@ class GameState:
             # *Pour l'instant, modèle simple : le vampire "meurt" aussi ou devient inactif et réapparaît*
             self.vampire.active = False
             self.vampire.respawn_timer = current_time
-            logging.debug("Player collided with Vampire.")
-            # EN: Player collided with Vampire.
-            # FR: Le joueur est entré en collision avec le Vampire.
+            logging.debug("Player collided with Vampire. / Le joueur est entré en collision avec le Vampire.")
 
 
         # Update explosions and handle item drops from them / *Mettre à jour les explosions et gérer les chutes d'objets associées*
@@ -367,42 +357,32 @@ class GameState:
                         cli_mode=self.cli_mode
                     )
                 )
-                logging.debug(f"{item_type} dropped from explosion at ({explosion.rect.centerx}, {explosion.rect.centery})")
-                # EN: {item_type} dropped from explosion at ({explosion.rect.centerx}, {explosion.rect.centery})
-                # FR: {item_type} déposé par explosion à ({explosion.rect.centerx}, {explosion.rect.centery})
+                logging.debug(f"{item_type} dropped from explosion at ({explosion.rect.centerx}, {explosion.rect.centery}) / {item_type} déposé par explosion à ({explosion.rect.centerx}, {explosion.rect.centery})")
                 self.explosions.remove(explosion)
 
         # Check item collisions with player / *Vérifier les collisions d'objets avec le joueur*
         for item in self.items[:]:
             if item.active and self.player.rect.colliderect(item.rect):
-                logging.debug(f"Player collecting item: {item.item_type}. Player HP: {self.player.health}, Garlic: {self.player.garlic_count}")
-                # EN: Player collecting item: {item.item_type}. Player HP: {self.player.health}, Garlic: {self.player.garlic_count}
-                # FR: Joueur ramassant l'objet : {item.item_type}. PV Joueur : {self.player.health}, Ail : {self.player.garlic_count}
+                logging.debug(f"Player collecting item: {item.item_type}. Player HP: {self.player.health}, Garlic: {self.player.garlic_count} / Joueur ramassant l'objet : {item.item_type}. PV Joueur : {self.player.health}, Ail : {self.player.garlic_count}")
                 collected = False
                 if item.item_type == 'hp' and self.player.health < MAX_HEALTH:
                     self.player.health += 1
                     self.player.health_changed = True # For UI update / *Pour mise à jour UI*
                     if not self.cli_mode: self.asset_manager.sounds['get_hp'].play()
                     collected = True
-                    logging.info(f"Player collected HP. Current HP: {self.player.health}")
-                    # EN: Player collected HP. Current HP: {self.player.health}
-                    # FR: Joueur a ramassé PV. PV actuels : {self.player.health}
+                    logging.info(f"Player collected HP. Current HP: {self.player.health} / Joueur a ramassé PV. PV actuels : {self.player.health}")
                 elif item.item_type == 'garlic' and self.player.garlic_count < MAX_GARLIC:
                     self.player.garlic_count += 1
                     self.player.garlic_changed = True # For UI update / *Pour mise à jour UI*
                     if not self.cli_mode: self.asset_manager.sounds['get_garlic'].play()
                     collected = True
-                    logging.info(f"Player collected Garlic. Current Garlic: {self.player.garlic_count}")
-                    # EN: Player collected Garlic. Current Garlic: {self.player.garlic_count}
-                    # FR: Joueur a ramassé Ail. Ail actuel : {self.player.garlic_count}
+                    logging.info(f"Player collected Garlic. Current Garlic: {self.player.garlic_count} / Joueur a ramassé Ail. Ail actuel : {self.player.garlic_count}")
                 elif item.item_type == 'carrot_juice':
                     self.player.carrot_juice_count = min(self.player.carrot_juice_count + 1, MAX_CARROT_JUICE)
                     self.player.juice_changed = True # For UI update / *Pour mise à jour UI*
                     if not self.cli_mode: self.asset_manager.sounds['get_hp'].play()  # Reuse existing pickup sound / *Réutiliser son de ramassage existant*
                     collected = True
-                    logging.info(f"Player collected Carrot Juice. Current Juice: {self.player.carrot_juice_count}")
-                    # EN: Player collected Carrot Juice. Current Juice: {self.player.carrot_juice_count}
-                    # FR: Joueur a ramassé Jus de Carotte. Jus actuel : {self.player.carrot_juice_count}
+                    logging.info(f"Player collected Carrot Juice. Current Juice: {self.player.carrot_juice_count} / Joueur a ramassé Jus de Carotte. Jus actuel : {self.player.carrot_juice_count}")
 
                 if collected:
                     self.items.remove(item)
@@ -414,9 +394,7 @@ class GameState:
         """
         if not self.paused:
             self.paused = True
-            logging.info("Game paused.")
-            # EN: Game paused.
-            # FR: Jeu mis en pause.
+            logging.info("Game paused. / Jeu mis en pause.")
 
     def resume_game(self):
         """
@@ -425,6 +403,4 @@ class GameState:
         """
         if self.paused:
             self.paused = False
-            logging.info("Game resumed.")
-            # EN: Game resumed.
-            # FR: Jeu repris.
+            logging.info("Game resumed. / Jeu repris.")

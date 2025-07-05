@@ -24,41 +24,7 @@ from asset_manager import AssetManager, DummySound # Import DummySound
 from game_entities import Player, Bullet, Carrot, Vampire, Explosion, Collectible, Button
 from game_state import GameState
 from config import * # Import all constants from config.py / *Importer toutes les constantes de config.py*
-
-def get_asset_path(relative_path):
-    """
-    Constructs the absolute path to an asset, correctly handling running from source vs. frozen executable.
-    This function is duplicated in asset_manager.py; consider centralizing if behavior is identical.
-    Args:
-        relative_path (str): The path relative to the 'Assets' directory (e.g., 'images/player.png').
-                             *Le chemin relatif au répertoire 'Assets' (par ex. 'images/player.png').*
-    Returns:
-        str: The absolute path to the asset.
-             *Le chemin absolu vers la ressource.*
-
-    *Construit le chemin absolu vers une ressource, gérant correctement l'exécution depuis les sources*
-    *par rapport à un exécutable figé. Cette fonction est dupliquée dans asset_manager.py ;*
-    *envisager de la centraliser si le comportement est identique.*
-    *Args:*
-        *relative_path (str): Le chemin relatif au répertoire 'Assets' (par ex. 'images/player.png').*
-    *Returns:*
-        *str: Le chemin absolu vers la ressource.*
-    """
-    if getattr(sys, 'frozen', False):
-        # If the application is run as a bundle/frozen executable (e.g., PyInstaller)
-        # *Si l'application est exécutée en tant que bundle/exécutable figé (par ex. PyInstaller)*
-        base_path = sys._MEIPASS
-    else:
-        # If run from source code / *Si exécuté depuis le code source*
-        base_path = os.path.abspath(".")
-    # This version assumes the 'Assets' folder is a subdirectory from where the script is,
-    # or where PyInstaller unpacks it. If asset_manager.py's version is different, align them.
-    # *Cette version suppose que le dossier 'Assets' est un sous-répertoire de l'emplacement du script,*
-    # *ou de l'endroit où PyInstaller le décompresse. Si la version de asset_manager.py est différente, alignez-les.*
-    return os.path.join(base_path, 'Assets', relative_path) # Original main.py didn't have 'Assets' here, but AssetManager does.
-                                                            # Standardizing to include 'Assets' as per AssetManager's _get_path.
-                                                            # *L'original main.py n'avait pas 'Assets' ici, mais AssetManager l'a.*
-                                                            # *Standardisation pour inclure 'Assets' conformément à _get_path d'AssetManager.*
+from utilities import get_asset_path # Import the centralized function / *Importer la fonction centralisée*
 
 # Argument parsing / *Analyse des arguments*
 parser = argparse.ArgumentParser(description="LapinCarotte - A game about a rabbit fighting vampire carrots. / *Un jeu sur un lapin combattant des carottes vampires.*")
@@ -242,26 +208,18 @@ def _play_game_music_and_sound(sound_to_play=None):
                                                           # *S'assurer que c'est un véritable objet son*
                  sound_effect.play()
     except pygame.error as e:
-        logging.exception(f"Could not load or play game music/sound: {e}")
-        # EN: Could not load or play game music/sound: {e}
-        # FR: Impossible de charger ou de jouer la musique/le son du jeu : {e}
+        logging.exception(f"Could not load or play game music/sound: {e} / Impossible de charger ou de jouer la musique/le son du jeu : {e}")
 
 def start_game():
     """
     Callback function to start the game. Sets game_state.started to True and plays start sound.
     *Fonction de rappel pour démarrer le jeu. Met game_state.started à True et joue le son de démarrage.*
     """
-    logging.debug("start_game called.")
-    # EN: start_game called.
-    # FR: start_game appelé.
+    logging.debug("start_game called. / start_game appelé.")
     game_state.started = True
     if not args.cli: _play_game_music_and_sound('press_start')
-    else: logging.info("Game started (CLI).")
-    # EN: Game started (CLI).
-    # FR: Jeu démarré (CLI).
-    logging.debug(f"game_state.started set to {game_state.started}")
-    # EN: game_state.started set to {game_state.started}
-    # FR: game_state.started défini sur {game_state.started}
+    else: logging.info("Game started (CLI). / Jeu démarré (CLI).")
+    logging.debug(f"game_state.started set to {game_state.started} / game_state.started défini sur {game_state.started}")
 
 
 def reset_game():
@@ -269,18 +227,11 @@ def reset_game():
     Callback function to reset the game state for a new game.
     *Fonction de rappel pour réinitialiser l'état du jeu pour une nouvelle partie.*
     """
-    logging.debug("reset_game called.")
-    # EN: reset_game called.
-    # FR: reset_game appelé.
-    game_state.reset()
-    if not args.cli: _play_game_music_and_sound('press_start') # Play start sound again on reset
-                                                              # *Jouer à nouveau le son de démarrage lors de la réinitialisation*
-    else: logging.info("Game reset (CLI).")
-    # EN: Game reset (CLI).
-    # FR: Jeu réinitialisé (CLI).
-    logging.debug("Game state reset by reset_game function.")
-    # EN: Game state reset by reset_game function.
-    # FR: État du jeu réinitialisé par la fonction reset_game.
+    logging.debug("reset_game called. / reset_game appelé.")
+    game_state.reset() # GameState.reset() now logs its own bilingual message
+    if not args.cli: _play_game_music_and_sound('press_start')
+    else: logging.info("Game reset (CLI). / Jeu réinitialisé (CLI).")
+    logging.debug("Game state reset by reset_game function. / État du jeu réinitialisé par la fonction reset_game.")
 
 
 def quit_game():
@@ -288,54 +239,34 @@ def quit_game():
     Callback function to quit the game. Sets the global 'running' flag to False.
     *Fonction de rappel pour quitter le jeu. Met l'indicateur global 'running' à False.*
     """
-    logging.debug("quit_game called.")
-    # EN: quit_game called.
-    # FR: quit_game appelé.
+    logging.debug("quit_game called. / quit_game appelé.")
     global running
     running = False
-    if args.cli: logging.info("Exiting game (CLI).")
-    # EN: Exiting game (CLI).
-    # FR: Sortie du jeu (CLI).
-    else: logging.info("Exiting game (GUI).")
-    # EN: Exiting game (GUI).
-    # FR: Sortie du jeu (GUI).
-    logging.debug("Global 'running' flag set to False.")
-    # EN: Global 'running' flag set to False.
-    # FR: Indicateur global 'running' défini sur False.
+    if args.cli: logging.info("Exiting game (CLI). / Sortie du jeu (CLI).")
+    else: logging.info("Exiting game (GUI). / Sortie du jeu (GUI).")
+    logging.debug("Global 'running' flag set to False. / Indicateur global 'running' défini sur False.")
 
 def resume_game_callback():
     """
     Callback function to resume the game if it was paused.
     *Fonction de rappel pour reprendre le jeu s'il était en pause.*
     """
-    logging.debug("resume_game_callback called.")
-    # EN: resume_game_callback called.
-    # FR: resume_game_callback appelé.
+    logging.debug("resume_game_callback called. / resume_game_callback appelé.")
     if game_state.paused:
-        logging.debug("Game was paused, calling game_state.resume_game()")
-        # EN: Game was paused, calling game_state.resume_game()
-        # FR: Le jeu était en pause, appel de game_state.resume_game()
+        logging.debug("Game was paused, calling game_state.resume_game() / Le jeu était en pause, appel de game_state.resume_game()")
         game_state.resume_game() # GameState handles logging the resume internally
                                  # *GameState gère la journalisation de la reprise en interne*
-        if args.cli: logging.info("Game resumed via callback (CLI).")
-        # EN: Game resumed via callback (CLI).
-        # FR: Jeu repris via rappel (CLI).
+        if args.cli: logging.info("Game resumed via callback (CLI). / Jeu repris via rappel (CLI).")
     else:
-        logging.debug("Game was not paused, resume_game_callback did nothing.")
-        # EN: Game was not paused, resume_game_callback did nothing.
-        # FR: Le jeu n'était pas en pause, resume_game_callback n'a rien fait.
+        logging.debug("Game was not paused, resume_game_callback did nothing. / Le jeu n'était pas en pause, resume_game_callback n'a rien fait.")
 
 def open_settings_callback():
     """
     Callback for the settings button. Currently a placeholder.
     *Rappel pour le bouton des paramètres. Actuellement un placeholder.*
     """
-    logging.debug("open_settings_callback called.")
-    # EN: open_settings_callback called.
-    # FR: open_settings_callback appelé.
-    logging.info("Settings button clicked - Feature not implemented yet.")
-    # EN: Settings button clicked - Feature not implemented yet.
-    # FR: Bouton Paramètres cliqué - Fonctionnalité non encore implémentée.
+    logging.debug("open_settings_callback called. / open_settings_callback appelé.")
+    logging.info("Settings button clicked - Feature not implemented yet. / Bouton Paramètres cliqué - Fonctionnalité non encore implémentée.")
 
 # Create Button instances for different game screens
 # *Créer des instances de Button pour différents écrans de jeu*
@@ -432,14 +363,10 @@ def handle_player_death():
             if death_sound and not isinstance(death_sound, DummySound):
                 death_sound.play()
         except pygame.error as e:
-            logging.exception(f"Could not play player death sound: {e}")
-            # EN: Could not play player death sound: {e}
-            # FR: Impossible de jouer le son de mort du joueur : {e}
+            logging.exception(f"Could not play player death sound: {e} / Impossible de jouer le son de mort du joueur : {e}")
     elif args.cli: # Specific log for CLI mode death handling
                    # *Log spécifique pour la gestion de la mort en mode CLI*
-        logging.info("Player has died (CLI mode).")
-        # EN: Player has died (CLI mode).
-        # FR: Le joueur est mort (mode CLI).
+        logging.info("Player has died (CLI mode). / Le joueur est mort (mode CLI).")
 
 
 running = True # Global flag to control the main game loop / *Indicateur global pour contrôler la boucle de jeu principale*
@@ -459,9 +386,7 @@ def run_gui_mode():
     *Gère l'intégralité de la boucle de jeu, le traitement des événements et le rendu pour le mode GUI.*
     *Cette fonction est appelée de manière répétée par main_loop lorsqu'on n'est pas en mode CLI.*
     """
-    logging.debug("run_gui_mode: Frame processing started.")
-    # EN: run_gui_mode: Frame processing started.
-    # FR: run_gui_mode : Traitement de la frame démarré.
+    logging.debug("run_gui_mode: Frame processing started. / run_gui_mode : Traitement de la frame démarré.")
     global running, current_time, can_toggle_pause, game_state, asset_manager, screen, args
     # Declare other globals if they are modified here and defined outside, though most are read-only or passed via objects.
     # *Déclarer d'autres globales si elles sont modifiées ici et définies à l'extérieur, bien que la plupart soient en lecture seule ou passées via des objets.*
@@ -477,9 +402,7 @@ def run_gui_mode():
     # Event handling loop / *Boucle de gestion des événements*
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            logging.info("QUIT event received, shutting down.")
-            # EN: QUIT event received, shutting down.
-            # FR: Événement QUIT reçu, fermeture en cours.
+            logging.info("QUIT event received, shutting down. / Événement QUIT reçu, fermeture en cours.")
             running = False # Signal main_loop to exit / *Signaler à main_loop de quitter*
             return # Exit run_gui_mode for this iteration to prevent further processing
                    # *Quitter run_gui_mode pour cette itération afin d'empêcher tout traitement ultérieur*
@@ -562,9 +485,7 @@ def run_gui_mode():
                     }
                     game_state.garlic_shot_travel = 0 # Reset travel distance for new shot
                                                       # *Réinitialiser la distance de voyage pour le nouveau tir*
-                    logging.debug(f"Garlic shot initiated towards ({world_mouse_x},{world_mouse_y}) with angle {angle:.2f}")
-                    # EN: Garlic shot initiated towards ({world_mouse_x},{world_mouse_y}) with angle {angle:.2f}
-                    # FR: Tir d'ail initié vers ({world_mouse_x},{world_mouse_y}) avec un angle de {angle:.2f}
+                    logging.debug(f"Garlic shot initiated towards ({world_mouse_x},{world_mouse_y}) with angle {angle:.2f} / Tir d'ail initié vers ({world_mouse_x},{world_mouse_y}) avec un angle de {angle:.2f}")
         else: # Game over state / *État de Game Over*
             for button in game_over_buttons:
                 button.handle_event(event)
@@ -687,9 +608,7 @@ def run_gui_mode():
             # Log player stats if they changed (for debugging)
             # *Journaliser les statistiques du joueur si elles ont changé (pour le débogage)*
             if game_state.player.health_changed or game_state.player.garlic_changed or game_state.player.juice_changed:
-                logging.debug(f"Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count}")
-                # EN: Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count}
-                # FR: Stats Joueur - PV : {game_state.player.health}, Ail : {game_state.player.garlic_count}, Jus de Carotte : {game_state.player.carrot_juice_count}, Vampires Tués : {game_state.vampire_killed_count}
+                logging.debug(f"Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count} / Stats Joueur - PV : {game_state.player.health}, Ail : {game_state.player.garlic_count}, Jus de Carotte : {game_state.player.carrot_juice_count}, Vampires Tués : {game_state.vampire_killed_count}")
                 game_state.player.health_changed = False # Reset flags / *Réinitialiser les indicateurs*
                 game_state.player.garlic_changed = False
                 game_state.player.juice_changed = False
@@ -700,9 +619,7 @@ def run_gui_mode():
 
         except Exception as e: # Catch-all for errors during game logic/draw
                                # *Fourre-tout pour les erreurs pendant la logique/le dessin du jeu*
-            logging.exception(f"ERROR during game logic/draw: {e}")
-            # EN: ERROR during game logic/draw: {e}
-            # FR: ERREUR pendant la logique/le dessin du jeu : {e}
+            logging.exception(f"ERROR during game logic/draw: {e} / ERREUR pendant la logique/le dessin du jeu : {e}")
             running = False # Signal main_loop to exit on critical error / *Signaler à main_loop de quitter en cas d'erreur critique*
             return
 
@@ -718,9 +635,7 @@ def run_gui_mode():
             if time_elapsed_death >= config.PLAYER_DEATH_DURATION:
                 game_state.game_over = True
                 game_state.player.death_effect_active = False
-                logging.info("Player death animation complete. Game Over.")
-                # EN: Player death animation complete. Game Over.
-                # FR: Animation de mort du joueur terminée. Game Over.
+                logging.info("Player death animation complete. Game Over. / Animation de mort du joueur terminée. Game Over.")
     else: # Game over drawing / *Dessin de Game Over*
         if screen and game_over_image_ui and hasattr(game_over_image_ui, 'get_width'):
             game_over_x_pos = (screen_width - game_over_image_ui.get_width()) / 2
@@ -738,9 +653,7 @@ def run_gui_mode():
                     pygame.mixer.music.load(music_path_game_over)
                     pygame.mixer.music.play(-1) # Loop game over music / *Jouer la musique de game over en boucle*
                 except pygame.error as e:
-                    logging.exception(f"Error playing game over music: {e}")
-                    # EN: Error playing game over music: {e}
-                    # FR: Erreur lors de la lecture de la musique de game over : {e}
+                    logging.exception(f"Error playing game over music: {e} / Erreur lors de la lecture de la musique de game over : {e}")
 
     # Draw mouse crosshair last, on top of everything / *Dessiner le réticule de la souris en dernier, par-dessus tout*
     if screen:
@@ -753,9 +666,7 @@ def run_gui_mode():
 
     pygame.display.flip() # Update the full display / *Mettre à jour l'affichage complet*
     time.sleep(config.FRAME_DELAY) # Control frame rate / *Contrôler la fréquence d'images*
-    logging.debug("run_gui_mode: Frame processing ended.")
-    # EN: run_gui_mode: Frame processing ended.
-    # FR: run_gui_mode : Traitement de la frame terminé.
+    logging.debug("run_gui_mode: Frame processing ended. / run_gui_mode : Traitement de la frame terminé.")
 
 
 def run_cli_mode():
@@ -768,14 +679,10 @@ def run_cli_mode():
     """
     global running, game_state, args # Access global state variables / *Accéder aux variables d'état globales*
 
-    logging.debug("run_cli_mode: Iteration started.")
-    # EN: run_cli_mode: Iteration started.
-    # FR: run_cli_mode : Itération démarrée.
+    logging.debug("run_cli_mode: Iteration started. / run_cli_mode : Itération démarrée.")
 
     if not game_state.started: # Start Screen Logic / *Logique de l'Écran de Démarrage*
-        logging.debug("run_cli_mode: Game not started, displaying start menu.")
-        # EN: run_cli_mode: Game not started, displaying start menu.
-        # FR: run_cli_mode : Jeu non démarré, affichage du menu de démarrage.
+        logging.debug("run_cli_mode: Game not started, displaying start menu. / run_cli_mode : Jeu non démarré, affichage du menu de démarrage.")
         logging.info("\n--- LapinCarotte ---")
         logging.info("Start Screen (CLI Mode) / *Écran de Démarrage (Mode CLI)*")
         logging.info("1. Start Game / *Commencer le jeu*")
@@ -784,9 +691,7 @@ def run_cli_mode():
         try:
             choice = input("Enter choice / *Entrez votre choix*: ").strip()
         except EOFError: # Handle Ctrl+D or piped input ending / *Gérer Ctrl+D ou la fin d'une entrée redirigée*
-            logging.info("EOF received on main menu, quitting.")
-            # EN: EOF received on main menu, quitting.
-            # FR: EOF reçu dans le menu principal, fermeture.
+            logging.info("EOF received on main menu, quitting. / EOF reçu dans le menu principal, fermeture.")
             quit_game()
             return
 
@@ -795,14 +700,10 @@ def run_cli_mode():
         elif choice == '2':
             quit_game()
         elif running: # Avoid printing if quit_game was called / *Éviter d'imprimer si quit_game a été appelé*
-            logging.warning("Invalid choice on start screen. Please enter 1 or 2.")
-            # EN: Invalid choice on start screen. Please enter 1 or 2.
-            # FR: Choix invalide sur l'écran de démarrage. Veuillez entrer 1 ou 2.
+            logging.warning("Invalid choice on start screen. Please enter 1 or 2. / Choix invalide sur l'écran de démarrage. Veuillez entrer 1 ou 2.")
 
     elif game_state.paused: # Pause Screen Logic / *Logique de l'Écran de Pause*
-        logging.debug("run_cli_mode: Game paused, displaying pause menu.")
-        # EN: run_cli_mode: Game paused, displaying pause menu.
-        # FR: run_cli_mode : Jeu en pause, affichage du menu pause.
+        logging.debug("run_cli_mode: Game paused, displaying pause menu. / run_cli_mode : Jeu en pause, affichage du menu pause.")
         logging.info("\n--- PAUSED (CLI Mode) / *PAUSE (Mode CLI)* ---")
         logging.info("1. Continue / *Continuer*")
         logging.info("2. Settings (Not Implemented) / *Paramètres (Non implémenté)*")
@@ -811,9 +712,7 @@ def run_cli_mode():
         try:
             choice = input("Enter choice / *Entrez votre choix*: ").strip()
         except EOFError:
-            logging.info("EOF received on pause menu, quitting.")
-            # EN: EOF received on pause menu, quitting.
-            # FR: EOF reçu dans le menu pause, fermeture.
+            logging.info("EOF received on pause menu, quitting. / EOF reçu dans le menu pause, fermeture.")
             quit_game()
             return
 
@@ -824,14 +723,10 @@ def run_cli_mode():
         elif choice == '3':
             quit_game()
         elif running:
-            logging.warning("Invalid choice on pause menu.")
-            # EN: Invalid choice on pause menu.
-            # FR: Choix invalide dans le menu pause.
+            logging.warning("Invalid choice on pause menu. / Choix invalide dans le menu pause.")
 
     elif game_state.game_over: # Game Over Screen Logic / *Logique de l'Écran Game Over*
-        logging.debug("run_cli_mode: Game over, displaying game over menu.")
-        # EN: run_cli_mode: Game over, displaying game over menu.
-        # FR: run_cli_mode : Game over, affichage du menu game over.
+        logging.debug("run_cli_mode: Game over, displaying game over menu. / run_cli_mode : Game over, affichage du menu game over.")
         logging.info("\n--- GAME OVER (CLI Mode) ---")
         logging.info("1. Restart / *Recommencer*")
         logging.info("2. Exit / *Quitter*")
@@ -839,9 +734,7 @@ def run_cli_mode():
         try:
             choice = input("Enter choice / *Entrez votre choix*: ").strip()
         except EOFError:
-            logging.info("EOF received on game over menu, quitting.")
-            # EN: EOF received on game over menu, quitting.
-            # FR: EOF reçu dans le menu game over, fermeture.
+            logging.info("EOF received on game over menu, quitting. / EOF reçu dans le menu game over, fermeture.")
             quit_game()
             return
 
@@ -850,14 +743,10 @@ def run_cli_mode():
         elif choice == '2':
             quit_game()
         elif running:
-            logging.warning("Invalid choice on game over menu.")
-            # EN: Invalid choice on game over menu.
-            # FR: Choix invalide dans le menu game over.
+            logging.warning("Invalid choice on game over menu. / Choix invalide dans le menu game over.")
 
     else:  # Game is active (and not paused, not game over) / *Le jeu est actif (et non en pause, non game over)*
-        logging.debug("run_cli_mode: Game active, displaying active game options.")
-        # EN: run_cli_mode: Game active, displaying active game options.
-        # FR: run_cli_mode : Jeu actif, affichage des options du jeu actif.
+        logging.debug("run_cli_mode: Game active, displaying active game options. / run_cli_mode : Jeu actif, affichage des options du jeu actif.")
         logging.info("\n--- Game Active (CLI Mode) / *Jeu Actif (Mode CLI)* ---")
         # Display basic game info. Note: Full game logic (like enemy movement) is not run in CLI.
         # *Afficher les informations de base du jeu. Note : la logique complète du jeu (comme le mouvement des ennemis) n'est pas exécutée en CLI.*
@@ -867,45 +756,31 @@ def run_cli_mode():
         cli_action = ""
         try:
             cli_action = input("Action: ").strip().lower()
-            logging.debug(f"CLI action received: '{cli_action}'")
-            # EN: CLI action received: '{cli_action}'
-            # FR: Action CLI reçue : '{cli_action}'
+            logging.debug(f"CLI action received: '{cli_action}' / Action CLI reçue : '{cli_action}'")
         except EOFError:
-            logging.info("EOF received during active game, quitting.")
-            # EN: EOF received during active game, quitting.
-            # FR: EOF reçu pendant le jeu actif, fermeture.
+            logging.info("EOF received during active game, quitting. / EOF reçu pendant le jeu actif, fermeture.")
             quit_game()
             return
 
         if cli_action == 'esc': # Pause command / *Commande de pause*
-            logging.debug("CLI action 'esc' received, pausing game.")
-            # EN: CLI action 'esc' received, pausing game.
-            # FR: Action CLI 'esc' reçue, mise en pause du jeu.
+            logging.debug("CLI action 'esc' received, pausing game. / Action CLI 'esc' reçue, mise en pause du jeu.")
             game_state.pause_game()
         elif cli_action == 'q': # Quit command / *Commande pour quitter*
-            logging.debug("CLI action 'q' received, quitting game.")
-            # EN: CLI action 'q' received, quitting game.
-            # FR: Action CLI 'q' reçue, fermeture du jeu.
+            logging.debug("CLI action 'q' received, quitting game. / Action CLI 'q' reçue, fermeture du jeu.")
             quit_game()
         elif cli_action == 'd': # Simulate death for testing / *Simuler la mort pour les tests*
-            logging.debug("CLI action 'd' received, simulating player death.")
-            # EN: CLI action 'd' received, simulating player death.
-            # FR: Action CLI 'd' reçue, simulation de la mort du joueur.
+            logging.debug("CLI action 'd' received, simulating player death. / Action CLI 'd' reçue, simulation de la mort du joueur.")
             game_state.player.health = 0
             # Directly set game_over for CLI test simplicity. In GUI, this flows from health <= 0.
             # *Définir directement game_over pour la simplicité des tests CLI. En GUI, cela découle de santé <= 0.*
             game_state.game_over = True
-            logging.info("Simulating player death for CLI testing... Player HP set to 0, game_over set to True.")
-            # EN: Simulating player death for CLI testing... Player HP set to 0, game_over set to True.
-            # FR: Simulation de la mort du joueur pour test CLI... PV Joueur mis à 0, game_over mis à True.
+            logging.info("Simulating player death for CLI testing... Player HP set to 0, game_over set to True. / Simulation de la mort du joueur pour test CLI... PV Joueur mis à 0, game_over mis à True.")
 
     if running and args.cli: # Check 'running' again in case quit_game was called by an action
                              # *Vérifier 'running' à nouveau au cas où quit_game aurait été appelé par une action*
         time.sleep(0.1) # Small delay for CLI loop readability and to prevent busy-waiting
                         # *Petit délai pour la lisibilité de la boucle CLI et pour éviter l'attente active*
-    logging.debug("run_cli_mode: Iteration ended.")
-    # EN: run_cli_mode: Iteration ended.
-    # FR: run_cli_mode : Itération terminée.
+    logging.debug("run_cli_mode: Iteration ended. / run_cli_mode : Itération terminée.")
 
 
 def main_loop():
@@ -917,17 +792,13 @@ def main_loop():
     *Continue tant que l'indicateur global 'running' est True.*
     """
     global running # Controls the loop / *Contrôle la boucle*
-    logging.debug("Main loop started.")
-    # EN: Main loop started.
-    # FR: Boucle principale démarrée.
+    logging.debug("Main loop started. / Boucle principale démarrée.")
     while running:
         if not args.cli:
             run_gui_mode()
         else:
             run_cli_mode()
-    logging.debug("Main loop ended because 'running' is False.")
-    # EN: Main loop ended because 'running' is False.
-    # FR: Boucle principale terminée car 'running' est False.
+    logging.debug("Main loop ended because 'running' is False. / Boucle principale terminée car 'running' est False.")
 
 if __name__ == '__main__':
     # Configure logging based on --debug argument
@@ -954,36 +825,24 @@ if __name__ == '__main__':
     # Add the handler to the root logger / *Ajouter le gestionnaire au logger racine*
     logger.addHandler(stdout_handler)
 
-    logging.info("Application starting...")
-    # EN: Application starting...
-    # FR: Démarrage de l'application...
+    logging.info("Application starting... / Démarrage de l'application...")
     if args.cli:
-        logging.info("CLI mode enabled.")
-        # EN: CLI mode enabled.
-        # FR: Mode CLI activé.
+        logging.info("CLI mode enabled. / Mode CLI activé.")
     if args.debug:
-        logging.info("Debug logging enabled.")
-        # EN: Debug logging enabled.
-        # FR: Journalisation de débogage activée.
+        logging.info("Debug logging enabled. / Journalisation de débogage activée.")
 
     try:
         main_loop()
     finally:
         # Cleanup actions when the game loop finishes or an unhandled exception occurs in main_loop
         # *Actions de nettoyage lorsque la boucle de jeu se termine ou qu'une exception non gérée se produit dans main_loop*
-        logging.info("Application shutting down...")
-        # EN: Application shutting down...
-        # FR: Fermeture de l'application...
+        logging.info("Application shutting down... / Fermeture de l'application...")
         if not args.cli and pygame.get_init(): # Only quit pygame if it was initialized for GUI mode
                                                # *Quitter Pygame uniquement s'il a été initialisé pour le mode GUI*
             pygame.quit()
-            logging.info("Pygame quit successfully.")
-            # EN: Pygame quit successfully.
-            # FR: Pygame quitté avec succès.
+            logging.info("Pygame quit successfully. / Pygame quitté avec succès.")
         # sys.exit() is not strictly necessary here as the program will exit naturally.
         # It can be used to ensure a specific exit code if needed.
         # *sys.exit() n'est pas strictement nécessaire ici car le programme se terminera naturellement.*
         # *Il peut être utilisé pour assurer un code de sortie spécifique si nécessaire.*
-        logging.info("Shutdown complete.")
-        # EN: Shutdown complete.
-        # FR: Fermeture terminée.
+        logging.info("Shutdown complete. / Fermeture terminée.")

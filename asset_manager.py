@@ -17,6 +17,7 @@ import os
 import sys
 import logging
 from config import PLACEHOLDER_TEXT_COLOR, PLACEHOLDER_BG_COLOR, IMAGE_ASSET_CONFIG, SOUND_ASSET_CONFIG, DEFAULT_PLACEHOLDER_SIZE
+from utilities import get_asset_path # Import the centralized function
 
 # It's good practice to initialize pygame.font if you're going to use it.
 # This should ideally be done once at the start of the game (e.g., in main.py after pygame.init()).
@@ -90,9 +91,7 @@ class AssetManager:
             _test_font_failure (bool): Internal flag for testing font initialization failure.
                                        *Drapeau interne pour tester l'échec d'initialisation de la police.*
         """
-        logging.debug(f"AssetManager initializing. CLI mode: {cli_mode}, TestFontFailure: {_test_font_failure}")
-        # EN: AssetManager initializing. CLI mode: {cli_mode}, TestFontFailure: {_test_font_failure}
-        # FR: Initialisation de AssetManager. Mode CLI : {cli_mode}, TestFontFailure : {_test_font_failure}
+        logging.debug(f"AssetManager initializing. CLI mode: {cli_mode}, TestFontFailure: {_test_font_failure} / Initialisation de AssetManager. Mode CLI : {cli_mode}, TestFontFailure : {_test_font_failure}")
         self.cli_mode = cli_mode
         self.images = {}
         self.sounds = {}
@@ -107,24 +106,14 @@ class AssetManager:
                     # *En supposant que pygame.font.init() est appelé dans main.py après pygame.init()*
                     if pygame.font.get_init(): # Check if font module is truly initialized / *Vérifier si le module font est réellement initialisé*
                         self.placeholder_font = pygame.font.SysFont(None, 20)
-                        logging.debug("Placeholder font initialized successfully.")
-                        # EN: Placeholder font initialized successfully.
-                        # FR: Police de substitution initialisée avec succès.
+                        logging.debug("Placeholder font initialized successfully. / Police de substitution initialisée avec succès.")
                     else:
-                        logging.warning("Pygame font module not initialized. Cannot create placeholder font.")
-                        # EN: Pygame font module not initialized. Cannot create placeholder font.
-                        # FR: Module de police Pygame non initialisé. Impossible de créer la police de substitution.
+                        logging.warning("Pygame font module not initialized. Cannot create placeholder font. / Module de police Pygame non initialisé. Impossible de créer la police de substitution.")
                 except (pygame.error, AttributeError) as e:
-                    logging.warning(f"Could not initialize font for asset placeholders: {e}")
-                    # EN: Could not initialize font for asset placeholders: {e}
-                    # FR: Impossible d'initialiser la police pour les images de substitution : {e}
+                    logging.warning(f"Could not initialize font for asset placeholders: {e} / Impossible d'initialiser la police pour les images de substitution : {e}")
             else:
-                logging.warning("Pygame font module not available. Placeholders will not have text.")
-                # EN: Pygame font module not available. Placeholders will not have text.
-                # FR: Module de police Pygame non disponible. Les images de substitution n'auront pas de texte.
-        logging.debug(f"AssetManager initialized. Placeholder font: {self.placeholder_font}")
-        # EN: AssetManager initialized. Placeholder font: {self.placeholder_font}
-        # FR: AssetManager initialisé. Police de substitution : {self.placeholder_font}
+                logging.warning("Pygame font module not available. Placeholders will not have text. / Module de police Pygame non disponible. Les images de substitution n'auront pas de texte.")
+        logging.debug(f"AssetManager initialized. Placeholder font: {self.placeholder_font} / AssetManager initialisé. Police de substitution : {self.placeholder_font}")
         
     def load_assets(self):
         """
@@ -136,15 +125,11 @@ class AssetManager:
         *Pour les images, crée des substituts si le chargement échoue (mode GUI).*
         *Pour les sons, utilise DummySound si le chargement échoue ou en mode CLI/mixeur non disponible.*
         """
-        logging.debug("AssetManager.load_assets called.")
-        # EN: AssetManager.load_assets called.
-        # FR: AssetManager.load_assets appelé.
+        logging.debug("AssetManager.load_assets called. / AssetManager.load_assets appelé.")
 
         # Image loading using IMAGE_ASSET_CONFIG / *Chargement des images en utilisant IMAGE_ASSET_CONFIG*
         for key, config_entry in IMAGE_ASSET_CONFIG.items():
-            logging.debug(f"Attempting to load image asset '{key}' with config: {config_entry}")
-            # EN: Attempting to load image asset '{key}' with config: {config_entry}
-            # FR: Tentative de chargement de la ressource image '{key}' avec la configuration : {config_entry}
+            logging.debug(f"Attempting to load image asset '{key}' with config: {config_entry} / Tentative de chargement de la ressource image '{key}' avec la configuration : {config_entry}")
             path = config_entry['path']
             size_hint = config_entry.get('size')
 
@@ -152,27 +137,17 @@ class AssetManager:
                 # In CLI mode, store metadata or None. For now, just path and size hint.
                 # *En mode CLI, stocker les métadonnées ou None. Pour l'instant, juste le chemin et l'indice de taille.*
                 self.images[key] = {'path': path, 'size_hint': size_hint, 'type': 'cli_placeholder'}
-                logging.debug(f"CLI mode: Stored metadata for image '{key}'.")
-                # EN: CLI mode: Stored metadata for image '{key}'.
-                # FR: Mode CLI : Métadonnées stockées pour l'image '{key}'.
+                logging.debug(f"CLI mode: Stored metadata for image '{key}'. / Mode CLI : Métadonnées stockées pour l'image '{key}'.")
                 # No actual image loading or Pygame surface creation / *Pas de chargement d'image réel ni de création de surface Pygame*
             else: # GUI mode / *Mode GUI*
                 try:
-                    image_path = self._get_path(path)
-                    logging.debug(f"GUI mode: Loading image '{key}' from resolved path '{image_path}'.")
-                    # EN: GUI mode: Loading image '{key}' from resolved path '{image_path}'.
-                    # FR: Mode GUI : Chargement de l'image '{key}' depuis le chemin résolu '{image_path}'.
+                    image_path = get_asset_path(path) # Use centralized function
+                    logging.debug(f"GUI mode: Loading image '{key}' from resolved path '{image_path}'. / Mode GUI : Chargement de l'image '{key}' depuis le chemin résolu '{image_path}'.")
                     self.images[key] = pygame.image.load(image_path).convert_alpha()
-                    logging.debug(f"Successfully loaded image asset '{key}'.")
-                    # EN: Successfully loaded image asset '{key}'.
-                    # FR: Ressource image '{key}' chargée avec succès.
+                    logging.debug(f"Successfully loaded image asset '{key}'. / Ressource image '{key}' chargée avec succès.")
                 except (pygame.error, FileNotFoundError) as e:
-                    logging.warning(f"Could not load image asset '{key}' from '{path}': {e}. Creating placeholder.")
-                    # EN: Could not load image asset '{key}' from '{path}': {e}. Creating placeholder.
-                    # FR: Impossible de charger la ressource image '{key}' depuis '{path}' : {e}. Création d'un substitut.
-                    logging.debug(f"Entering placeholder creation logic for image '{key}'.")
-                    # EN: Entering placeholder creation logic for image '{key}'.
-                    # FR: Entrée dans la logique de création de substitut pour l'image '{key}'.
+                    logging.warning(f"Could not load image asset '{key}' from '{path}': {e}. Creating placeholder. / Impossible de charger la ressource image '{key}' depuis '{path}' : {e}. Création d'un substitut.")
+                    logging.debug(f"Entering placeholder creation logic for image '{key}'. / Entrée dans la logique de création de substitut pour l'image '{key}'.")
                     placeholder_size = size_hint if size_hint else DEFAULT_PLACEHOLDER_SIZE
                     placeholder_surface = pygame.Surface(placeholder_size)
                     placeholder_surface.fill(PLACEHOLDER_BG_COLOR)
@@ -183,72 +158,34 @@ class AssetManager:
                             text_rect = text_surface.get_rect(center=(placeholder_surface.get_width() // 2, placeholder_surface.get_height() // 2))
                             placeholder_surface.blit(text_surface, text_rect)
                         except pygame.error as font_e:
-                            logging.warning(f"Could not render text on placeholder for '{key}': {font_e}")
-                            # EN: Could not render text on placeholder for '{key}': {font_e}
-                            # FR: Impossible de rendre le texte sur le substitut pour '{key}' : {font_e}
+                            logging.warning(f"Could not render text on placeholder for '{key}': {font_e} / Impossible de rendre le texte sur le substitut pour '{key}' : {font_e}")
                     else:
-                        logging.warning(f"Placeholder font not available for asset '{key}'. Placeholder will be a plain blue rectangle.")
-                        # EN: Placeholder font not available for asset '{key}'. Placeholder will be a plain blue rectangle.
-                        # FR: Police de substitution non disponible pour la ressource '{key}'. Le substitut sera un simple rectangle bleu.
+                        logging.warning(f"Placeholder font not available for asset '{key}'. Placeholder will be a plain blue rectangle. / Police de substitution non disponible pour la ressource '{key}'. Le substitut sera un simple rectangle bleu.")
 
                     self.images[key] = placeholder_surface.convert_alpha()
             
         # Sound loading using SOUND_ASSET_CONFIG / *Chargement des sons en utilisant SOUND_ASSET_CONFIG*
         for key, path in SOUND_ASSET_CONFIG.items():
-            logging.debug(f"Attempting to load sound asset '{key}' from path '{path}'.")
-            # EN: Attempting to load sound asset '{key}' from path '{path}'.
-            # FR: Tentative de chargement de la ressource sonore '{key}' depuis le chemin '{path}'.
+            logging.debug(f"Attempting to load sound asset '{key}' from path '{path}'. / Tentative de chargement de la ressource sonore '{key}' depuis le chemin '{path}'.")
             if self.cli_mode or not (hasattr(pygame, 'mixer') and pygame.mixer.get_init()):
                 # If in CLI mode, or if mixer is not initialized (e.g. no sound card or init failed)
                 # *Si en mode CLI, ou si le mixeur n'est pas initialisé (par ex. pas de carte son ou initialisation échouée)*
                 if not self.cli_mode: # Only log this specific warning if not in CLI (CLI implies no sound hardware focus)
                                       # *Journaliser cet avertissement spécifique uniquement si pas en CLI (CLI implique pas de focus sur le matériel sonore)*
-                    logging.warning(f"Pygame mixer not initialized. Using dummy sound for '{key}'.")
-                    # EN: Pygame mixer not initialized. Using dummy sound for '{key}'.
-                    # FR: Mixeur Pygame non initialisé. Utilisation d'un son factice pour '{key}'.
+                    logging.warning(f"Pygame mixer not initialized. Using dummy sound for '{key}'. / Mixeur Pygame non initialisé. Utilisation d'un son factice pour '{key}'.")
                 else:
-                    logging.debug(f"CLI mode or mixer not init: Using DummySound for '{key}'.")
-                    # EN: CLI mode or mixer not init: Using DummySound for '{key}'.
-                    # FR: Mode CLI ou mixeur non initialisé : Utilisation de DummySound pour '{key}'.
+                    logging.debug(f"CLI mode or mixer not init: Using DummySound for '{key}'. / Mode CLI ou mixeur non initialisé : Utilisation de DummySound pour '{key}'.")
                 self.sounds[key] = DummySound()
             else: # GUI mode with mixer initialized / *Mode GUI avec mixeur initialisé*
                 try:
-                    sound_file_path = self._get_path(path)
-                    logging.debug(f"GUI mode: Loading sound '{key}' from resolved path '{sound_file_path}'.")
-                    # EN: GUI mode: Loading sound '{key}' from resolved path '{sound_file_path}'.
-                    # FR: Mode GUI : Chargement du son '{key}' depuis le chemin résolu '{sound_file_path}'.
+                    sound_file_path = get_asset_path(path) # Use centralized function
+                    logging.debug(f"GUI mode: Loading sound '{key}' from resolved path '{sound_file_path}'. / Mode GUI : Chargement du son '{key}' depuis le chemin résolu '{sound_file_path}'.")
                     self.sounds[key] = pygame.mixer.Sound(sound_file_path)
-                    logging.debug(f"Successfully loaded sound asset '{key}'.")
-                    # EN: Successfully loaded sound asset '{key}'.
-                    # FR: Ressource sonore '{key}' chargée avec succès.
+                    logging.debug(f"Successfully loaded sound asset '{key}'. / Ressource sonore '{key}' chargée avec succès.")
                 except pygame.error as e:
-                    logging.warning(f"Could not load sound asset '{key}' from '{path}': {e}. Using dummy sound.")
-                    # EN: Could not load sound asset '{key}' from '{path}': {e}. Using dummy sound.
-                    # FR: Impossible de charger la ressource sonore '{key}' depuis '{path}' : {e}. Utilisation d'un son factice.
+                    logging.warning(f"Could not load sound asset '{key}' from '{path}': {e}. Using dummy sound. / Impossible de charger la ressource sonore '{key}' depuis '{path}' : {e}. Utilisation d'un son factice.")
                     self.sounds[key] = DummySound() # Moved inside the except block / *Déplacé dans le bloc except*
-        logging.debug("AssetManager.load_assets finished.")
-        # EN: AssetManager.load_assets finished.
-        # FR: AssetManager.load_assets terminé.
+        logging.debug("AssetManager.load_assets finished. / AssetManager.load_assets terminé.")
     
-    def _get_path(self, relative_path):
-        """
-        Constructs the absolute path to an asset, handling running from source vs. frozen executable.
-        Args:
-            relative_path (str): The path to the asset relative to the 'Assets' directory.
-                                 *Le chemin vers la ressource relatif au répertoire 'Assets'.*
-        Returns:
-            str: The absolute path to the asset.
-                 *Le chemin absolu vers la ressource.*
-        """
-        logging.debug(f"AssetManager._get_path called with relative_path: '{relative_path}'.")
-        # EN: AssetManager._get_path called with relative_path: '{relative_path}'.
-        # FR: AssetManager._get_path appelé avec relative_path : '{relative_path}'.
-        if getattr(sys, 'frozen', False):
-            # If the application is run as a bundle/frozen executable (e.g., PyInstaller)
-            # *Si l'application est exécutée en tant que bundle/exécutable figé (par ex. PyInstaller)*
-            base_path = sys._MEIPASS
-        else:
-            # If run from source code
-            # *Si exécuté depuis le code source*
-            base_path = os.path.abspath(".")
-        return os.path.join(base_path, 'Assets', relative_path)
+# The _get_path method is now removed as it's replaced by the centralized utilities.get_asset_path
+# La méthode _get_path est maintenant supprimée car elle est remplacée par utilities.get_asset_path centralisée
