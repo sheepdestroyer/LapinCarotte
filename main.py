@@ -307,8 +307,8 @@ def create_buttons(args, screen_width, screen_height, assets, callbacks):
 
     # Calculate positions for game over buttons
     if screen_width > 0:
-        game_over_x_restart = screen_width / 2 - _restart_w - config.BUTTON_SPACING / 2
-        game_over_x_exit = screen_width / 2 + config.BUTTON_SPACING / 2
+        game_over_x_restart = screen_width / 2 - (_restart_w + config.BUTTON_SPACING + _exit_w) / 2
+        game_over_x_exit = game_over_x_restart + _restart_w + config.BUTTON_SPACING
     else:
         game_over_x_restart = 0
         game_over_x_exit = 0
