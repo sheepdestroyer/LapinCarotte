@@ -72,7 +72,7 @@ class TestCLIPassThrough: # Renamed to avoid conflict with Pytest's own 'TestCLI
         assert "Game reset (CLI)." in stdout # Confirms the restart action from game over menu
         # Ensure it returns to start screen after restart and then exits
         assert stdout.count("Start Screen (CLI Mode)") >= 2 # Initial, and after restart
-        assert "Exiting game." in stdout # Final exit message
+        assert "Exiting game (CLI)." in stdout # Final exit message - adjusted for new log
 
     def test_cli_start_pause_continue_quit(self):
         """Test starting, pausing, continuing multiple times, and then quitting."""
@@ -98,9 +98,9 @@ class TestCLIPassThrough: # Renamed to avoid conflict with Pytest's own 'TestCLI
         # Expect "Game Active" 3 times: initial, after continue 1, after continue 2
         # However, the prompt for action is part of the "Game Active" block.
         # Let's count the "Game Active (CLI Mode)" title.
-        assert stdout.count("--- Game Active (CLI Mode) ---") == 3
+        assert stdout.count("--- Game Active (CLI Mode) / *Jeu Actif (Mode CLI)* ---") == 3
 
-        assert stdout.count("--- PAUSED (CLI Mode) ---") == 2 # Paused twice
-        assert stdout.count("Game resumed (CLI).") == 2      # Resumed twice
-        assert "Exiting game." in stdout                     # Final quit
+        assert stdout.count("--- PAUSED (CLI Mode) / *PAUSE (Mode CLI)* ---") == 2 # Paused twice
+        assert stdout.count("Game resumed via callback (CLI).") == 2      # Resumed twice
+        assert "Exiting game (CLI)." in stdout                     # Final quit
         assert "--- GAME OVER (CLI Mode) ---" not in stdout  # Should not be game over
