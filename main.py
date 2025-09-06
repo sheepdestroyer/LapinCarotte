@@ -307,7 +307,7 @@ def create_buttons(args, screen_width, screen_height, assets, callbacks):
 
     # Calculate positions for game over buttons
     if screen_width > 0:
-        game_over_x_restart = screen_width / 2 - (_restart_w + config.BUTTON_SPACING + _exit_w) / 2
+        game_over_x_restart = screen_width // 2 - (_restart_w + config.BUTTON_SPACING + _exit_w) // 2
         game_over_x_exit = game_over_x_restart + _restart_w + config.BUTTON_SPACING
     else:
         game_over_x_restart = 0
@@ -315,8 +315,8 @@ def create_buttons(args, screen_width, screen_height, assets, callbacks):
 
     if screen_height > 0:
         # To vertically center both buttons, calculate y for each based on its own height
-        game_over_y_restart = screen_height * 3 / 4 - restart_button_rect.height / 2
-        game_over_y_exit = screen_height * 3 / 4 - exit_button_rect.height / 2
+        game_over_y_restart = screen_height * 3 // 4 - restart_button_rect.height // 2
+        game_over_y_exit = screen_height * 3 // 4 - exit_button_rect.height // 2
     else:
         game_over_y_restart = 0
         game_over_y_exit = 0
@@ -346,15 +346,15 @@ def create_buttons(args, screen_width, screen_height, assets, callbacks):
 
     # Calculate positions for pause screen buttons
     if screen_width > 0:
-        pause_x_continue = screen_width / 2 - _continue_w / 2
-        pause_x_settings = screen_width / 2 - _settings_w / 2
+        pause_x_continue = screen_width // 2 - _continue_w // 2
+        pause_x_settings = screen_width // 2 - _settings_w // 2
     else:
         pause_x_continue = 0
         pause_x_settings = 0
 
     if screen_height > 0:
         total_pause_buttons_height = continue_button_rect.height + config.BUTTON_SPACING + settings_button_rect.height
-        pause_y_continue = screen_height * 0.5 - total_pause_buttons_height / 2
+        pause_y_continue = screen_height // 2 - total_pause_buttons_height // 2
         pause_y_settings = pause_y_continue + continue_button_rect.height + config.BUTTON_SPACING
     else:
         pause_y_continue = 0
