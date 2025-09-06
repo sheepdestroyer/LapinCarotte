@@ -68,6 +68,7 @@ GARLIC_HEIGHT = 32
 PLACEHOLDER_TEXT_COLOR = (255, 255, 255) # White
 PLACEHOLDER_BG_COLOR = (0, 0, 255) # Blue
 DEFAULT_PLACEHOLDER_SIZE = (100, 50)
+PLACEHOLDER_FONT_SIZE = 20 # Font size for text on placeholders
 
 # Asset Configuration: 'path' is mandatory, 'size' (width, height) is optional for placeholders
 # Keys should match what AssetManager and main.py expect.

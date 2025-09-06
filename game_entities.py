@@ -18,7 +18,7 @@ class GameObject:
             # For CLI, or if image is not a surface (e.g. placeholder failed even more)
             width, height = 0, 0 # Default size
             if isinstance(image, dict): # Check if it's metadata from AssetManager CLI mode
-                size_info = image.get('size_hint') or image.get('size') # Prefer 'size_hint' if available from config
+                size_info = image.get('size_hint') # Rely only on size_hint
                 if size_info:
                     width, height = size_info
             self.rect = pygame.Rect(x, y, width, height)
@@ -331,7 +331,7 @@ class Button:
             # Button positioning logic in main.py might need to be CLI-aware too.
             width, height = 0,0
             if isinstance(image, dict): # Check if it's metadata from AssetManager CLI mode
-                size_info = image.get('size_hint') or image.get('size')
+                size_info = image.get('size_hint') # Rely only on size_hint
                 if size_info:
                     width, height = size_info
             self.rect = pygame.Rect(x, y, width, height)

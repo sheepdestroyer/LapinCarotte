@@ -2,7 +2,7 @@ import pygame
 import os
 import sys
 import logging # Import logging
-from config import PLACEHOLDER_TEXT_COLOR, PLACEHOLDER_BG_COLOR, IMAGE_ASSET_CONFIG, SOUND_ASSET_CONFIG, DEFAULT_PLACEHOLDER_SIZE # Import new configs
+from config import PLACEHOLDER_TEXT_COLOR, PLACEHOLDER_BG_COLOR, IMAGE_ASSET_CONFIG, SOUND_ASSET_CONFIG, DEFAULT_PLACEHOLDER_SIZE, PLACEHOLDER_FONT_SIZE # Import new configs
 
 # It's good practice to initialize pygame.font if you're going to use it.
 # This should ideally be done once at the start of the game (e.g., in main.py after pygame.init()).
@@ -50,7 +50,7 @@ class AssetManager:
                         raise pygame.error("Test-induced font failure")
                     # Assuming pygame.font.init() is called in main.py after pygame.init()
                     if pygame.font.get_init(): # Check if font module is truly initialized
-                        self.placeholder_font = pygame.font.SysFont(None, 20)
+                        self.placeholder_font = pygame.font.SysFont(None, PLACEHOLDER_FONT_SIZE) # Use constant
                         logging.debug("Placeholder font initialized successfully.")
                     else:
                         logging.warning("Pygame font module not initialized. Cannot create placeholder font.")
