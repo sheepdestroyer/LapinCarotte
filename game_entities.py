@@ -10,16 +10,25 @@
 # *et les éléments d'interface utilisateur comme les Boutons. Chaque classe gère généralement
 # *son propre état, son comportement (logique de mise à jour) et son affichage.*
 
-import pygame
 import math
 import random
 import time
-from config import *
-from config import (UI_HEALTH_X_OFFSET, UI_HEALTH_Y_OFFSET, UI_HEALTH_SPACING,
-                    UI_GARLIC_X_OFFSET, UI_GARLIC_Y_OFFSET, UI_GARLIC_SPACING,
-                    UI_JUICE_COUNTER_DIGIT_SPACING, UI_JUICE_COUNTER_DIGIT_SCALE,
-                    VAMPIRE_DEATH_FLASH_INTERVAL, VAMPIRE_DEATH_TINT_COLOR)
-from utilities import *
+
+import pygame
+
+from config import (BULLET_SPEED, CARROT_CHASE_RADIUS, CARROT_DETECTION_RADIUS,
+                    CARROT_SPEED, EXPLOSION_FLASH_INTERVAL,
+                    EXPLOSION_MAX_FLASHES, GARLIC_ROTATION_SPEED,
+                    GARLIC_SHOT_MAX_TRAVEL, GARLIC_SHOT_SPEED, MAX_HEALTH,
+                    MAX_SPEED_MULTIPLIER, PLAYER_INVINCIBILITY_DURATION,
+                    PLAYER_SPEED, START_HEALTH, UI_GARLIC_SPACING,
+                    UI_GARLIC_X_OFFSET, UI_GARLIC_Y_OFFSET,
+                    UI_HEALTH_SPACING, UI_HEALTH_X_OFFSET,
+                    UI_HEALTH_Y_OFFSET, UI_JUICE_COUNTER_DIGIT_SCALE,
+                    UI_JUICE_COUNTER_DIGIT_SPACING, VAMPIRE_DEATH_DURATION,
+                    VAMPIRE_DEATH_FLASH_INTERVAL, VAMPIRE_DEATH_TINT_COLOR,
+                    VAMPIRE_RESPAWN_TIME, VAMPIRE_SPEED)
+from utilities import calculate_movement_towards, get_direction_vector
 
 class GameObject:
     """
@@ -680,19 +689,6 @@ class Vampire(GameObject):
                            # *Dessiner normalement si actif et pas en effet de mort*
             super().draw(screen, scroll)
 
-        if not self.cli_mode and hasattr(image, 'get_rect'):
-            self.rect = self.image.get_rect(topleft=(x,y))
-        else:
-            # In CLI mode, buttons might not need a rect, or a default one.
-            # Or, main.py should not instantiate Button objects with image metadata if not needed.
-            # For now, create a default rect to prevent crashes during instantiation.
-            # Button positioning logic in main.py might need to be CLI-aware too.
-            width, height = 0,0
-            if isinstance(image, dict): # Check if it's metadata from AssetManager CLI mode
-                size_info = image.get('size_hint') # Rely only on size_hint
-                if size_info:
-                    width, height = size_info
-            self.rect = pygame.Rect(x, y, width, height)
 
 class Button(GameObject): # Button is also a GameObject
     """

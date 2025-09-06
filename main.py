@@ -11,19 +11,27 @@
 # *transitions entre les différents états du jeu (écran de démarrage, jeu actif, écran de pause, game over).*
 # *Il prend en charge les modes GUI et CLI.*
 
-import os
 import argparse
-import pygame
-import time
 import logging
-import sys
-import random
 import math
-import config # Should be imported before other modules that might depend on it if not for "from config import *"
+import os
+import random
+import sys
+import time
+
+import pygame
+
+import config
 from asset_manager import AssetManager, DummySound
-from game_entities import Player, Bullet, Carrot, Vampire, Explosion, Collectible, Button
+from config import (BUTTON_SPACING, DEFAULT_PLACEHOLDER_SIZE, MAX_GARLIC,
+                    PLAYER_INVINCIBILITY_FLASH_FREQUENCY,
+                    START_SCREEN_BUTTON_EXIT_X_OFFSET,
+                    START_SCREEN_BUTTON_EXIT_Y_OFFSET,
+                    START_SCREEN_BUTTON_START_X_OFFSET,
+                    START_SCREEN_BUTTON_START_Y_OFFSET, WORLD_SIZE)
+from game_entities import (Button, Bullet, Carrot, Collectible, Explosion,
+                           Player, Vampire)
 from game_state import GameState
-from config import * # Import all constants from config.py / *Importer toutes les constantes de config.py*
 from utilities import get_asset_path
 
 # Global variables initialized with default/None values

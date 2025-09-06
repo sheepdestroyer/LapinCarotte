@@ -221,7 +221,7 @@ def mock_pygame_modules(monkeypatch):
     _mock_gs.paused = False
     _mock_gs.game_over = False
     _mock_gs.player = MagicMock()
-    _mock_gs.player.health = main.START_HEALTH # Access START_HEALTH from main's imported config
+    _mock_gs.player.health = config.START_HEALTH # Access START_HEALTH from main's imported config
     _mock_gs.asset_manager = mock_asset_manager_instance # Ensure the mock GameState uses the mock AssetManager
     _mock_gs.cli_mode = default_args.cli
 
@@ -231,7 +231,7 @@ def mock_pygame_modules(monkeypatch):
         _mock_gs.game_over = False
         _mock_gs.paused = False
         # Simulate other reset actions if necessary for other tests
-        _mock_gs.player.health = main.START_HEALTH # Use main.START_HEALTH for consistency
+        _mock_gs.player.health = config.START_HEALTH # Use main.START_HEALTH for consistency
         # Add other resets like bullets = [], items = [], etc. if tests depend on them after reset
         # For example:
         # _mock_gs.bullets = []
@@ -324,7 +324,7 @@ def test_reset_game_functionality(mock_pygame_modules):
 
     assert main.game_state.started == False
     assert main.game_state.game_over == False
-    assert main.game_state.player.health == main.START_HEALTH # Vérifier une valeur spécifique réinitialisée
+    assert main.game_state.player.health == config.START_HEALTH # Vérifier une valeur spécifique réinitialisée
     main.asset_manager.sounds['press_start'].play.assert_called_once()
 
     # NOTE: Debug assertion removed.
