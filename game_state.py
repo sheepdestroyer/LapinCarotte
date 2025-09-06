@@ -175,7 +175,7 @@ class GameState:
     # *add_collectible semble inutilisé, les Collectibles sont créés directement dans update()*
     # def add_collectible(self, x, y, image, item_type='hp'): # item_type added for clarity
     #     """Create and add a new collectible item"""
-    #     self.items.append(Collectible(x, y, image, item_type, ITEM_SCALE, cli_mode=self.cli_mode))
+    #     self.items.append(Collectible(x, y, image, item_type, config.ITEM_SCALE, cli_mode=self.cli_mode))
 
     def create_carrot(self, asset_manager):
         """
