@@ -15,6 +15,10 @@ import math
 import random
 import time
 from config import *
+from config import (UI_HEALTH_X_OFFSET, UI_HEALTH_Y_OFFSET, UI_HEALTH_SPACING,
+                    UI_GARLIC_X_OFFSET, UI_GARLIC_Y_OFFSET, UI_GARLIC_SPACING,
+                    UI_JUICE_COUNTER_DIGIT_SPACING, UI_JUICE_COUNTER_DIGIT_SCALE,
+                    VAMPIRE_DEATH_FLASH_INTERVAL, VAMPIRE_DEATH_TINT_COLOR)
 from utilities import *
 
 class GameObject:
@@ -198,16 +202,16 @@ class Player(GameObject):
         # Health display / *Affichage de la santé*
         if hp_image and hasattr(hp_image, 'get_width'):
             for i in range(self.health):
-                screen.blit(hp_image, (10 + i * (hp_image.get_width() + 5), 10))
+                screen.blit(hp_image, (UI_HEALTH_X_OFFSET + i * (hp_image.get_width() + UI_HEALTH_SPACING), UI_HEALTH_Y_OFFSET))
         
         # Garlic display / *Affichage de l'ail*
         if self.garlic_count > 0 and garlic_image and hasattr(garlic_image, 'get_width'):
             screen_width = screen.get_width()
             garlic_width = garlic_image.get_width()
-            spacing = 5
+            spacing = UI_GARLIC_SPACING
             for i in range(self.garlic_count):
-                x_pos = screen_width - 10 - (i + 1) * (garlic_width + spacing)
-                screen.blit(garlic_image, (x_pos, 10))
+                x_pos = screen_width - UI_GARLIC_X_OFFSET - (i + 1) * (garlic_width + spacing)
+                screen.blit(garlic_image, (x_pos, UI_GARLIC_Y_OFFSET))
         
         # Carrot juice counter at bottom right (always visible when count > 0)
         # *Compteur de jus de carotte en bas à droite (toujours visible si compte > 0)*
@@ -217,7 +221,7 @@ class Player(GameObject):
 
             if juice_image and hasattr(juice_image, 'get_width') and digit_0_img and hasattr(digit_0_img, 'get_width'):
                 digits_str = str(self.carrot_juice_count)
-                spacing = 2 # Reduced spacing for digits / *Espacement réduit pour les chiffres*
+                spacing = UI_JUICE_COUNTER_DIGIT_SPACING # Reduced spacing for digits / *Espacement réduit pour les chiffres*
 
                 # Use the actual loaded digit images for scaling, assuming they are all same size
                 # *Utiliser les images de chiffres réellement chargées pour la mise à l'échelle, en supposant qu'elles ont toutes la même taille*
@@ -226,7 +230,7 @@ class Player(GameObject):
                 # *Par simplicité, supposons que les images des chiffres sont déjà de taille appropriée ou utilisons une échelle fixe.*
                 # Example: scale digits to be half the height of the juice icon
                 # *Exemple : mettre à l'échelle les chiffres pour qu'ils fassent la moitié de la hauteur de l'icône de jus*
-                digit_scale_factor = 0.5
+                digit_scale_factor = UI_JUICE_COUNTER_DIGIT_SCALE
                 scaled_digit_height = int(digit_0_img.get_height() * digit_scale_factor)
                 scaled_digit_width = int(digit_0_img.get_width() * digit_scale_factor)
 
@@ -663,13 +667,12 @@ class Vampire(GameObject):
             time_since_death_effect_start = current_time - self.death_effect_start_time
             if time_since_death_effect_start <= self.death_effect_duration:
                 # Flashing effect / *Effet de clignotement*
-                if int(time_since_death_effect_start / 0.1) % 2 == 0: # Flash every 0.1s
+                if int(time_since_death_effect_start / VAMPIRE_DEATH_FLASH_INTERVAL) % 2 == 0: # Flash every VAMPIRE_DEATH_FLASH_INTERVAL seconds
                     # Tinted image for death effect (e.g., green)
                     # *Image teintée pour l'effet de mort (par ex. vert)*
                     if self.original_image and hasattr(self.original_image, 'copy'):
                         tinted_image = self.original_image.copy()
-                        tinted_image.fill((0, 255, 0, 128), special_flags=pygame.BLEND_RGBA_MULT) # Green tint
-                                                                                                   # *Teinte verte*
+                        tinted_image.fill(VAMPIRE_DEATH_TINT_COLOR, special_flags=pygame.BLEND_RGBA_MULT) # Green tint
                         screen.blit(tinted_image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
             # else: death effect duration passed, it will be set to inactive by update or GameState
             # *sinon : la durée de l'effet de mort est passée, il sera défini comme inactif par update ou GameState*
