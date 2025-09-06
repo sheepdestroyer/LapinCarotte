@@ -244,13 +244,17 @@ class TestGameStateUpdate:
 
     @patch('time.time')
     def test_update_garlic_shot_vampire_collision(self, mock_time, game_state_instance, mock_asset_manager):
-        gs = game_state_instance; vampire = gs.vampire; current_time = 100.0
+        gs = game_state_instance
+        vampire = gs.vampire
+        current_time = 100.0
         mock_time.return_value = current_time
-
-        vampire.rect = pygame.Rect(200, 200, 40, 40); vampire.active = True
+        vampire.rect = pygame.Rect(200, 200, 40, 40)
+        vampire.active = True
         gs.garlic_shot = _create_test_garlic_shot(x=200, y=200, image=MagicMock())
-        gs.garlic_shot_start_time = current_time - 0.1; gs.garlic_shot_travel = 0
-        gs.garlic_shot_speed = GARLIC_SHOT_SPEED; gs.garlic_shot_duration = GARLIC_SHOT_DURATION
+        gs.garlic_shot_start_time = current_time - 0.1
+        gs.garlic_shot_travel = 0
+        gs.garlic_shot_speed = GARLIC_SHOT_SPEED
+        gs.garlic_shot_duration = GARLIC_SHOT_DURATION
 
         gs.update(current_time)
 
@@ -370,9 +374,12 @@ class TestGameStateUpdate:
 
     @patch('time.time')
     def test_update_garlic_shot_expiration_by_travel(self, mock_time, game_state_instance, mock_asset_manager):
-        gs = game_state_instance; current_time = 200.0; mock_time.return_value = current_time
+        gs = game_state_instance
+        current_time = 200.0
+        mock_time.return_value = current_time
         gs.garlic_shot = _create_test_garlic_shot(x=10, y=10, image=mock_asset_manager.images['garlic'])
-        gs.garlic_shot_speed = GARLIC_SHOT_SPEED; gs.garlic_shot_duration = GARLIC_SHOT_DURATION
+        gs.garlic_shot_speed = GARLIC_SHOT_SPEED
+        gs.garlic_shot_duration = GARLIC_SHOT_DURATION
         gs.garlic_shot_travel = GARLIC_SHOT_MAX_TRAVEL - gs.garlic_shot_speed / 2
         gs.garlic_shot_start_time = current_time
         gs.update(current_time)
