@@ -298,8 +298,12 @@ def create_buttons(args, screen_width, screen_height, assets, callbacks):
     )
     start_screen_buttons = [start_button_start_screen, exit_button_start_screen]
 
-    _restart_w = restart_button_rect.width if not args.cli and restart_button_img and hasattr(restart_button_img, 'get_width') else (config.DEFAULT_PLACEHOLDER_SIZE[0] if args.cli else 0)
-    _exit_w = exit_button_rect.width if not args.cli and exit_button_img and hasattr(exit_button_img, 'get_width') else (config.DEFAULT_PLACEHOLDER_SIZE[0] if args.cli else 0)
+    if args.cli:
+        _restart_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
+        _exit_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
+    else:
+        _restart_w = restart_button_rect.width if restart_button_img and hasattr(restart_button_img, 'get_width') else 0
+        _exit_w = exit_button_rect.width if exit_button_img and hasattr(exit_button_img, 'get_width') else 0
 
     restart_button_game_over_screen = Button(
         screen_width / 2 - _restart_w - config.BUTTON_SPACING / 2 if screen_width > 0 else 0,
@@ -317,8 +321,12 @@ def create_buttons(args, screen_width, screen_height, assets, callbacks):
     )
     game_over_buttons = [restart_button_game_over_screen, exit_button_game_over_screen]
 
-    _continue_w = continue_button_rect.width if not args.cli and continue_button_img and hasattr(continue_button_img, 'get_width') else (config.DEFAULT_PLACEHOLDER_SIZE[0] if args.cli else 0)
-    _settings_w = settings_button_rect.width if not args.cli and settings_button_img and hasattr(settings_button_img, 'get_width') else (config.DEFAULT_PLACEHOLDER_SIZE[0] if args.cli else 0)
+    if args.cli:
+        _continue_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
+        _settings_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
+    else:
+        _continue_w = continue_button_rect.width if continue_button_img and hasattr(continue_button_img, 'get_width') else 0
+        _settings_w = settings_button_rect.width if settings_button_img and hasattr(settings_button_img, 'get_width') else 0
 
     continue_button_pause_screen = Button(
         screen_width / 2 - _continue_w / 2 if screen_width > 0 else 0,
