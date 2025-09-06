@@ -14,8 +14,7 @@ import pygame # Added for pygame.math.Vector2 / *Ajouté pour pygame.math.Vector
 import math   # Added for math.sqrt / *Ajouté pour math.sqrt*
 import logging # For logging debug/info messages / *Pour journaliser les messages de débogage/info*
 from game_entities import Carrot, Vampire, Player, Bullet, GarlicShot, Explosion, Collectible
-from config import *
-from config import IMAGE_ASSET_CONFIG
+import config
 
 class GameState:
     """
@@ -36,8 +35,8 @@ class GameState:
         """
         self.cli_mode = cli_mode
         self.scroll = [0, 0]  # Camera scroll position / *Position de défilement de la caméra*
-        self.scroll_trigger = SCROLL_TRIGGER  # Screen edge percentage to trigger scroll / *Pourcentage du bord de l'écran pour déclencher le défilement*
-        self.world_size = WORLD_SIZE  # Total dimensions of the game world / *Dimensions totales du monde du jeu*
+        self.scroll_trigger = config.SCROLL_TRIGGER  # Screen edge percentage to trigger scroll / *Pourcentage du bord de l'écran pour déclencher le défilement*
+        self.world_size = config.WORLD_SIZE  # Total dimensions of the game world / *Dimensions totales du monde du jeu*
         self.game_over = False  # True if the game has ended / *True si le jeu est terminé*
         self.started = False  # True if the game has started (past the initial screen) / *True si le jeu a commencé (après l'écran initial)*
         self.paused = False  # True if the game is currently paused / *True si le jeu est actuellement en pause*
@@ -50,8 +49,8 @@ class GameState:
         self.garlic_shot_travel = 0
 
         self.vampire = Vampire(
-            random.randint(0, WORLD_SIZE[0]), 
-            random.randint(0, WORLD_SIZE[1]),
+            random.randint(0, config.WORLD_SIZE[0]),
+            random.randint(0, config.WORLD_SIZE[1]),
             asset_manager.images['vampire'],
             cli_mode=self.cli_mode
         )
@@ -69,14 +68,14 @@ class GameState:
         # self.garlic_shot = None
         # self.garlic_shot_travel = 0
         # self.garlic_shot_start_time = 0
-        self.garlic_shot_speed = GARLIC_SHOT_SPEED
-        self.garlic_shot_duration = GARLIC_SHOT_DURATION
+        self.garlic_shot_speed = config.GARLIC_SHOT_SPEED
+        self.garlic_shot_duration = config.GARLIC_SHOT_DURATION
         
         self.vampire_killed_count = 0  # Track vampires killed / *Compteur de vampires tués*
         self.last_vampire_death_pos = (0, 0)  # Position tracking for item drops from vampire / *Suivi de la position pour les chutes d'objets du vampire*
 
         # Initialize carrots / *Initialiser les carottes*
-        for _ in range(CARROT_COUNT):
+        for _ in range(config.CARROT_COUNT):
             self.create_carrot(asset_manager)
 
     def reset(self):
@@ -121,7 +120,7 @@ class GameState:
                 if size_hint:
                     vampire_width, vampire_height = size_hint
                 else: # Fallback if no size info in CLI metadata
-                    vampire_width, vampire_height = IMAGE_ASSET_CONFIG['vampire']['size']
+                    vampire_width, vampire_height = config.IMAGE_ASSET_CONFIG['vampire']['size']
 
             self.vampire.active = False
             self.vampire.death_effect_active = False
@@ -138,7 +137,7 @@ class GameState:
             
         # Recreate carrots with fresh instances / *Recréer les carottes avec de nouvelles instances*
         self.carrots = []
-        for _ in range(CARROT_COUNT):
+        for _ in range(config.CARROT_COUNT):
             self.create_carrot(self.asset_manager)
 
     def add_bullet(self, start_x, start_y, target_x, target_y, image):
@@ -188,7 +187,7 @@ class GameState:
                 if size_hint:
                     carrot_width, carrot_height = size_hint
                 else: # Fallback if no size info in CLI metadata
-                    carrot_width, carrot_height = IMAGE_ASSET_CONFIG['carrot']['size'] # Default size from config
+                    carrot_width, carrot_height = config.IMAGE_ASSET_CONFIG['carrot']['size'] # Default size from config
             elif hasattr(carrot_image_data, 'get_width'): # GUI mode, actual surface
                 carrot_width = carrot_image_data.get_width()
                 carrot_height = carrot_image_data.get_height()
@@ -207,7 +206,7 @@ class GameState:
 
             if not self.player or \
                ((x - player_center_x)**2 +
-                (y - player_center_y)**2 > (min(self.world_size)/CARROT_SPAWN_SAFE_RATIO)**2):
+                (y - player_center_y)**2 > (min(self.world_size)/config.CARROT_SPAWN_SAFE_RATIO)**2):
                 self.carrots.append(Carrot(x, y, carrot_image_data, cli_mode=self.cli_mode))
                 break
 
@@ -260,18 +259,18 @@ class GameState:
 
         # Respawn carrots after delay / *Faire réapparaître les carottes après un délai*
         for carrot in self.carrots:
-            if not carrot.active and (current_time - carrot.respawn_timer > CARROT_RESPAWN_DELAY):
+            if not carrot.active and (current_time - carrot.respawn_timer > config.CARROT_RESPAWN_DELAY):
                 carrot.respawn_timer = 0  # Reset timer / *Réinitialiser le minuteur*
                 carrot.respawn(self.world_size, self.player.rect) # Call carrot's own respawn logic
                                                                   # *Appeler la logique de réapparition propre à la carotte*
 
         # Garlic shot logic / *Logique du tir d'ail*
         if self.garlic_shot and self.garlic_shot["active"]:
-            if self.garlic_shot_travel < GARLIC_SHOT_MAX_TRAVEL and \
+            if self.garlic_shot_travel < config.GARLIC_SHOT_MAX_TRAVEL and \
                (current_time - self.garlic_shot_start_time <= self.garlic_shot_duration): # Check duration as well
                                                                                            # *Vérifier également la durée*
                 # Update rotation angle each frame / *Mettre à jour l'angle de rotation à chaque frame*
-                self.garlic_shot["rotation_angle"] = (self.garlic_shot["rotation_angle"] + GARLIC_ROTATION_SPEED) % 360
+                self.garlic_shot["rotation_angle"] = (self.garlic_shot["rotation_angle"] + config.GARLIC_ROTATION_SPEED) % 360
                 # Move in the pre-calculated direction / *Se déplacer dans la direction pré-calculée*
                 self.garlic_shot["x"] += self.garlic_shot["dx"] * self.garlic_shot_speed
                 self.garlic_shot["y"] += self.garlic_shot["dy"] * self.garlic_shot_speed
@@ -287,9 +286,9 @@ class GameState:
             if self.garlic_shot and self.garlic_shot["active"] and self.vampire.active:
                 # Ensure garlic_width and garlic_height are accessible or defined
                 # *S'assurer que garlic_width et garlic_height sont accessibles ou définis*
-                garlic_rect = pygame.Rect(self.garlic_shot["x"] - GARLIC_WIDTH / 2,
-                                          self.garlic_shot["y"] - GARLIC_HEIGHT / 2,
-                                          GARLIC_WIDTH, GARLIC_HEIGHT)
+                garlic_rect = pygame.Rect(self.garlic_shot["x"] - config.GARLIC_WIDTH / 2,
+                                          self.garlic_shot["y"] - config.GARLIC_HEIGHT / 2,
+                                          config.GARLIC_WIDTH, config.GARLIC_HEIGHT)
                 if garlic_rect.colliderect(self.vampire.rect):
                     self.vampire.death_effect_active = True
                     self.vampire.death_effect_start_time = current_time
@@ -312,7 +311,7 @@ class GameState:
         # *Gérer les animations de mort de vampire terminées et la chute d'objets*
         if self.vampire.death_effect_active and \
            not self.vampire.active and \
-           (current_time - self.vampire.death_effect_start_time >= VAMPIRE_DEATH_DURATION):
+           (current_time - self.vampire.death_effect_start_time >= config.VAMPIRE_DEATH_DURATION):
 
             self.vampire.death_effect_active = False # Clear flag / *Effacer l'indicateur*
 
@@ -324,7 +323,7 @@ class GameState:
                     self.last_vampire_death_pos[1],
                     self.asset_manager.images['carrot_juice'],
                     'carrot_juice', # item_type
-                    ITEM_SCALE,
+                    config.ITEM_SCALE,
                     cli_mode=self.cli_mode
                 )
             )
@@ -347,7 +346,7 @@ class GameState:
             if explosion.update(current_time): # update returns True when explosion is finished
                                                # *update retourne True quand l'explosion est terminée*
                 # Create collectible item (HP or Garlic) / *Créer un objet collectable (PV ou Ail)*
-                is_garlic = random.random() < ITEM_DROP_GARLIC_CHANCE
+                is_garlic = random.random() < config.ITEM_DROP_GARLIC_CHANCE
                 item_image_key = 'garlic' if is_garlic else 'hp'
                 item_type = 'garlic' if is_garlic else 'hp'
 
@@ -357,7 +356,7 @@ class GameState:
                         explosion.rect.centery,
                         self.asset_manager.images[item_image_key],
                         item_type,
-                        ITEM_SCALE,
+                        config.ITEM_SCALE,
                         cli_mode=self.cli_mode
                     )
                 )
@@ -369,20 +368,20 @@ class GameState:
             if item.active and self.player.rect.colliderect(item.rect):
                 logging.debug(f"Player collecting item: {item.item_type}. Player HP: {self.player.health}, Garlic: {self.player.garlic_count} / Joueur ramassant l'objet : {item.item_type}. PV Joueur : {self.player.health}, Ail : {self.player.garlic_count}")
                 collected = False
-                if item.item_type == 'hp' and self.player.health < MAX_HEALTH:
+                if item.item_type == 'hp' and self.player.health < config.MAX_HEALTH:
                     self.player.health += 1
                     self.player.health_changed = True # For UI update / *Pour mise à jour UI*
                     if not self.cli_mode: self.asset_manager.sounds['get_hp'].play()
                     collected = True
                     logging.info(f"Player collected HP. Current HP: {self.player.health} / Joueur a ramassé PV. PV actuels : {self.player.health}")
-                elif item.item_type == 'garlic' and self.player.garlic_count < MAX_GARLIC:
+                elif item.item_type == 'garlic' and self.player.garlic_count < config.MAX_GARLIC:
                     self.player.garlic_count += 1
                     self.player.garlic_changed = True # For UI update / *Pour mise à jour UI*
                     if not self.cli_mode: self.asset_manager.sounds['get_garlic'].play()
                     collected = True
                     logging.info(f"Player collected Garlic. Current Garlic: {self.player.garlic_count} / Joueur a ramassé Ail. Ail actuel : {self.player.garlic_count}")
                 elif item.item_type == 'carrot_juice':
-                    self.player.carrot_juice_count = min(self.player.carrot_juice_count + 1, MAX_CARROT_JUICE)
+                    self.player.carrot_juice_count = min(self.player.carrot_juice_count + 1, config.MAX_CARROT_JUICE)
                     self.player.juice_changed = True # For UI update / *Pour mise à jour UI*
                     if not self.cli_mode: self.asset_manager.sounds['get_hp'].play()  # Reuse existing pickup sound / *Réutiliser son de ramassage existant*
                     collected = True
