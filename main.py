@@ -353,8 +353,9 @@ def create_buttons(args, screen_width, screen_height, assets, callbacks):
         pause_x_settings = 0
 
     if screen_height > 0:
-        pause_y_continue = screen_height * 0.5 - continue_button_rect.height - config.BUTTON_SPACING / 2
-        pause_y_settings = screen_height * 0.5 + config.BUTTON_SPACING / 2
+        total_pause_buttons_height = continue_button_rect.height + config.BUTTON_SPACING + settings_button_rect.height
+        pause_y_continue = screen_height * 0.5 - total_pause_buttons_height / 2
+        pause_y_settings = pause_y_continue + continue_button_rect.height + config.BUTTON_SPACING
     else:
         pause_y_continue = 0
         pause_y_settings = 0
