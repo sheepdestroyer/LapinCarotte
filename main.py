@@ -461,7 +461,8 @@ def run_gui_mode():
                         "x": start_x, "y": start_y,
                         "dx": dx_norm, "dy": dy_norm,
                         "angle": angle, "active": True,
-                        "rotation_angle": angle
+                        "rotation_angle": angle,
+                        "rect": garlic_image.get_rect(center=(start_x, start_y))
                     }
                     game_state.garlic_shot_travel = 0
                     logging.debug(f"Garlic shot initiated towards ({world_mouse_x},{world_mouse_y}) with angle {angle:.2f} / Tir d'ail initié vers ({world_mouse_x},{world_mouse_y}) avec un angle de {angle:.2f}")
