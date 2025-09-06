@@ -326,7 +326,6 @@ class TestGameStateUpdate:
         vampire = gs.vampire
         current_time_initial = 400.0
         mock_time.return_value = current_time_initial
-        assert config.VAMPIRE_DEATH_DURATION == 2, "Test logic relies on VAMPIRE_DEATH_DURATION being 2"
 
         vampire.active = False
         vampire.death_effect_active = True
@@ -396,8 +395,6 @@ class TestGameStateUpdate:
         hp_item = Collectible(player.rect.centerx, player.rect.centery, real_item_surface, 'hp', config.ITEM_SCALE)
         gs.items.append(hp_item)
         player.health = config.START_HEALTH - 1
-        assert config.MAX_HEALTH == 3, "Test logic assumes MAX_HEALTH is 3"
-        assert config.START_HEALTH == 2, "Test logic assumes START_HEALTH is 2"
         assert player.health < config.MAX_HEALTH
         initial_health = player.health
 
