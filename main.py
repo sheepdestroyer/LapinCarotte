@@ -302,8 +302,8 @@ def create_buttons(args, screen_width, screen_height, assets, callbacks):
         _restart_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
         _exit_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
     else:
-        _restart_w = restart_button_rect.width if restart_button_img and hasattr(restart_button_img, 'get_width') else 0
-        _exit_w = exit_button_rect.width if exit_button_img and hasattr(exit_button_img, 'get_width') else 0
+        _restart_w = restart_button_rect.width
+        _exit_w = exit_button_rect.width
 
     # Calculate positions for game over buttons
     if screen_width > 0:
@@ -341,8 +341,8 @@ def create_buttons(args, screen_width, screen_height, assets, callbacks):
         _continue_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
         _settings_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
     else:
-        _continue_w = continue_button_rect.width if continue_button_img and hasattr(continue_button_img, 'get_width') else 0
-        _settings_w = settings_button_rect.width if settings_button_img and hasattr(settings_button_img, 'get_width') else 0
+        _continue_w = continue_button_rect.width
+        _settings_w = settings_button_rect.width
 
     # Calculate positions for pause screen buttons
     if screen_width > 0:
