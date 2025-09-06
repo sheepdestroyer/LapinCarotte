@@ -15,6 +15,7 @@ import math   # Added for math.sqrt / *Ajouté pour math.sqrt*
 import logging # For logging debug/info messages / *Pour journaliser les messages de débogage/info*
 from game_entities import Carrot, Vampire, Player, Bullet, GarlicShot, Explosion, Collectible
 from config import *
+from config import IMAGE_ASSET_CONFIG
 
 class GameState:
     """
@@ -114,14 +115,13 @@ class GameState:
         # Hard reset vampire / *Réinitialisation matérielle du vampire*
         if self.vampire:
             vampire_width = self.vampire.rect.width
-            vampire_width = self.vampire.rect.width
             vampire_height = self.vampire.rect.height
             if vampire_width == 0 and isinstance(self.asset_manager.images.get('vampire'), dict): # CLI mode with size hint
                 size_hint = self.asset_manager.images['vampire'].get('size_hint') or self.asset_manager.images['vampire'].get('size')
                 if size_hint:
                     vampire_width, vampire_height = size_hint
                 else: # Fallback if no size info in CLI metadata
-                    vampire_width, vampire_height = 84, 84 # Default from IMAGE_ASSET_CONFIG['vampire']['size']
+                    vampire_width, vampire_height = IMAGE_ASSET_CONFIG['vampire']['size']
 
             self.vampire.active = False
             self.vampire.death_effect_active = False
@@ -188,7 +188,7 @@ class GameState:
                 if size_hint:
                     carrot_width, carrot_height = size_hint
                 else: # Fallback if no size info in CLI metadata
-                    carrot_width, carrot_height = 48, 48 # Default size from original config
+                    carrot_width, carrot_height = IMAGE_ASSET_CONFIG['carrot']['size'] # Default size from config
             elif hasattr(carrot_image_data, 'get_width'): # GUI mode, actual surface
                 carrot_width = carrot_image_data.get_width()
                 carrot_height = carrot_image_data.get_height()
