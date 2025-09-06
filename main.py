@@ -11,19 +11,20 @@
 # *transitions entre les différents états du jeu (écran de démarrage, jeu actif, écran de pause, game over).*
 # *Il prend en charge les modes GUI et CLI.*
 
-import os
 import argparse
-import pygame
-import time
 import logging
-import sys
-import random
 import math
-import config # Should be imported before other modules that might depend on it if not for "from config import *"
+import os
+import random
+import sys
+import time
+
+import pygame
+
+import config
 from asset_manager import AssetManager, DummySound
-from game_entities import Player, Bullet, Carrot, Vampire, Explosion, Collectible, Button
+from game_entities import Button
 from game_state import GameState
-from config import * # Import all constants from config.py / *Importer toutes les constantes de config.py*
 from utilities import get_asset_path
 
 # Global variables initialized with default/None values
@@ -225,11 +226,11 @@ def load_game_assets(args, asset_manager, screen_width, screen_height):
 
         grass_image = asset_manager.images.get('grass')
         if grass_image and hasattr(grass_image, 'get_size'):
-            grass_background = pygame.Surface(WORLD_SIZE, pygame.SRCALPHA)
+            grass_background = pygame.Surface(config.WORLD_SIZE, pygame.SRCALPHA)
             _grass_w, _grass_h = grass_image.get_size()
             if _grass_w > 0 and _grass_h > 0:
-                for x_g in range(0, WORLD_SIZE[0], _grass_w):
-                    for y_g in range(0, WORLD_SIZE[1], _grass_h):
+                for x_g in range(0, config.WORLD_SIZE[0], _grass_w):
+                    for y_g in range(0, config.WORLD_SIZE[1], _grass_h):
                         grass_background.blit(grass_image, (x_g, y_g))
             else:
                 logging.warning("Grass asset has invalid dimensions, cannot tile background.")
@@ -282,53 +283,93 @@ def create_buttons(args, screen_width, screen_height, assets, callbacks):
         if _settings_img_temp and hasattr(_settings_img_temp, 'get_rect'): settings_button_rect = _settings_img_temp.get_rect()
 
     start_button_start_screen = Button(
-        start_screen_pos[0] + START_SCREEN_BUTTON_START_X_OFFSET,
-        start_screen_pos[1] + START_SCREEN_BUTTON_START_Y_OFFSET,
+        start_screen_pos[0] + config.START_SCREEN_BUTTON_START_X_OFFSET,
+        start_screen_pos[1] + config.START_SCREEN_BUTTON_START_Y_OFFSET,
         start_button_img,
         callbacks['start'],
         cli_mode=args.cli
     )
     exit_button_start_screen = Button(
-        start_screen_pos[0] + START_SCREEN_BUTTON_EXIT_X_OFFSET,
-        start_screen_pos[1] + START_SCREEN_BUTTON_EXIT_Y_OFFSET,
+        start_screen_pos[0] + config.START_SCREEN_BUTTON_EXIT_X_OFFSET,
+        start_screen_pos[1] + config.START_SCREEN_BUTTON_EXIT_Y_OFFSET,
         exit_button_img,
         callbacks['quit'],
         cli_mode=args.cli
     )
     start_screen_buttons = [start_button_start_screen, exit_button_start_screen]
 
-    _restart_w = restart_button_rect.width if not args.cli and restart_button_img and hasattr(restart_button_img, 'get_width') else (DEFAULT_PLACEHOLDER_SIZE[0] if args.cli else 0)
-    _exit_w = exit_button_rect.width if not args.cli and exit_button_img and hasattr(exit_button_img, 'get_width') else (DEFAULT_PLACEHOLDER_SIZE[0] if args.cli else 0)
+    if args.cli:
+        _restart_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
+        _exit_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
+    else:
+        _restart_w = restart_button_rect.width
+        _exit_w = exit_button_rect.width
+
+    # Calculate positions for game over buttons
+    if screen_width > 0:
+        game_over_x_restart = screen_width // 2 - (_restart_w + config.BUTTON_SPACING + _exit_w) // 2
+        game_over_x_exit = game_over_x_restart + _restart_w + config.BUTTON_SPACING
+    else:
+        game_over_x_restart = 0
+        game_over_x_exit = 0
+
+    if screen_height > 0:
+        # To vertically center both buttons, calculate y for each based on its own height
+        game_over_y_restart = screen_height * 3 // 4 - restart_button_rect.height // 2
+        game_over_y_exit = screen_height * 3 // 4 - exit_button_rect.height // 2
+    else:
+        game_over_y_restart = 0
+        game_over_y_exit = 0
 
     restart_button_game_over_screen = Button(
-        screen_width / 2 - _restart_w - BUTTON_SPACING / 2 if screen_width > 0 else 0,
-        screen_height * 3 / 4 - restart_button_rect.height / 2 if screen_height > 0 else 0,
+        game_over_x_restart,
+        game_over_y_restart,
         restart_button_img,
         callbacks['reset'],
         cli_mode=args.cli
     )
     exit_button_game_over_screen = Button(
-        screen_width / 2 + BUTTON_SPACING / 2 if screen_width > 0 else 0,
-        screen_height * 3 / 4 - exit_button_rect.height / 2 if screen_height > 0 else 0,
+        game_over_x_exit,
+        game_over_y_exit,
         exit_button_img,
         callbacks['quit'],
         cli_mode=args.cli
     )
     game_over_buttons = [restart_button_game_over_screen, exit_button_game_over_screen]
 
-    _continue_w = continue_button_rect.width if not args.cli and continue_button_img and hasattr(continue_button_img, 'get_width') else (DEFAULT_PLACEHOLDER_SIZE[0] if args.cli else 0)
-    _settings_w = settings_button_rect.width if not args.cli and settings_button_img and hasattr(settings_button_img, 'get_width') else (DEFAULT_PLACEHOLDER_SIZE[0] if args.cli else 0)
+    if args.cli:
+        _continue_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
+        _settings_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
+    else:
+        _continue_w = continue_button_rect.width
+        _settings_w = settings_button_rect.width
+
+    # Calculate positions for pause screen buttons
+    if screen_width > 0:
+        pause_x_continue = screen_width // 2 - _continue_w // 2
+        pause_x_settings = screen_width // 2 - _settings_w // 2
+    else:
+        pause_x_continue = 0
+        pause_x_settings = 0
+
+    if screen_height > 0:
+        total_pause_buttons_height = continue_button_rect.height + config.BUTTON_SPACING + settings_button_rect.height
+        pause_y_continue = screen_height // 2 - total_pause_buttons_height // 2
+        pause_y_settings = pause_y_continue + continue_button_rect.height + config.BUTTON_SPACING
+    else:
+        pause_y_continue = 0
+        pause_y_settings = 0
 
     continue_button_pause_screen = Button(
-        screen_width / 2 - _continue_w / 2 if screen_width > 0 else 0,
-        screen_height * 0.5 - continue_button_rect.height - BUTTON_SPACING / 2 if screen_height > 0 else 0,
+        pause_x_continue,
+        pause_y_continue,
         continue_button_img,
         callbacks['resume'],
         cli_mode=args.cli
     )
     settings_button_pause_screen = Button(
-        screen_width / 2 - _settings_w / 2 if screen_width > 0 else 0,
-        screen_height * 0.5 + BUTTON_SPACING / 2 if screen_height > 0 else 0,
+        pause_x_settings,
+        pause_y_settings,
         settings_button_img,
         callbacks['settings'],
         cli_mode=args.cli
@@ -484,7 +525,7 @@ def run_gui_mode():
                         tinted_image = game_state.player.original_image.copy()
                         tinted_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
                         screen.blit(tinted_image, player_pos_on_screen)
-            elif game_state.player.invincible and int(current_time * PLAYER_INVINCIBILITY_FLASH_FREQUENCY) % 2 == 1:
+            elif game_state.player.invincible and int(current_time * config.PLAYER_INVINCIBILITY_FLASH_FREQUENCY) % 2 == 1:
                 pass
             else:
                 if screen: game_state.player.draw(screen, game_state.scroll)
@@ -507,7 +548,7 @@ def run_gui_mode():
             if screen: game_state.vampire.draw(screen, game_state.scroll, current_time)
 
             if screen and hp_image_ui and garlic_image:
-                game_state.player.draw_ui(screen, hp_image_ui, garlic_image, MAX_GARLIC)
+                game_state.player.draw_ui(screen, hp_image_ui, garlic_image, config.MAX_GARLIC)
 
             if game_state.player.health_changed or game_state.player.garlic_changed or game_state.player.juice_changed:
                 logging.debug(f"Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count} / Stats Joueur - PV : {game_state.player.health}, Ail : {game_state.player.garlic_count}, Jus de Carotte : {game_state.player.carrot_juice_count}, Vampires Tués : {game_state.vampire_killed_count}")

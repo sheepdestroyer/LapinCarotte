@@ -10,16 +10,14 @@
 # *et les éléments d'interface utilisateur comme les Boutons. Chaque classe gère généralement
 # *son propre état, son comportement (logique de mise à jour) et son affichage.*
 
-import pygame
 import math
 import random
 import time
-from config import *
-from config import (UI_HEALTH_X_OFFSET, UI_HEALTH_Y_OFFSET, UI_HEALTH_SPACING,
-                    UI_GARLIC_X_OFFSET, UI_GARLIC_Y_OFFSET, UI_GARLIC_SPACING,
-                    UI_JUICE_COUNTER_DIGIT_SPACING, UI_JUICE_COUNTER_DIGIT_SCALE,
-                    VAMPIRE_DEATH_FLASH_INTERVAL, VAMPIRE_DEATH_TINT_COLOR)
-from utilities import *
+
+import pygame
+
+import config
+from utilities import calculate_movement_towards, get_direction_vector
 
 class GameObject:
     """
@@ -102,13 +100,13 @@ class Player(GameObject):
         self.initial_y = y
         self.flipped = False  # True if the player image is flipped horizontally / *True si l'image du joueur est retournée horizontalement*
         self.last_direction = "right" # Last horizontal direction moved / *Dernière direction horizontale de déplacement*
-        self.health = START_HEALTH
-        self.max_health = MAX_HEALTH
+        self.health = config.START_HEALTH
+        self.max_health = config.MAX_HEALTH
         self.garlic_count = 0 # Number of garlic items held / *Nombre d'aulx possédés*
         self.carrot_juice_count = 0  # Number of carrot juice items collected / *Nombre de jus de carotte collectés*
         self.invincible = False  # True if currently invincible / *True si actuellement invincible*
         self.last_hit_time = 0 # Time of the last hit taken / *Moment du dernier coup reçu*
-        self.speed = PLAYER_SPEED
+        self.speed = config.PLAYER_SPEED
         self.death_effect_active = False # True if death animation is playing / *True si l'animation de mort est en cours*
         self.death_effect_start_time = 0
         self.asset_manager = asset_manager
@@ -158,13 +156,13 @@ class Player(GameObject):
     def update_invincibility(self):
         """Checks and updates the player's invincibility status based on duration."""
         # *Vérifie et met à jour l'état d'invincibilité du joueur en fonction de la durée.*
-        if self.invincible and (time.time() - self.last_hit_time >= PLAYER_INVINCIBILITY_DURATION):
+        if self.invincible and (time.time() - self.last_hit_time >= config.PLAYER_INVINCIBILITY_DURATION):
             self.invincible = False
 
     def reset(self):
         """Resets the player to initial state (health, position, items, etc.)."""
         # *Réinitialise le joueur à son état initial (santé, position, objets, etc.).*
-        self.health = START_HEALTH
+        self.health = config.START_HEALTH
         self.garlic_count = 0
         self.carrot_juice_count = 0
         self.rect.x = self.initial_x
@@ -202,16 +200,16 @@ class Player(GameObject):
         # Health display / *Affichage de la santé*
         if hp_image and hasattr(hp_image, 'get_width'):
             for i in range(self.health):
-                screen.blit(hp_image, (UI_HEALTH_X_OFFSET + i * (hp_image.get_width() + UI_HEALTH_SPACING), UI_HEALTH_Y_OFFSET))
+                screen.blit(hp_image, (config.UI_HEALTH_X_OFFSET + i * (hp_image.get_width() + config.UI_HEALTH_SPACING), config.UI_HEALTH_Y_OFFSET))
         
         # Garlic display / *Affichage de l'ail*
         if self.garlic_count > 0 and garlic_image and hasattr(garlic_image, 'get_width'):
             screen_width = screen.get_width()
             garlic_width = garlic_image.get_width()
-            spacing = UI_GARLIC_SPACING
+            spacing = config.UI_GARLIC_SPACING
             for i in range(self.garlic_count):
-                x_pos = screen_width - UI_GARLIC_X_OFFSET - (i + 1) * (garlic_width + spacing)
-                screen.blit(garlic_image, (x_pos, UI_GARLIC_Y_OFFSET))
+                x_pos = screen_width - config.UI_GARLIC_X_OFFSET - (i + 1) * (garlic_width + spacing)
+                screen.blit(garlic_image, (x_pos, config.UI_GARLIC_Y_OFFSET))
         
         # Carrot juice counter at bottom right (always visible when count > 0)
         # *Compteur de jus de carotte en bas à droite (toujours visible si compte > 0)*
@@ -221,7 +219,7 @@ class Player(GameObject):
 
             if juice_image and hasattr(juice_image, 'get_width') and digit_0_img and hasattr(digit_0_img, 'get_width'):
                 digits_str = str(self.carrot_juice_count)
-                spacing = UI_JUICE_COUNTER_DIGIT_SPACING # Reduced spacing for digits / *Espacement réduit pour les chiffres*
+                spacing = config.UI_JUICE_COUNTER_DIGIT_SPACING # Reduced spacing for digits / *Espacement réduit pour les chiffres*
 
                 # Use the actual loaded digit images for scaling, assuming they are all same size
                 # *Utiliser les images de chiffres réellement chargées pour la mise à l'échelle, en supposant qu'elles ont toutes la même taille*
@@ -230,7 +228,7 @@ class Player(GameObject):
                 # *Par simplicité, supposons que les images des chiffres sont déjà de taille appropriée ou utilisons une échelle fixe.*
                 # Example: scale digits to be half the height of the juice icon
                 # *Exemple : mettre à l'échelle les chiffres pour qu'ils fassent la moitié de la hauteur de l'icône de jus*
-                digit_scale_factor = UI_JUICE_COUNTER_DIGIT_SCALE
+                digit_scale_factor = config.UI_JUICE_COUNTER_DIGIT_SCALE
                 scaled_digit_height = int(digit_0_img.get_height() * digit_scale_factor)
                 scaled_digit_width = int(digit_0_img.get_width() * digit_scale_factor)
 
@@ -277,7 +275,7 @@ class Bullet(GameObject):
         # Calculate direction from the initial (x,y) passed, which is typically player's center or weapon muzzle.
         # *Calculer la direction à partir des (x,y) initiaux passés, qui sont typiquement le centre du joueur ou la bouche de l'arme.*
         dir_x, dir_y = get_direction_vector(x, y, target_x, target_y)
-        self.velocity = (dir_x * BULLET_SPEED, dir_y * BULLET_SPEED)
+        self.velocity = (dir_x * config.BULLET_SPEED, dir_y * config.BULLET_SPEED)
         self.angle = math.degrees(math.atan2(-dir_y, dir_x)) # Angle for rotation / *Angle pour la rotation*
         
     def update(self):
@@ -317,7 +315,7 @@ class Carrot(GameObject):
             cli_mode (bool): CLI mode flag. / *Indicateur du mode CLI.*
         """
         super().__init__(x, y, image, cli_mode=cli_mode)
-        self.speed = CARROT_SPEED
+        self.speed = config.CARROT_SPEED
         self.active = True
         self.respawn_timer = 0 # Timer for respawning / *Minuteur pour la réapparition*
         self.direction = pygame.math.Vector2(random.uniform(-1, 1), 
@@ -378,7 +376,7 @@ class Carrot(GameObject):
 
             # Apply speed multiplier and determine direction if player is in detection radius
             # *Appliquer le multiplicateur de vitesse et déterminer la direction si le joueur est dans le rayon de détection*
-            if dist_sq < CARROT_DETECTION_RADIUS**2: # Player is in detection radius (dist_sq can be 0 here)
+            if dist_sq < config.CARROT_DETECTION_RADIUS**2: # Player is in detection radius (dist_sq can be 0 here)
                                                     # *Le joueur est dans le rayon de détection (dist_sq peut être 0 ici)*
                 dist = math.sqrt(dist_sq)
 
@@ -387,11 +385,11 @@ class Carrot(GameObject):
                 # The original formula was: 1 + (max_distance - dist)/max_distance * (MAX_SPEED_MULTIPLIER - 1)
                 # This means when dist is 0, multiplier is MAX_SPEED_MULTIPLIER.
                 # When dist is max_distance (CARROT_DETECTION_RADIUS), multiplier is 1.
-                speed_factor = (CARROT_DETECTION_RADIUS - dist) / CARROT_DETECTION_RADIUS
-                current_speed = self.speed * (1 + speed_factor * (MAX_SPEED_MULTIPLIER - 1))
-                current_speed = min(max(self.speed, current_speed), self.speed * MAX_SPEED_MULTIPLIER) # Clamp speed
+                speed_factor = (config.CARROT_DETECTION_RADIUS - dist) / config.CARROT_DETECTION_RADIUS
+                current_speed = self.speed * (1 + speed_factor * (config.MAX_SPEED_MULTIPLIER - 1))
+                current_speed = min(max(self.speed, current_speed), self.speed * config.MAX_SPEED_MULTIPLIER) # Clamp speed
 
-                if dist < CARROT_CHASE_RADIUS:
+                if dist < config.CARROT_CHASE_RADIUS:
                     # Player is very close, carrot should move AWAY from the player
                     # *Le joueur est très proche, la carotte doit s'éloigner du joueur*
                     if dist_sq > 0: # Avoid normalizing zero vector if somehow player and carrot are at exact same spot
@@ -439,8 +437,8 @@ class GarlicShot(GameObject): # This class seems unused in favor of the dictiona
         dir_x, dir_y = get_direction_vector(start_x, start_y, target_x, target_y)
         self.direction = pygame.math.Vector2(dir_x, dir_y)
         self.rotation_angle = 0 # For visual rotation / *Pour la rotation visuelle*
-        self.speed = GARLIC_SHOT_SPEED
-        self.max_travel = GARLIC_SHOT_MAX_TRAVEL # Max distance it can travel / *Distance max qu'il peut parcourir*
+        self.speed = config.GARLIC_SHOT_SPEED
+        self.max_travel = config.GARLIC_SHOT_MAX_TRAVEL # Max distance it can travel / *Distance max qu'il peut parcourir*
         self.traveled = 0 # Distance traveled so far / *Distance parcourue jusqu'à présent*
         self.active = True
 
@@ -451,7 +449,7 @@ class GarlicShot(GameObject): # This class seems unused in favor of the dictiona
             self.rect.x += self.direction.x * self.speed
             self.rect.y += self.direction.y * self.speed
             self.traveled += self.speed
-            self.rotation_angle = (self.rotation_angle + GARLIC_ROTATION_SPEED) % 360 # Use constant from config
+            self.rotation_angle = (self.rotation_angle + config.GARLIC_ROTATION_SPEED) % 360 # Use constant from config
                                                                                       # *Utiliser la constante de config*
             if self.traveled >= self.max_travel:
                 self.active = False
@@ -485,8 +483,8 @@ class Explosion(GameObject): # Explosion is not a GameObject in current code, bu
 
         self.start_time = time.time() # Time of creation / *Moment de création*
         self.flash_count = 0 # Number of flashes so far / *Nombre de flashs jusqu'à présent*
-        self.max_flashes = EXPLOSION_MAX_FLASHES
-        self.flash_interval = EXPLOSION_FLASH_INTERVAL
+        self.max_flashes = config.EXPLOSION_MAX_FLASHES
+        self.flash_interval = config.EXPLOSION_FLASH_INTERVAL
         self.active = True
 
     def update(self, current_time):
@@ -597,8 +595,8 @@ class Vampire(GameObject):
         self.respawn_timer = 0 # Timer for respawning / *Minuteur pour la réapparition*
         self.death_effect_active = False # True if death animation is playing / *True si l'animation de mort est en cours*
         self.death_effect_start_time = 0
-        self.death_effect_duration = VAMPIRE_DEATH_DURATION
-        self.speed = VAMPIRE_SPEED
+        self.death_effect_duration = config.VAMPIRE_DEATH_DURATION
+        self.speed = config.VAMPIRE_SPEED
 
     def update(self, player, world_bounds, current_time):
         """
@@ -631,7 +629,7 @@ class Vampire(GameObject):
                                     # *Il est déjà défini sur False lorsque death_effect_active est True par GameState*
         else: # Not active / *Pas actif*
             # Respawn check when NOT active / *Vérification de réapparition lorsque NON actif*
-            if (current_time - self.respawn_timer > VAMPIRE_RESPAWN_TIME) and not self.death_effect_active:
+            if (current_time - self.respawn_timer > config.VAMPIRE_RESPAWN_TIME) and not self.death_effect_active:
                  # Respawn only if not in the middle of a death effect
                  # *Réapparaître uniquement si pas au milieu d'un effet de mort*
                 self.respawn(
@@ -667,12 +665,12 @@ class Vampire(GameObject):
             time_since_death_effect_start = current_time - self.death_effect_start_time
             if time_since_death_effect_start <= self.death_effect_duration:
                 # Flashing effect / *Effet de clignotement*
-                if int(time_since_death_effect_start / VAMPIRE_DEATH_FLASH_INTERVAL) % 2 == 0: # Flash every VAMPIRE_DEATH_FLASH_INTERVAL seconds
+                if int(time_since_death_effect_start / config.VAMPIRE_DEATH_FLASH_INTERVAL) % 2 == 0: # Flash every VAMPIRE_DEATH_FLASH_INTERVAL seconds
                     # Tinted image for death effect (e.g., green)
                     # *Image teintée pour l'effet de mort (par ex. vert)*
                     if self.original_image and hasattr(self.original_image, 'copy'):
                         tinted_image = self.original_image.copy()
-                        tinted_image.fill(VAMPIRE_DEATH_TINT_COLOR, special_flags=pygame.BLEND_RGBA_MULT) # Green tint
+                        tinted_image.fill(config.VAMPIRE_DEATH_TINT_COLOR, special_flags=pygame.BLEND_RGBA_MULT) # Green tint
                         screen.blit(tinted_image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
             # else: death effect duration passed, it will be set to inactive by update or GameState
             # *sinon : la durée de l'effet de mort est passée, il sera défini comme inactif par update ou GameState*
@@ -680,19 +678,6 @@ class Vampire(GameObject):
                            # *Dessiner normalement si actif et pas en effet de mort*
             super().draw(screen, scroll)
 
-        if not self.cli_mode and hasattr(image, 'get_rect'):
-            self.rect = self.image.get_rect(topleft=(x,y))
-        else:
-            # In CLI mode, buttons might not need a rect, or a default one.
-            # Or, main.py should not instantiate Button objects with image metadata if not needed.
-            # For now, create a default rect to prevent crashes during instantiation.
-            # Button positioning logic in main.py might need to be CLI-aware too.
-            width, height = 0,0
-            if isinstance(image, dict): # Check if it's metadata from AssetManager CLI mode
-                size_info = image.get('size_hint') # Rely only on size_hint
-                if size_info:
-                    width, height = size_info
-            self.rect = pygame.Rect(x, y, width, height)
 
 class Button(GameObject): # Button is also a GameObject
     """
