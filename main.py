@@ -11,19 +11,20 @@
 # *transitions entre les différents états du jeu (écran de démarrage, jeu actif, écran de pause, game over).*
 # *Il prend en charge les modes GUI et CLI.*
 
-import os
 import argparse
-import pygame
-import time
 import logging
-import sys
-import random
 import math
-import config # Should be imported before other modules that might depend on it if not for "from config import *"
+import os
+import random
+import sys
+import time
+
+import pygame
+
+import config
 from asset_manager import AssetManager, DummySound
-from game_entities import Player, Bullet, Carrot, Vampire, Explosion, Collectible, Button
+from game_entities import Button
 from game_state import GameState
-from config import * # Import all constants from config.py / *Importer toutes les constantes de config.py*
 from utilities import get_asset_path
 
 # Global variables initialized with default/None values
@@ -35,20 +36,9 @@ asset_manager = None
 game_state = None
 start_screen_image = None
 start_screen_pos = (0,0)
-restart_button_rect = pygame.Rect(0,0,0,0)
-exit_button_rect = pygame.Rect(0,0,0,0)
-start_button_rect = pygame.Rect(0,0,0,0)
-continue_button_rect = pygame.Rect(0,0,0,0)
-settings_button_rect = pygame.Rect(0,0,0,0)
-grass_image = None
 garlic_image = None
 hp_image_ui = None
 game_over_image_ui = None
-start_button_img = None
-exit_button_img = None
-restart_button_img = None
-continue_button_img = None
-settings_button_img = None
 grass_background = None
 start_screen_buttons = []
 game_over_buttons = []
@@ -163,6 +153,234 @@ def open_settings_callback():
     """
     logging.debug("open_settings_callback called. / open_settings_callback appelé.")
     logging.info("Settings button clicked - Feature not implemented yet. / Bouton Paramètres cliqué - Fonctionnalité non encore implémentée.")
+
+def parse_arguments():
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(description="LapinCarotte - A game about a rabbit fighting vampire carrots. / *Un jeu sur un lapin combattant des carottes vampires.*")
+    parser.add_argument("--cli", action="store_true", help="Run the game in Command Line Interface mode (no graphics). / *Exécuter le jeu en mode Interface en Ligne de Commande (sans graphismes).*")
+    parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logging output. / *Activer la sortie de journalisation de débogage.*")
+    return parser.parse_args()
+
+def setup_logging(args):
+    """Configure logging based on command-line arguments."""
+    log_level = logging.DEBUG if args.debug else logging.INFO
+    logger = logging.getLogger()
+    logger.setLevel(log_level)
+    if logger.hasHandlers():
+        logger.handlers.clear()
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(log_level)
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s")
+    stdout_handler.setFormatter(formatter)
+    logger.addHandler(stdout_handler)
+    logging.info("Application starting... / Démarrage de l'application...")
+    if args.cli:
+        logging.info("CLI mode enabled. / Mode CLI activé.")
+    if args.debug:
+        logging.info("Debug logging enabled. / Journalisation de débogage activée.")
+
+def initialize_pygame(args):
+    """Initialize Pygame and the display screen."""
+    if args.cli:
+        return None, 0, 0
+    pygame.init()
+    os.environ['SDL_VIDEO_CENTERED'] = '1'
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
+    screen_width, screen_height = screen.get_size()
+    pygame.mouse.set_visible(False)
+    return screen, screen_width, screen_height
+
+def load_game_assets(args, asset_manager, screen_width, screen_height):
+    """Load all game assets."""
+    asset_manager.load_assets()
+    assets = {
+        'start_button_img': asset_manager.images.get('start'),
+        'exit_button_img': asset_manager.images.get('exit'),
+        'restart_button_img': asset_manager.images.get('restart'),
+        'continue_button_img': asset_manager.images.get('continue_button'),
+        'settings_button_img': asset_manager.images.get('settings_button'),
+        'start_screen_image': None,
+        'grass_background': None,
+        'garlic_image': asset_manager.images.get('garlic'),
+        'hp_image_ui': asset_manager.images.get('hp'),
+        'game_over_image_ui': asset_manager.images.get('game_over'),
+        'start_screen_pos': (0, 0)
+    }
+
+    if not args.cli:
+        if 'icon' in asset_manager.images and hasattr(asset_manager.images['icon'], 'get_rect'):
+            pygame.display.set_icon(asset_manager.images['icon'])
+
+        if sys.platform == 'win32':
+            import ctypes
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('LapinCarotte.LapinCarotte.Game.1.0')
+            pygame.display.set_caption("LapinCarotte", "LapinCarotte")
+
+        start_screen_image = asset_manager.images.get('start_screen')
+        if start_screen_image and hasattr(start_screen_image, 'get_width') and hasattr(start_screen_image, 'get_height'):
+            assets['start_screen_image'] = start_screen_image
+            assets['start_screen_pos'] = (
+                (screen_width - start_screen_image.get_width()) // 2,
+                (screen_height - start_screen_image.get_height()) // 2
+            )
+
+        grass_image = asset_manager.images.get('grass')
+        if grass_image and hasattr(grass_image, 'get_size'):
+            grass_background = pygame.Surface(config.WORLD_SIZE, pygame.SRCALPHA)
+            _grass_w, _grass_h = grass_image.get_size()
+            if _grass_w > 0 and _grass_h > 0:
+                for x_g in range(0, config.WORLD_SIZE[0], _grass_w):
+                    for y_g in range(0, config.WORLD_SIZE[1], _grass_h):
+                        grass_background.blit(grass_image, (x_g, y_g))
+            else:
+                logging.warning("Grass asset has invalid dimensions, cannot tile background.")
+                grass_background.fill((0,100,0))
+            assets['grass_background'] = grass_background
+
+        if pygame.mixer.get_init():
+            try:
+                intro_music_path = get_asset_path(config.MUSIC_INTRO)
+                pygame.mixer.music.load(intro_music_path)
+                pygame.mixer.music.play(-1)
+            except pygame.error as e:
+                logging.warning(f"Could not load or play intro music: {e}")
+        else:
+            logging.warning("Pygame mixer not initialized, skipping music.")
+
+    return assets
+
+def create_buttons(args, screen_width, screen_height, assets, callbacks):
+    """Create all UI buttons for the game."""
+    start_screen_pos = assets['start_screen_pos']
+    start_button_img = assets['start_button_img']
+    exit_button_img = assets['exit_button_img']
+    restart_button_img = assets['restart_button_img']
+    continue_button_img = assets['continue_button_img']
+    settings_button_img = assets['settings_button_img']
+
+    # Button Rects - these are needed for positioning calculations
+    restart_button_rect = pygame.Rect(0,0,0,0)
+    exit_button_rect = pygame.Rect(0,0,0,0)
+    start_button_rect = pygame.Rect(0,0,0,0)
+    continue_button_rect = pygame.Rect(0,0,0,0)
+    settings_button_rect = pygame.Rect(0,0,0,0)
+
+    if not args.cli:
+        # Use assets dictionary to get images
+        _restart_img_temp = assets.get('restart_button_img')
+        if _restart_img_temp and hasattr(_restart_img_temp, 'get_rect'): restart_button_rect = _restart_img_temp.get_rect()
+
+        _exit_img_temp = assets.get('exit_button_img')
+        if _exit_img_temp and hasattr(_exit_img_temp, 'get_rect'): exit_button_rect = _exit_img_temp.get_rect()
+
+        _start_img_temp = assets.get('start_button_img')
+        if _start_img_temp and hasattr(_start_img_temp, 'get_rect'): start_button_rect = _start_img_temp.get_rect()
+
+        _continue_img_temp = assets.get('continue_button_img')
+        if _continue_img_temp and hasattr(_continue_img_temp, 'get_rect'): continue_button_rect = _continue_img_temp.get_rect()
+
+        _settings_img_temp = assets.get('settings_button_img')
+        if _settings_img_temp and hasattr(_settings_img_temp, 'get_rect'): settings_button_rect = _settings_img_temp.get_rect()
+
+    start_button_start_screen = Button(
+        start_screen_pos[0] + config.START_SCREEN_BUTTON_START_X_OFFSET,
+        start_screen_pos[1] + config.START_SCREEN_BUTTON_START_Y_OFFSET,
+        start_button_img,
+        callbacks['start'],
+        cli_mode=args.cli
+    )
+    exit_button_start_screen = Button(
+        start_screen_pos[0] + config.START_SCREEN_BUTTON_EXIT_X_OFFSET,
+        start_screen_pos[1] + config.START_SCREEN_BUTTON_EXIT_Y_OFFSET,
+        exit_button_img,
+        callbacks['quit'],
+        cli_mode=args.cli
+    )
+    start_screen_buttons = [start_button_start_screen, exit_button_start_screen]
+
+    if args.cli:
+        _restart_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
+        _exit_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
+    else:
+        _restart_w = restart_button_rect.width
+        _exit_w = exit_button_rect.width
+
+    # Calculate positions for game over buttons
+    if screen_width > 0:
+        game_over_x_restart = screen_width // 2 - (_restart_w + config.BUTTON_SPACING + _exit_w) // 2
+        game_over_x_exit = game_over_x_restart + _restart_w + config.BUTTON_SPACING
+    else:
+        game_over_x_restart = 0
+        game_over_x_exit = 0
+
+    if screen_height > 0:
+        # To vertically center both buttons, calculate y for each based on its own height
+        game_over_y_restart = screen_height * 3 // 4 - restart_button_rect.height // 2
+        game_over_y_exit = screen_height * 3 // 4 - exit_button_rect.height // 2
+    else:
+        game_over_y_restart = 0
+        game_over_y_exit = 0
+
+    restart_button_game_over_screen = Button(
+        game_over_x_restart,
+        game_over_y_restart,
+        restart_button_img,
+        callbacks['reset'],
+        cli_mode=args.cli
+    )
+    exit_button_game_over_screen = Button(
+        game_over_x_exit,
+        game_over_y_exit,
+        exit_button_img,
+        callbacks['quit'],
+        cli_mode=args.cli
+    )
+    game_over_buttons = [restart_button_game_over_screen, exit_button_game_over_screen]
+
+    if args.cli:
+        _continue_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
+        _settings_w = config.DEFAULT_PLACEHOLDER_SIZE[0]
+    else:
+        _continue_w = continue_button_rect.width
+        _settings_w = settings_button_rect.width
+
+    # Calculate positions for pause screen buttons
+    if screen_width > 0:
+        pause_x_continue = screen_width // 2 - _continue_w // 2
+        pause_x_settings = screen_width // 2 - _settings_w // 2
+    else:
+        pause_x_continue = 0
+        pause_x_settings = 0
+
+    if screen_height > 0:
+        total_pause_buttons_height = continue_button_rect.height + config.BUTTON_SPACING + settings_button_rect.height
+        pause_y_continue = screen_height // 2 - total_pause_buttons_height // 2
+        pause_y_settings = pause_y_continue + continue_button_rect.height + config.BUTTON_SPACING
+    else:
+        pause_y_continue = 0
+        pause_y_settings = 0
+
+    continue_button_pause_screen = Button(
+        pause_x_continue,
+        pause_y_continue,
+        continue_button_img,
+        callbacks['resume'],
+        cli_mode=args.cli
+    )
+    settings_button_pause_screen = Button(
+        pause_x_settings,
+        pause_y_settings,
+        settings_button_img,
+        callbacks['settings'],
+        cli_mode=args.cli
+    )
+    pause_screen_buttons = [continue_button_pause_screen, settings_button_pause_screen]
+
+    return {
+        'start': start_screen_buttons,
+        'game_over': game_over_buttons,
+        'pause': pause_screen_buttons
+    }
 
 def run_gui_mode():
     """
@@ -307,7 +525,7 @@ def run_gui_mode():
                         tinted_image = game_state.player.original_image.copy()
                         tinted_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
                         screen.blit(tinted_image, player_pos_on_screen)
-            elif game_state.player.invincible and int(current_time * PLAYER_INVINCIBILITY_FLASH_FREQUENCY) % 2 == 1:
+            elif game_state.player.invincible and int(current_time * config.PLAYER_INVINCIBILITY_FLASH_FREQUENCY) % 2 == 1:
                 pass
             else:
                 if screen: game_state.player.draw(screen, game_state.scroll)
@@ -330,7 +548,7 @@ def run_gui_mode():
             if screen: game_state.vampire.draw(screen, game_state.scroll, current_time)
 
             if screen and hp_image_ui and garlic_image:
-                game_state.player.draw_ui(screen, hp_image_ui, garlic_image, MAX_GARLIC)
+                game_state.player.draw_ui(screen, hp_image_ui, garlic_image, config.MAX_GARLIC)
 
             if game_state.player.health_changed or game_state.player.garlic_changed or game_state.player.juice_changed:
                 logging.debug(f"Player Stats - HP: {game_state.player.health}, Garlic: {game_state.player.garlic_count}, Carrot Juice: {game_state.player.carrot_juice_count}, Vampires Killed: {game_state.vampire_killed_count} / Stats Joueur - PV : {game_state.player.health}, Ail : {game_state.player.garlic_count}, Jus de Carotte : {game_state.player.carrot_juice_count}, Vampires Tués : {game_state.vampire_killed_count}")
@@ -512,172 +730,40 @@ def main_loop():
 def main_entry_point():
     global args, screen, screen_width, screen_height, asset_manager, game_state, current_time
     global start_screen_image, start_screen_pos
-    global restart_button_rect, exit_button_rect, start_button_rect, continue_button_rect, settings_button_rect
-    global grass_image, garlic_image, hp_image_ui, game_over_image_ui
-    global start_button_img, exit_button_img, restart_button_img, continue_button_img, settings_button_img
-    global grass_background
+    global grass_background, garlic_image, hp_image_ui, game_over_image_ui
     global start_screen_buttons, game_over_buttons, pause_screen_buttons
-    global running, can_toggle_pause # Make sure these are global if they are set before main_loop
+    global running, can_toggle_pause
 
-    parser = argparse.ArgumentParser(description="LapinCarotte - A game about a rabbit fighting vampire carrots. / *Un jeu sur un lapin combattant des carottes vampires.*")
-    parser.add_argument("--cli", action="store_true", help="Run the game in Command Line Interface mode (no graphics). / *Exécuter le jeu en mode Interface en Ligne de Commande (sans graphismes).*")
-    parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logging output. / *Activer la sortie de journalisation de débogage.*")
-    args = parser.parse_args()
+    args = parse_arguments()
+    setup_logging(args)
 
-    # Configure logging based on --debug argument
-    log_level = logging.DEBUG if args.debug else logging.INFO
-    logger = logging.getLogger()
-    logger.setLevel(log_level)
-    if logger.hasHandlers():
-        logger.handlers.clear()
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(log_level)
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s")
-    stdout_handler.setFormatter(formatter)
-    logger.addHandler(stdout_handler)
-
-    logging.info("Application starting... / Démarrage de l'application...")
-    if args.cli:
-        logging.info("CLI mode enabled. / Mode CLI activé.")
-    if args.debug:
-        logging.info("Debug logging enabled. / Journalisation de débogage activée.")
-
-    if not args.cli:
-        pygame.init()
-        os.environ['SDL_VIDEO_CENTERED'] = '1'
-        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
-        screen_width, screen_height = screen.get_size()
-        pygame.mouse.set_visible(False)
+    screen, screen_width, screen_height = initialize_pygame(args)
 
     asset_manager = AssetManager(cli_mode=args.cli)
-    asset_manager.load_assets()
+    assets = load_game_assets(args, asset_manager, screen_width, screen_height)
 
-    if not args.cli and screen and 'icon' in asset_manager.images and hasattr(asset_manager.images['icon'], 'get_rect'):
-        pygame.display.set_icon(asset_manager.images['icon'])
-
-    if sys.platform == 'win32' and not args.cli:
-        import ctypes
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('LapinCarotte.LapinCarotte.Game.1.0')
-        pygame.display.set_caption("LapinCarotte", "LapinCarotte")
+    # Set global variables for run_gui_mode to use
+    start_screen_image = assets['start_screen_image']
+    start_screen_pos = assets['start_screen_pos']
+    grass_background = assets['grass_background']
+    garlic_image = assets['garlic_image']
+    hp_image_ui = assets['hp_image_ui']
+    game_over_image_ui = assets['game_over_image_ui']
 
     game_state = GameState(asset_manager, cli_mode=args.cli)
 
-    # Re-initialize UI elements that depend on screen_width, screen_height, or loaded assets
-    start_button_img = asset_manager.images.get('start')
-    exit_button_img = asset_manager.images.get('exit')
-    restart_button_img = asset_manager.images.get('restart')
-    continue_button_img = asset_manager.images.get('continue_button')
-    settings_button_img = asset_manager.images.get('settings_button')
+    callbacks = {
+        'start': start_game,
+        'quit': quit_game,
+        'reset': reset_game,
+        'resume': resume_game_callback,
+        'settings': open_settings_callback
+    }
 
-    if not args.cli:
-        start_screen_image = asset_manager.images.get('start_screen')
-        if start_screen_image and hasattr(start_screen_image, 'get_width') and hasattr(start_screen_image, 'get_height'):
-            start_screen_pos = (
-                (screen_width - start_screen_image.get_width()) // 2,
-                (screen_height - start_screen_image.get_height()) // 2
-            )
-
-        _restart_img_temp = asset_manager.images.get('restart')
-        if _restart_img_temp and hasattr(_restart_img_temp, 'get_rect'): restart_button_rect = _restart_img_temp.get_rect()
-
-        _exit_img_temp = asset_manager.images.get('exit')
-        if _exit_img_temp and hasattr(_exit_img_temp, 'get_rect'): exit_button_rect = _exit_img_temp.get_rect()
-
-        _start_img_temp = asset_manager.images.get('start')
-        if _start_img_temp and hasattr(_start_img_temp, 'get_rect'): start_button_rect = _start_img_temp.get_rect()
-
-        _continue_img_temp = asset_manager.images.get('continue_button')
-        if _continue_img_temp and hasattr(_continue_img_temp, 'get_rect'): continue_button_rect = _continue_img_temp.get_rect()
-
-        _settings_img_temp = asset_manager.images.get('settings_button')
-        if _settings_img_temp and hasattr(_settings_img_temp, 'get_rect'): settings_button_rect = _settings_img_temp.get_rect()
-
-        grass_image = asset_manager.images.get('grass')
-        if grass_image and hasattr(grass_image, 'get_size'):
-            grass_background = pygame.Surface(WORLD_SIZE, pygame.SRCALPHA)
-            _grass_w, _grass_h = grass_image.get_size()
-            if _grass_w > 0 and _grass_h > 0:
-                for x_g in range(0, WORLD_SIZE[0], _grass_w):
-                    for y_g in range(0, WORLD_SIZE[1], _grass_h):
-                        grass_background.blit(grass_image, (x_g, y_g))
-            else:
-                logging.warning("Grass asset has invalid dimensions, cannot tile background.")
-                grass_background.fill((0,100,0))
-
-        garlic_image = asset_manager.images.get('garlic')
-        hp_image_ui = asset_manager.images.get('hp')
-        game_over_image_ui = asset_manager.images.get('game_over')
-
-        if pygame.mixer.get_init():
-            try:
-                intro_music_path = get_asset_path(config.MUSIC_INTRO)
-                pygame.mixer.music.load(intro_music_path)
-                pygame.mixer.music.play(-1)
-            except pygame.error as e:
-                logging.warning(f"Could not load or play intro music: {e}")
-        else:
-            logging.warning("Pygame mixer not initialized, skipping music.")
-
-    # Button instances (need to be re-created or updated if their positions depend on screen_width/height)
-    # Ensure start_screen_pos is defined even for CLI for Button instantiation if they use it.
-    if args.cli and start_screen_pos == (0,0) and start_screen_image is None:
-        pass
-
-
-    start_button_start_screen = Button(
-        start_screen_pos[0] + START_SCREEN_BUTTON_START_X_OFFSET,
-        start_screen_pos[1] + START_SCREEN_BUTTON_START_Y_OFFSET,
-        start_button_img,
-        start_game,
-        cli_mode=args.cli
-    )
-    exit_button_start_screen = Button(
-        start_screen_pos[0] + START_SCREEN_BUTTON_EXIT_X_OFFSET,
-        start_screen_pos[1] + START_SCREEN_BUTTON_EXIT_Y_OFFSET,
-        exit_button_img,
-        quit_game,
-        cli_mode=args.cli
-    )
-    start_screen_buttons = [start_button_start_screen, exit_button_start_screen]
-
-    _restart_w = restart_button_rect.width if not args.cli and restart_button_img and hasattr(restart_button_img, 'get_width') else (DEFAULT_PLACEHOLDER_SIZE[0] if args.cli else 0)
-    _exit_w = exit_button_rect.width if not args.cli and exit_button_img and hasattr(exit_button_img, 'get_width') else (DEFAULT_PLACEHOLDER_SIZE[0] if args.cli else 0)
-
-    restart_button_game_over_screen = Button(
-        screen_width / 2 - _restart_w - BUTTON_SPACING / 2 if screen_width > 0 else 0,
-        screen_height * 3 / 4 - restart_button_rect.height / 2 if screen_height > 0 else 0,
-        restart_button_img,
-        reset_game,
-        cli_mode=args.cli
-    )
-    exit_button_game_over_screen = Button(
-        screen_width / 2 + BUTTON_SPACING / 2 if screen_width > 0 else 0,
-        screen_height * 3 / 4 - exit_button_rect.height / 2 if screen_height > 0 else 0,
-        exit_button_img,
-        quit_game,
-        cli_mode=args.cli
-    )
-    game_over_buttons = [restart_button_game_over_screen, exit_button_game_over_screen]
-
-    _continue_w = continue_button_rect.width if not args.cli and continue_button_img and hasattr(continue_button_img, 'get_width') else (DEFAULT_PLACEHOLDER_SIZE[0] if args.cli else 0)
-    _settings_w = settings_button_rect.width if not args.cli and settings_button_img and hasattr(settings_button_img, 'get_width') else (DEFAULT_PLACEHOLDER_SIZE[0] if args.cli else 0)
-
-    continue_button_pause_screen = Button(
-        screen_width / 2 - _continue_w / 2 if screen_width > 0 else 0,
-        screen_height * 0.5 - continue_button_rect.height - BUTTON_SPACING / 2 if screen_height > 0 else 0,
-        continue_button_img,
-        resume_game_callback,
-        cli_mode=args.cli
-    )
-    settings_button_pause_screen = Button(
-        screen_width / 2 - _settings_w / 2 if screen_width > 0 else 0,
-        screen_height * 0.5 + BUTTON_SPACING / 2 if screen_height > 0 else 0,
-        settings_button_img,
-        open_settings_callback,
-        cli_mode=args.cli
-    )
-    pause_screen_buttons = [continue_button_pause_screen, settings_button_pause_screen]
-
+    buttons = create_buttons(args, screen_width, screen_height, assets, callbacks)
+    start_screen_buttons = buttons['start']
+    game_over_buttons = buttons['game_over']
+    pause_screen_buttons = buttons['pause']
 
     current_time = time.time()
     running = True

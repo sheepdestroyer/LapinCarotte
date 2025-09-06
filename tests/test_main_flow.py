@@ -221,7 +221,7 @@ def mock_pygame_modules(monkeypatch):
     _mock_gs.paused = False
     _mock_gs.game_over = False
     _mock_gs.player = MagicMock()
-    _mock_gs.player.health = main.START_HEALTH # Access START_HEALTH from main's imported config
+    _mock_gs.player.health = config.START_HEALTH # Access START_HEALTH from main's imported config
     _mock_gs.asset_manager = mock_asset_manager_instance # Ensure the mock GameState uses the mock AssetManager
     _mock_gs.cli_mode = default_args.cli
 
@@ -231,7 +231,7 @@ def mock_pygame_modules(monkeypatch):
         _mock_gs.game_over = False
         _mock_gs.paused = False
         # Simulate other reset actions if necessary for other tests
-        _mock_gs.player.health = main.START_HEALTH # Use main.START_HEALTH for consistency
+        _mock_gs.player.health = config.START_HEALTH # Use main.START_HEALTH for consistency
         # Add other resets like bullets = [], items = [], etc. if tests depend on them after reset
         # For example:
         # _mock_gs.bullets = []
@@ -255,26 +255,10 @@ def mock_pygame_modules(monkeypatch):
     # These are now moved to main_entry_point, so this direct patching might be less critical
     # if tests are structured to call main_entry_point or if Button creation is also mocked/deferred.
     # However, to be safe for any test importing main and expecting these to be somewhat valid:
-    monkeypatch.setattr('main.start_button_img', mock_asset_manager_instance.images.get('start'))
-    monkeypatch.setattr('main.exit_button_img', mock_asset_manager_instance.images.get('exit'))
-    monkeypatch.setattr('main.restart_button_img', mock_asset_manager_instance.images.get('restart'))
-    monkeypatch.setattr('main.continue_button_img', mock_asset_manager_instance.images.get('continue_button'))
-    monkeypatch.setattr('main.settings_button_img', mock_asset_manager_instance.images.get('settings_button'))
-
-    # Initialize global rects in main, as Button() calls might use their .width/.height
-    # These are initialized to Rect(0,0,0,0) in main.py. For tests, if Button() constructor
-    # relies on these having dimensions from loaded images, we should provide mocks.
-    # The mock_asset_manager_instance.images already provide mock surfaces with get_rect().
-    # The current Button constructor in main.py uses these image objects directly.
-    # The _*_width variables in main_entry_point handle cases where images are not surfaces (CLI).
-    # So this part should be fine as long as the image mocks in asset_manager have get_rect.
-    # The global rects (e.g., main.restart_button_rect) are used if not args.cli for some calculations.
-    # Let's ensure they are at least valid pygame.Rect objects.
-    monkeypatch.setattr('main.restart_button_rect', mock_asset_manager_instance.images['restart'].get_rect())
-    monkeypatch.setattr('main.exit_button_rect', mock_asset_manager_instance.images['exit'].get_rect())
-    monkeypatch.setattr('main.start_button_rect', mock_asset_manager_instance.images['start'].get_rect())
-    monkeypatch.setattr('main.continue_button_rect', mock_asset_manager_instance.images['continue_button'].get_rect())
-    monkeypatch.setattr('main.settings_button_rect', mock_asset_manager_instance.images['settings_button'].get_rect())
+    # The global variables for button images and rects have been removed from main.py
+    # and are now created within functions. The tests for callbacks don't depend on them,
+    # so we can remove the monkeypatching for them.
+    pass
 
 
 # NOTE: L'import de `main` est fait dans chaque fonction de test ci-dessous.
@@ -340,7 +324,7 @@ def test_reset_game_functionality(mock_pygame_modules):
 
     assert main.game_state.started == False
     assert main.game_state.game_over == False
-    assert main.game_state.player.health == main.START_HEALTH # Vérifier une valeur spécifique réinitialisée
+    assert main.game_state.player.health == config.START_HEALTH # Vérifier une valeur spécifique réinitialisée
     main.asset_manager.sounds['press_start'].play.assert_called_once()
 
     # NOTE: Debug assertion removed.

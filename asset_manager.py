@@ -16,8 +16,8 @@ import pygame
 import os
 import sys
 import logging
-from config import PLACEHOLDER_TEXT_COLOR, PLACEHOLDER_BG_COLOR, IMAGE_ASSET_CONFIG, SOUND_ASSET_CONFIG, DEFAULT_PLACEHOLDER_SIZE
 from utilities import get_asset_path # Import the centralized function
+from config import PLACEHOLDER_TEXT_COLOR, PLACEHOLDER_BG_COLOR, IMAGE_ASSET_CONFIG, SOUND_ASSET_CONFIG, DEFAULT_PLACEHOLDER_SIZE, PLACEHOLDER_FONT_SIZE # Import new configs
 
 # It's good practice to initialize pygame.font if you're going to use it.
 # This should ideally be done once at the start of the game (e.g., in main.py after pygame.init()).
@@ -105,7 +105,7 @@ class AssetManager:
                     # Assuming pygame.font.init() is called in main.py after pygame.init()
                     # *En supposant que pygame.font.init() est appelé dans main.py après pygame.init()*
                     if pygame.font.get_init(): # Check if font module is truly initialized / *Vérifier si le module font est réellement initialisé*
-                        self.placeholder_font = pygame.font.SysFont(None, 20)
+                        self.placeholder_font = pygame.font.SysFont(None, PLACEHOLDER_FONT_SIZE) # Use constant
                         logging.debug("Placeholder font initialized successfully. / Police de substitution initialisée avec succès.")
                     else:
                         logging.warning("Pygame font module not initialized. Cannot create placeholder font. / Module de police Pygame non initialisé. Impossible de créer la police de substitution.")

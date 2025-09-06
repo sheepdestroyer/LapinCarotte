@@ -54,6 +54,15 @@ START_SCREEN_BUTTON_START_X_OFFSET = 787  # X offset for the Start button on the
 START_SCREEN_BUTTON_START_Y_OFFSET = 742  # Y offset for the Start button on the start screen / *Décalage Y pour le bouton Start sur l'écran de démarrage*
 START_SCREEN_BUTTON_EXIT_X_OFFSET = 787   # X offset for the Exit button on the start screen / *Décalage X pour le bouton Exit sur l'écran de démarrage*
 START_SCREEN_BUTTON_EXIT_Y_OFFSET = 827   # Y offset for the Exit button on the start screen / *Décalage Y pour le bouton Exit sur l'écran de démarrage*
+UI_HEALTH_X_OFFSET = 10
+UI_HEALTH_Y_OFFSET = 10
+UI_HEALTH_SPACING = 5
+UI_GARLIC_X_OFFSET = 10
+UI_GARLIC_Y_OFFSET = 10
+UI_GARLIC_SPACING = 5
+UI_JUICE_COUNTER_DIGIT_SPACING = 2
+UI_JUICE_COUNTER_DIGIT_SCALE = 0.5
+VAMPIRE_DEATH_TINT_COLOR = (0, 255, 0, 128)
 
 # Timing & Animation
 # *Temporisation et Animation*
@@ -61,6 +70,7 @@ FRAME_DELAY = 0.02  # Delay per frame, aiming for 50 FPS (1/50 = 0.02) / *Délai
 EXPLOSION_FLASH_INTERVAL = 0.1  # Interval between explosion flashes, in seconds / *Intervalle entre les flashs d'explosion, en secondes*
 EXPLOSION_MAX_FLASHES = 3  # Number of flashes for an explosion effect / *Nombre de flashs pour un effet d'explosion*
 VAMPIRE_DEATH_DURATION = 2  # Duration of the vampire death effect, in seconds / *Durée de l'effet de mort du vampire, en secondes*
+VAMPIRE_DEATH_FLASH_INTERVAL = 0.1
 VAMPIRE_RESPAWN_TIME = 5  # Time before the vampire respawns, in seconds / *Temps avant la réapparition du vampire, en secondes*
 PLAYER_DEATH_DURATION = 2  # Duration of the player death effect, in seconds / *Durée de l'effet de mort du joueur, en secondes*
 PLAYER_INVINCIBILITY_FLASH_FREQUENCY = 15 # Frequency of player flashing when invincible, in flashes per second / *Fréquence du clignotement du joueur lorsqu'il est invincible, en flashs par seconde*
@@ -89,6 +99,7 @@ GARLIC_HEIGHT = ITEM_HEIGHT # Use ITEM_HEIGHT for consistency / *Utiliser ITEM_H
 PLACEHOLDER_TEXT_COLOR = (255, 255, 255) # White color for text on placeholders / *Couleur blanche pour le texte sur les images de remplacement*
 PLACEHOLDER_BG_COLOR = (0, 0, 255)     # Blue background color for placeholder images / *Couleur de fond bleue pour les images de remplacement*
 DEFAULT_PLACEHOLDER_SIZE = (100, 50)   # Default size for placeholder images if original size is unknown / *Taille par défaut pour les images de remplacement si la taille originale est inconnue*
+PLACEHOLDER_FONT_SIZE = 20 # Font size for text on placeholders / *Taille de police de remplacement*
 
 # Asset Configuration: 'path' is mandatory, 'size' (width, height) is optional for placeholders.
 # Keys should match what AssetManager and main.py expect for loading.
