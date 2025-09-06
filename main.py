@@ -305,16 +305,29 @@ def create_buttons(args, screen_width, screen_height, assets, callbacks):
         _restart_w = restart_button_rect.width if restart_button_img and hasattr(restart_button_img, 'get_width') else 0
         _exit_w = exit_button_rect.width if exit_button_img and hasattr(exit_button_img, 'get_width') else 0
 
+    # Calculate positions for game over buttons
+    if screen_width > 0:
+        game_over_x_restart = screen_width / 2 - _restart_w - config.BUTTON_SPACING / 2
+        game_over_x_exit = screen_width / 2 + config.BUTTON_SPACING / 2
+    else:
+        game_over_x_restart = 0
+        game_over_x_exit = 0
+
+    if screen_height > 0:
+        game_over_y = screen_height * 3 / 4 - restart_button_rect.height / 2
+    else:
+        game_over_y = 0
+
     restart_button_game_over_screen = Button(
-        screen_width / 2 - _restart_w - config.BUTTON_SPACING / 2 if screen_width > 0 else 0,
-        screen_height * 3 / 4 - restart_button_rect.height / 2 if screen_height > 0 else 0,
+        game_over_x_restart,
+        game_over_y,
         restart_button_img,
         callbacks['reset'],
         cli_mode=args.cli
     )
     exit_button_game_over_screen = Button(
-        screen_width / 2 + config.BUTTON_SPACING / 2 if screen_width > 0 else 0,
-        screen_height * 3 / 4 - exit_button_rect.height / 2 if screen_height > 0 else 0,
+        game_over_x_exit,
+        game_over_y,
         exit_button_img,
         callbacks['quit'],
         cli_mode=args.cli
@@ -328,16 +341,31 @@ def create_buttons(args, screen_width, screen_height, assets, callbacks):
         _continue_w = continue_button_rect.width if continue_button_img and hasattr(continue_button_img, 'get_width') else 0
         _settings_w = settings_button_rect.width if settings_button_img and hasattr(settings_button_img, 'get_width') else 0
 
+    # Calculate positions for pause screen buttons
+    if screen_width > 0:
+        pause_x_continue = screen_width / 2 - _continue_w / 2
+        pause_x_settings = screen_width / 2 - _settings_w / 2
+    else:
+        pause_x_continue = 0
+        pause_x_settings = 0
+
+    if screen_height > 0:
+        pause_y_continue = screen_height * 0.5 - continue_button_rect.height - config.BUTTON_SPACING / 2
+        pause_y_settings = screen_height * 0.5 + config.BUTTON_SPACING / 2
+    else:
+        pause_y_continue = 0
+        pause_y_settings = 0
+
     continue_button_pause_screen = Button(
-        screen_width / 2 - _continue_w / 2 if screen_width > 0 else 0,
-        screen_height * 0.5 - continue_button_rect.height - config.BUTTON_SPACING / 2 if screen_height > 0 else 0,
+        pause_x_continue,
+        pause_y_continue,
         continue_button_img,
         callbacks['resume'],
         cli_mode=args.cli
     )
     settings_button_pause_screen = Button(
-        screen_width / 2 - _settings_w / 2 if screen_width > 0 else 0,
-        screen_height * 0.5 + config.BUTTON_SPACING / 2 if screen_height > 0 else 0,
+        pause_x_settings,
+        pause_y_settings,
         settings_button_img,
         callbacks['settings'],
         cli_mode=args.cli
