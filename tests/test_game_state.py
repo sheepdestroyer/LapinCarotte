@@ -434,14 +434,41 @@ class TestGameStateUpdate:
 
     @patch('time.time')
     def test_update_garlic_shot_expiration_by_travel(self, mock_time, game_state_instance, mock_asset_manager):
+        """Tests that the garlic shot expires when it exceeds its maximum travel distance."""
         gs = game_state_instance
         current_time = 200.0
         mock_time.return_value = current_time
         gs.garlic_shot = _create_test_garlic_shot(x=10, y=10, image=mock_asset_manager.images['garlic'])
-        gs.garlic_shot_travel = config.GARLIC_SHOT_MAX_TRAVEL - config.GARLIC_SHOT_SPEED / 2
+        # Set travel distance to be just under the limit
+        gs.garlic_shot_travel = config.GARLIC_SHOT_MAX_TRAVEL - (config.GARLIC_SHOT_SPEED / 2)
         gs.garlic_shot_start_time = current_time
+
+        # First update: shot is still active, travel distance is updated inside this call.
         gs.update(current_time)
         assert gs.garlic_shot["active"]
-        mock_time.return_value = current_time + config.GARLIC_SHOT_DURATION + 0.1
-        gs.update(mock_time.return_value)
+
+        # Second update: shot should expire due to the travel distance check at the start of the update.
+        gs.update(current_time) # Time doesn't need to advance for this check
+        assert gs.garlic_shot is None
+
+    @patch('time.time')
+    def test_update_garlic_shot_expiration_by_duration(self, mock_time, game_state_instance, mock_asset_manager):
+        """Tests that the garlic shot expires when its duration runs out."""
+        gs = game_state_instance
+        current_time = 200.0
+        mock_time.return_value = current_time
+        gs.garlic_shot = _create_test_garlic_shot(x=10, y=10, image=mock_asset_manager.images['garlic'])
+        gs.garlic_shot_travel = 0
+        gs.garlic_shot_start_time = current_time
+
+        # Update at a time just at the expiration moment
+        time_at_expiry = current_time + config.GARLIC_SHOT_DURATION
+        mock_time.return_value = time_at_expiry
+        gs.update(time_at_expiry)
+        assert gs.garlic_shot["active"]
+
+        # Update at a time just after expiration
+        time_after_expiry = current_time + config.GARLIC_SHOT_DURATION + 0.1
+        mock_time.return_value = time_after_expiry
+        gs.update(time_after_expiry)
         assert gs.garlic_shot is None
