@@ -223,31 +223,23 @@ class TestGameStateUpdate:
         assert gs.bullets[0].rect.centerx == initial_center_x_on_screen + BULLET_SPEED
 
     @patch('time.time')
-    @patch('game_state.pygame.Rect')
-    def test_update_garlic_shot_vampire_collision(self, mock_pygame_rect_class, mock_time, game_state_instance, mock_asset_manager):
+    def test_update_garlic_shot_vampire_collision(self, mock_time, game_state_instance, mock_asset_manager):
         gs = game_state_instance; vampire = gs.vampire; current_time = 100.0
         mock_time.return_value = current_time
-        mock_pygame_rect_class.return_value.colliderect.return_value = True
 
         vampire.rect = pygame.Rect(200, 200, 40, 40); vampire.active = True
         gs.garlic_shot = {
             "active": True, "x": 200, "y": 200, "dx": 1, "dy": 0,
-            "image": MagicMock(), "rotation_angle": 0
+            "image": MagicMock(), "rotation_angle": 0, "rect": pygame.Rect(195, 195, 10, 10)
         }
+        gs.garlic_shot["rect"].center = (gs.garlic_shot["x"], gs.garlic_shot["y"])
         gs.garlic_shot_start_time = current_time - 0.1; gs.garlic_shot_travel = 0
         gs.garlic_shot_speed = GARLIC_SHOT_SPEED; gs.garlic_shot_duration = GARLIC_SHOT_DURATION
 
-        expected_center_x_after_move = gs.garlic_shot["x"] + gs.garlic_shot["dx"] * gs.garlic_shot_speed
-        expected_center_y_after_move = gs.garlic_shot["y"] + gs.garlic_shot["dy"] * gs.garlic_shot_speed
-
-        expected_topleft_x = expected_center_x_after_move - GARLIC_WIDTH / 2
-        expected_topleft_y = expected_center_y_after_move - GARLIC_HEIGHT / 2
-
         gs.update(current_time)
 
-        mock_pygame_rect_class.assert_called_with(pytest.approx(expected_topleft_x), pytest.approx(expected_topleft_y), GARLIC_WIDTH, GARLIC_HEIGHT)
-        mock_pygame_rect_class.return_value.colliderect.assert_called_once_with(vampire.rect)
         assert vampire.death_effect_active
+        assert gs.garlic_shot is None
 
     @patch('time.time')
     def test_update_player_vampire_collision(self, mock_time, game_state_instance):
@@ -363,7 +355,7 @@ class TestGameStateUpdate:
     @patch('time.time')
     def test_update_garlic_shot_expiration_by_travel(self, mock_time, game_state_instance, mock_asset_manager):
         gs = game_state_instance; current_time = 200.0; mock_time.return_value = current_time
-        gs.garlic_shot = {"active": True, "x": 10, "y": 10, "dx": 1, "dy": 0, "rotation_angle": 0, "image": mock_asset_manager.images['garlic']}
+        gs.garlic_shot = {"active": True, "x": 10, "y": 10, "dx": 1, "dy": 0, "rotation_angle": 0, "image": mock_asset_manager.images['garlic'], "rect": pygame.Rect(10, 10, 10, 10)}
         gs.garlic_shot_speed = GARLIC_SHOT_SPEED; gs.garlic_shot_duration = GARLIC_SHOT_DURATION
         gs.garlic_shot_travel = GARLIC_SHOT_MAX_TRAVEL - gs.garlic_shot_speed / 2
         gs.garlic_shot_start_time = current_time

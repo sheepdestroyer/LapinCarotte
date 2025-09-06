@@ -457,11 +457,14 @@ def run_gui_mode():
                     dx_norm, dy_norm = (dx/dist, dy/dist) if dist > 0 else (0,1)
                     angle = math.degrees(math.atan2(-dy_norm, dx_norm))
 
+                    rect = pygame.Rect(0, 0, config.GARLIC_WIDTH, config.GARLIC_HEIGHT)
+                    rect.center = (start_x, start_y)
                     game_state.garlic_shot = {
                         "x": start_x, "y": start_y,
                         "dx": dx_norm, "dy": dy_norm,
                         "angle": angle, "active": True,
-                        "rotation_angle": angle
+                        "rotation_angle": angle,
+                        "rect": rect
                     }
                     game_state.garlic_shot_travel = 0
                     logging.debug(f"Garlic shot initiated towards ({world_mouse_x},{world_mouse_y}) with angle {angle:.2f} / Tir d'ail initié vers ({world_mouse_x},{world_mouse_y}) avec un angle de {angle:.2f}")

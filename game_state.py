@@ -39,6 +39,7 @@ class GameState:
         self.scroll = [0, 0]  # Camera scroll position / *Position de défilement de la caméra*
         self.scroll_trigger = config.SCROLL_TRIGGER  # Screen edge percentage to trigger scroll / *Pourcentage du bord de l'écran pour déclencher le défilement*
         self.world_size = config.WORLD_SIZE  # Total dimensions of the game world / *Dimensions totales du monde du jeu*
+        self.carrot_spawn_safe_radius_sq = (min(self.world_size) / config.CARROT_SPAWN_SAFE_RATIO)**2
         self.game_over = False  # True if the game has ended / *True si le jeu est terminé*
         self.started = False  # True if the game has started (past the initial screen) / *True si le jeu a commencé (après l'écran initial)*
         self.paused = False  # True if the game is currently paused / *True si le jeu est actuellement en pause*
@@ -208,7 +209,7 @@ class GameState:
 
             if not self.player or \
                ((x - player_center_x)**2 +
-                (y - player_center_y)**2 > (min(self.world_size)/config.CARROT_SPAWN_SAFE_RATIO)**2):
+                (y - player_center_y)**2 > self.carrot_spawn_safe_radius_sq):
                 self.carrots.append(Carrot(x, y, carrot_image_data, cli_mode=self.cli_mode))
                 break
 
@@ -286,12 +287,8 @@ class GameState:
             # Check for collision with vampire (only if garlic shot still exists and is active)
             # *Vérifier la collision avec le vampire (seulement si le tir d'ail existe encore et est actif)*
             if self.garlic_shot and self.garlic_shot["active"] and self.vampire.active:
-                # Ensure garlic_width and garlic_height are accessible or defined
-                # *S'assurer que garlic_width et garlic_height sont accessibles ou définis*
-                garlic_rect = pygame.Rect(self.garlic_shot["x"] - config.GARLIC_WIDTH / 2,
-                                          self.garlic_shot["y"] - config.GARLIC_HEIGHT / 2,
-                                          config.GARLIC_WIDTH, config.GARLIC_HEIGHT)
-                if garlic_rect.colliderect(self.vampire.rect):
+                self.garlic_shot["rect"].center = (self.garlic_shot["x"], self.garlic_shot["y"])
+                if self.garlic_shot["rect"].colliderect(self.vampire.rect):
                     self.vampire.death_effect_active = True
                     self.vampire.death_effect_start_time = current_time
                     self.vampire.active = False
