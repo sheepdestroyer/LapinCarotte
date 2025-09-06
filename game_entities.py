@@ -677,6 +677,19 @@ class Vampire(GameObject):
                            # *Dessiner normalement si actif et pas en effet de mort*
             super().draw(screen, scroll)
 
+        if not self.cli_mode and hasattr(image, 'get_rect'):
+            self.rect = self.image.get_rect(topleft=(x,y))
+        else:
+            # In CLI mode, buttons might not need a rect, or a default one.
+            # Or, main.py should not instantiate Button objects with image metadata if not needed.
+            # For now, create a default rect to prevent crashes during instantiation.
+            # Button positioning logic in main.py might need to be CLI-aware too.
+            width, height = 0,0
+            if isinstance(image, dict): # Check if it's metadata from AssetManager CLI mode
+                size_info = image.get('size_hint') # Rely only on size_hint
+                if size_info:
+                    width, height = size_info
+            self.rect = pygame.Rect(x, y, width, height)
 
 class Button(GameObject): # Button is also a GameObject
     """

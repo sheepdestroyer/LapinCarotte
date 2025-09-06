@@ -89,6 +89,7 @@ GARLIC_HEIGHT = ITEM_HEIGHT # Use ITEM_HEIGHT for consistency / *Utiliser ITEM_H
 PLACEHOLDER_TEXT_COLOR = (255, 255, 255) # White color for text on placeholders / *Couleur blanche pour le texte sur les images de remplacement*
 PLACEHOLDER_BG_COLOR = (0, 0, 255)     # Blue background color for placeholder images / *Couleur de fond bleue pour les images de remplacement*
 DEFAULT_PLACEHOLDER_SIZE = (100, 50)   # Default size for placeholder images if original size is unknown / *Taille par défaut pour les images de remplacement si la taille originale est inconnue*
+PLACEHOLDER_FONT_SIZE = 20 # Font size for text on placeholders / *Taille de police de remplacement*
 
 # Asset Configuration: 'path' is mandatory, 'size' (width, height) is optional for placeholders.
 # Keys should match what AssetManager and main.py expect for loading.
