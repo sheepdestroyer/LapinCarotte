@@ -234,8 +234,14 @@ class TestGameStateUpdate:
 
         vampire.rect = pygame.Rect(200, 200, 40, 40); vampire.active = True
         gs.garlic_shot = {
-            "active": True, "x": 200, "y": 200, "dx": 1, "dy": 0,
-            "image": MagicMock(), "rotation_angle": 0, "rect": pygame.Rect(0, 0, GARLIC_WIDTH, GARLIC_HEIGHT)
+            "active": True,
+            "x": 200,
+            "y": 200,
+            "dx": 1,
+            "dy": 0,
+            "image": MagicMock(),
+            "rotation_angle": 0,
+            "rect": pygame.Rect(0, 0, GARLIC_WIDTH, GARLIC_HEIGHT),
         }
         gs.garlic_shot["rect"].center = (gs.garlic_shot["x"], gs.garlic_shot["y"])
         gs.garlic_shot_start_time = current_time - 0.1; gs.garlic_shot_travel = 0
@@ -360,7 +366,16 @@ class TestGameStateUpdate:
     @patch('time.time')
     def test_update_garlic_shot_expiration_by_travel(self, mock_time, game_state_instance, mock_asset_manager):
         gs = game_state_instance; current_time = 200.0; mock_time.return_value = current_time
-        gs.garlic_shot = {"active": True, "x": 10, "y": 10, "dx": 1, "dy": 0, "rotation_angle": 0, "image": mock_asset_manager.images['garlic'], "rect": pygame.Rect(0, 0, GARLIC_WIDTH, GARLIC_HEIGHT)}
+        gs.garlic_shot = {
+            "active": True,
+            "x": 10,
+            "y": 10,
+            "dx": 1,
+            "dy": 0,
+            "rotation_angle": 0,
+            "image": mock_asset_manager.images['garlic'],
+            "rect": pygame.Rect(0, 0, GARLIC_WIDTH, GARLIC_HEIGHT)
+        }
         gs.garlic_shot["rect"].center = (gs.garlic_shot["x"], gs.garlic_shot["y"])
         gs.garlic_shot_speed = GARLIC_SHOT_SPEED; gs.garlic_shot_duration = GARLIC_SHOT_DURATION
         gs.garlic_shot_travel = GARLIC_SHOT_MAX_TRAVEL - gs.garlic_shot_speed / 2
