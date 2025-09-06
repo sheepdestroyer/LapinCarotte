@@ -9,12 +9,14 @@
 # *(joueur, ennemis, projectiles, objets), gère les conditions de jeu (par ex. game over,
 # *en pause), s'occupe des interactions entre entités, des mises à jour et réinitialise le jeu.*
 
+import logging
+import math
 import random
-import pygame # Added for pygame.math.Vector2 / *Ajouté pour pygame.math.Vector2*
-import math   # Added for math.sqrt / *Ajouté pour math.sqrt*
-import logging # For logging debug/info messages / *Pour journaliser les messages de débogage/info*
-from game_entities import Carrot, Vampire, Player, Bullet, GarlicShot, Explosion, Collectible
+
+import pygame
+
 import config
+from game_entities import Carrot, Vampire, Player, Bullet, GarlicShot, Explosion, Collectible
 
 class GameState:
     """
