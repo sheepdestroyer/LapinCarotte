@@ -4,12 +4,7 @@ import random
 
 from game_state import GameState
 from game_entities import Player, Vampire, Carrot, Bullet, GarlicShot, Explosion, Collectible
-from config import (
-    SCROLL_TRIGGER, WORLD_SIZE, CARROT_COUNT, START_HEALTH,
-    GARLIC_SHOT_SPEED, GARLIC_SHOT_DURATION, GARLIC_WIDTH, GARLIC_HEIGHT,
-    CARROT_RESPAWN_DELAY, BULLET_SPEED, VAMPIRE_DEATH_DURATION,
-    ITEM_DROP_GARLIC_CHANCE, ITEM_SCALE, MAX_HEALTH, GARLIC_SHOT_MAX_TRAVEL
-)
+import config
 from .test_utils import mock_asset_manager, mock_pygame_init_and_display, real_surface_factory, initialized_pygame
 
 import pygame
@@ -29,7 +24,7 @@ def _create_test_garlic_shot(x, y, image, dx=1, dy=0):
         "dy": dy,
         "rotation_angle": 0,
         "image": image,
-        "rect": pygame.Rect(0, 0, GARLIC_WIDTH, GARLIC_HEIGHT),
+        "rect": pygame.Rect(0, 0, config.GARLIC_WIDTH, config.GARLIC_HEIGHT),
     }
     shot["rect"].center = (x, y)
     return shot
@@ -37,12 +32,12 @@ def _create_test_garlic_shot(x, y, image, dx=1, dy=0):
 class TestGameStateInitialization:
     def test_initial_values(self, game_state_instance):
         gs = game_state_instance
-        assert gs.scroll == [0, 0]; assert gs.scroll_trigger == SCROLL_TRIGGER
-        assert gs.world_size == WORLD_SIZE; assert not gs.game_over; assert not gs.started
+        assert gs.scroll == [0, 0]; assert gs.scroll_trigger == config.SCROLL_TRIGGER
+        assert gs.world_size == config.WORLD_SIZE; assert not gs.game_over; assert not gs.started
         assert gs.asset_manager is not None; assert isinstance(gs.player, Player)
         assert gs.garlic_shot is None; assert gs.garlic_shot_start_time == 0; assert gs.garlic_shot_travel == 0
         assert isinstance(gs.vampire, Vampire); assert gs.vampire.active
-        assert gs.bullets == []; assert len(gs.carrots) == CARROT_COUNT
+        assert gs.bullets == []; assert len(gs.carrots) == config.CARROT_COUNT
         assert all(isinstance(c, Carrot) for c in gs.carrots); assert gs.explosions == []
         assert gs.garlic_shots == []; assert gs.items == []
         assert gs.vampire_killed_count == 0; assert gs.last_vampire_death_pos == (0,0)
@@ -60,7 +55,7 @@ class TestGameStateInitialization:
             player_image_for_init = mock_asset_manager.images['rabbit']
             player_center_x_init = 200 + player_image_for_init.get_width() // 2
             player_center_y_init = 200 + player_image_for_init.get_height() // 2
-            for i in range(CARROT_COUNT):
+            for i in range(config.CARROT_COUNT):
                 expected_init_carrot_coords.extend([player_center_x_init + 1500 + i * 50, player_center_y_init])
 
             mock_values_for_init = [vampire_x_expected, vampire_y_expected] + expected_init_carrot_coords
@@ -75,7 +70,7 @@ class TestGameStateInitialization:
 
             assert gs.vampire.rect.topleft == (vampire_x_expected, vampire_y_expected)
             assert mock_randint.call_count == len(mock_values_for_init)
-            for i in range(CARROT_COUNT):
+            for i in range(config.CARROT_COUNT):
                 assert gs.carrots[i].rect.topleft == (expected_init_carrot_coords[i*2], expected_init_carrot_coords[i*2+1])
             assert not mock_values_iter_init
 
@@ -114,7 +109,7 @@ class TestGameStateReset:
         player_center_x_reset = player_initial_x + player_width // 2
         player_center_y_reset = player_initial_y + player_height // 2
 
-        for i in range(CARROT_COUNT):
+        for i in range(config.CARROT_COUNT):
             # Provide coordinates far from the player for carrot creation to avoid excessive randint calls
             expected_carrot_coords.extend([player_center_x_reset + 1600 + i * 50, player_center_y_reset + i*10])
 
@@ -124,8 +119,8 @@ class TestGameStateReset:
         mock_values_for_reset = ([vamp_x_effective, vamp_y_effective] +
                                  expected_carrot_coords)
 
-        assert len(mock_values_for_reset) == 2 + (CARROT_COUNT * 2), \
-               f"Expected {2 + CARROT_COUNT * 2} mock values, got {len(mock_values_for_reset)}"
+        assert len(mock_values_for_reset) == 2 + (config.CARROT_COUNT * 2), \
+               f"Expected {2 + config.CARROT_COUNT * 2} mock values, got {len(mock_values_for_reset)}"
 
         mock_values_iter = list(mock_values_for_reset)
         def side_effect_pop_func(*args):
@@ -137,7 +132,7 @@ class TestGameStateReset:
         gs.reset()
 
         assert gs.scroll == [0,0]; assert not gs.game_over; assert not gs.started
-        assert gs.player.health == START_HEALTH; assert gs.player.garlic_count == 0
+        assert gs.player.health == config.START_HEALTH; assert gs.player.garlic_count == 0
         assert gs.player.carrot_juice_count == 0
         assert gs.player.rect.topleft == (gs.player.initial_x, gs.player.initial_y)
         assert gs.bullets == []; assert gs.explosions == []; assert gs.items == []
@@ -145,9 +140,9 @@ class TestGameStateReset:
         assert gs.vampire.rect.topleft == (vamp_x_effective, vamp_y_effective) # Already corrected in previous mental step, this should be the target line
         assert gs.vampire.active; assert not gs.vampire.death_effect_active
 
-        assert len(gs.carrots) == CARROT_COUNT
+        assert len(gs.carrots) == config.CARROT_COUNT
         assert mock_randint.call_count == len(mock_values_for_reset)
-        for i in range(CARROT_COUNT):
+        for i in range(config.CARROT_COUNT):
             assert gs.carrots[i].rect.topleft == (expected_carrot_coords[i*2], expected_carrot_coords[i*2+1])
         assert not mock_values_iter, "Not all mock_randint values for reset were consumed"
 
@@ -209,7 +204,7 @@ class TestGameStateUpdate:
 
             gs.carrots[0].active = False; gs.carrots[0].respawn_timer = mock_time.return_value
             with patch.object(gs.carrots[0], 'respawn') as mock_carrot_respawn:
-                mock_time.return_value += CARROT_RESPAWN_DELAY + 0.1
+                mock_time.return_value += config.CARROT_RESPAWN_DELAY + 0.1
                 gs.update(mock_time.return_value)
                 mock_carrot_respawn.assert_called_once()
 
@@ -232,15 +227,15 @@ class TestGameStateUpdate:
 
     def test_update_removes_off_screen_bullets(self, game_state_instance, mock_asset_manager):
         gs = game_state_instance; bullet_image = mock_asset_manager.images['bullet']
-        gs.add_bullet(WORLD_SIZE[0]/2, WORLD_SIZE[1]/2, WORLD_SIZE[0]/2 + 100, WORLD_SIZE[1]/2, bullet_image)
-        gs.add_bullet(-200, WORLD_SIZE[1]/2, -300, WORLD_SIZE[1]/2, bullet_image)
+        gs.add_bullet(config.WORLD_SIZE[0]/2, config.WORLD_SIZE[1]/2, config.WORLD_SIZE[0]/2 + 100, config.WORLD_SIZE[1]/2, bullet_image)
+        gs.add_bullet(-200, config.WORLD_SIZE[1]/2, -300, config.WORLD_SIZE[1]/2, bullet_image)
 
         initial_center_x_on_screen = gs.bullets[0].rect.centerx
         gs.bullets[1].rect.right = -1
 
         gs.update(1.0)
         assert len(gs.bullets) == 1
-        assert gs.bullets[0].rect.centerx == initial_center_x_on_screen + BULLET_SPEED
+        assert gs.bullets[0].rect.centerx == initial_center_x_on_screen + config.BULLET_SPEED
 
     @patch('time.time')
     def test_update_garlic_shot_vampire_collision(self, mock_time, game_state_instance, mock_asset_manager):
@@ -253,8 +248,6 @@ class TestGameStateUpdate:
         gs.garlic_shot = _create_test_garlic_shot(x=200, y=200, image=MagicMock())
         gs.garlic_shot_start_time = current_time - 0.1
         gs.garlic_shot_travel = 0
-        gs.garlic_shot_speed = GARLIC_SHOT_SPEED
-        gs.garlic_shot_duration = GARLIC_SHOT_DURATION
 
         gs.update(current_time)
 
@@ -283,7 +276,7 @@ class TestGameStateUpdate:
     def test_update_vampire_death_item_drop(self, mock_time, game_state_instance, mock_asset_manager, real_surface_factory):
         gs = game_state_instance; vampire = gs.vampire; current_time_initial = 400.0
         mock_time.return_value = current_time_initial
-        assert VAMPIRE_DEATH_DURATION == 2, "Test logic relies on VAMPIRE_DEATH_DURATION being 2"
+        assert config.VAMPIRE_DEATH_DURATION == 2, "Test logic relies on VAMPIRE_DEATH_DURATION being 2"
 
         vampire.active = False; vampire.death_effect_active = True
         vampire.death_effect_start_time = current_time_initial
@@ -300,7 +293,7 @@ class TestGameStateUpdate:
             assert vampire.death_effect_active is True, "Post-update (elapsed 0): death effect should still be active"
             assert len(gs.items) == initial_item_count, "No item should drop if elapsed 0"
 
-            time_for_effect_to_complete = vampire.death_effect_start_time + float(VAMPIRE_DEATH_DURATION)
+            time_for_effect_to_complete = vampire.death_effect_start_time + float(config.VAMPIRE_DEATH_DURATION)
             mock_time.return_value = time_for_effect_to_complete
 
             gs.update(time_for_effect_to_complete)
@@ -320,13 +313,13 @@ class TestGameStateUpdate:
         mock_explosion = MagicMock(spec=Explosion); mock_explosion.rect = pygame.Rect(300,300,5,5)
         mock_explosion.update = MagicMock(return_value=True)
         gs.explosions.append(mock_explosion); initial_item_count = len(gs.items)
-        mock_random_random.return_value = ITEM_DROP_GARLIC_CHANCE + 0.1 # HP
+        mock_random_random.return_value = config.ITEM_DROP_GARLIC_CHANCE + 0.1 # HP
         gs.update(current_time)
 
         assert len(gs.items) == initial_item_count + 1
         dropped_item = gs.items[-1]
-        expected_scaled_width = int(real_hp_image.get_width() * ITEM_SCALE)
-        expected_scaled_height = int(real_hp_image.get_height() * ITEM_SCALE)
+        expected_scaled_width = int(real_hp_image.get_width() * config.ITEM_SCALE)
+        expected_scaled_height = int(real_hp_image.get_height() * config.ITEM_SCALE)
         assert dropped_item.original_image.get_width() == expected_scaled_width
         assert dropped_item.original_image.get_height() == expected_scaled_height
 
@@ -341,12 +334,12 @@ class TestGameStateUpdate:
         gs.vampire.active = False
         gs.vampire.respawn_timer = 600.0 # Prevent vampire respawn during this test's update
 
-        hp_item = Collectible(player.rect.centerx, player.rect.centery, real_item_surface, 'hp', ITEM_SCALE)
+        hp_item = Collectible(player.rect.centerx, player.rect.centery, real_item_surface, 'hp', config.ITEM_SCALE)
         gs.items.append(hp_item);
-        player.health = START_HEALTH - 1;
-        assert MAX_HEALTH == 3, "Test logic assumes MAX_HEALTH is 3"
-        assert START_HEALTH == 2, "Test logic assumes START_HEALTH is 2"
-        assert player.health < MAX_HEALTH
+        player.health = config.START_HEALTH - 1;
+        assert config.MAX_HEALTH == 3, "Test logic assumes MAX_HEALTH is 3"
+        assert config.START_HEALTH == 2, "Test logic assumes START_HEALTH is 2"
+        assert player.health < config.MAX_HEALTH
         initial_health = player.health
 
         with patch.object(player, 'take_damage', wraps=player.take_damage) as mock_take_damage: # wraps to still execute original
@@ -359,14 +352,14 @@ class TestGameStateUpdate:
         mock_asset_manager.sounds['get_hp'].play.assert_called_once()
 
         player.rect.colliderect.reset_mock(); mock_asset_manager.sounds['get_garlic'].play.reset_mock()
-        garlic_item = Collectible(player.rect.centerx, player.rect.centery, real_item_surface, 'garlic', ITEM_SCALE)
+        garlic_item = Collectible(player.rect.centerx, player.rect.centery, real_item_surface, 'garlic', config.ITEM_SCALE)
         gs.items.append(garlic_item); player.garlic_count = 0; initial_garlic = player.garlic_count
         gs.update(601.0) # Assuming take_damage is not called in this update either
         assert player.garlic_count == initial_garlic + 1; assert garlic_item not in gs.items
         mock_asset_manager.sounds['get_garlic'].play.assert_called_once()
 
         player.rect.colliderect.reset_mock(); mock_asset_manager.sounds['get_hp'].play.reset_mock()
-        carrot_juice_item = Collectible(player.rect.centerx, player.rect.centery, real_item_surface, 'carrot_juice', ITEM_SCALE)
+        carrot_juice_item = Collectible(player.rect.centerx, player.rect.centery, real_item_surface, 'carrot_juice', config.ITEM_SCALE)
         gs.items.append(carrot_juice_item); player.carrot_juice_count = 0; initial_juice = player.carrot_juice_count
         gs.update(602.0) # Assuming take_damage is not called
         assert player.carrot_juice_count == initial_juice + 1; assert carrot_juice_item not in gs.items
@@ -378,12 +371,10 @@ class TestGameStateUpdate:
         current_time = 200.0
         mock_time.return_value = current_time
         gs.garlic_shot = _create_test_garlic_shot(x=10, y=10, image=mock_asset_manager.images['garlic'])
-        gs.garlic_shot_speed = GARLIC_SHOT_SPEED
-        gs.garlic_shot_duration = GARLIC_SHOT_DURATION
-        gs.garlic_shot_travel = GARLIC_SHOT_MAX_TRAVEL - gs.garlic_shot_speed / 2
+        gs.garlic_shot_travel = config.GARLIC_SHOT_MAX_TRAVEL - gs.garlic_shot_speed / 2
         gs.garlic_shot_start_time = current_time
         gs.update(current_time)
         assert gs.garlic_shot["active"]
-        mock_time.return_value = current_time + GARLIC_SHOT_DURATION + 0.1
+        mock_time.return_value = current_time + config.GARLIC_SHOT_DURATION + 0.1
         gs.update(mock_time.return_value)
         assert gs.garlic_shot is None
