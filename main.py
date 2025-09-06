@@ -314,20 +314,23 @@ def create_buttons(args, screen_width, screen_height, assets, callbacks):
         game_over_x_exit = 0
 
     if screen_height > 0:
-        game_over_y = screen_height * 3 / 4 - restart_button_rect.height / 2
+        # To vertically center both buttons, calculate y for each based on its own height
+        game_over_y_restart = screen_height * 3 / 4 - restart_button_rect.height / 2
+        game_over_y_exit = screen_height * 3 / 4 - exit_button_rect.height / 2
     else:
-        game_over_y = 0
+        game_over_y_restart = 0
+        game_over_y_exit = 0
 
     restart_button_game_over_screen = Button(
         game_over_x_restart,
-        game_over_y,
+        game_over_y_restart,
         restart_button_img,
         callbacks['reset'],
         cli_mode=args.cli
     )
     exit_button_game_over_screen = Button(
         game_over_x_exit,
-        game_over_y,
+        game_over_y_exit,
         exit_button_img,
         callbacks['quit'],
         cli_mode=args.cli
