@@ -29,8 +29,7 @@ from config import (BUTTON_SPACING, DEFAULT_PLACEHOLDER_SIZE, MAX_GARLIC,
                     START_SCREEN_BUTTON_EXIT_Y_OFFSET,
                     START_SCREEN_BUTTON_START_X_OFFSET,
                     START_SCREEN_BUTTON_START_Y_OFFSET, WORLD_SIZE)
-from game_entities import (Button, Bullet, Carrot, Collectible, Explosion,
-                           Player, Vampire)
+from game_entities import Button
 from game_state import GameState
 from utilities import get_asset_path
 
