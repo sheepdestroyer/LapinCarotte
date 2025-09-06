@@ -450,7 +450,7 @@ def run_gui_mode():
             if keys[pygame.K_UP] or keys[pygame.K_z]: dy -= 1
             if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
             if dx != 0 or dy != 0:
-                game_state.player.move(dx, dy, config.WORLD_SIZE)
+                game_state.player.move(dx, dy, game_state.world_size)
 
         scroll_margin_x = screen_width * game_state.scroll_trigger
         scroll_margin_y = screen_height * game_state.scroll_trigger
@@ -458,15 +458,15 @@ def run_gui_mode():
         if game_state.player.rect.left < game_state.scroll[0] + scroll_margin_x:
             game_state.scroll[0] = max(0, game_state.player.rect.left - scroll_margin_x)
         elif game_state.player.rect.right > game_state.scroll[0] + screen_width - scroll_margin_x:
-            game_state.scroll[0] = min(config.WORLD_SIZE[0] - screen_width, game_state.player.rect.right - screen_width + scroll_margin_x)
+            game_state.scroll[0] = min(game_state.world_size[0] - screen_width, game_state.player.rect.right - screen_width + scroll_margin_x)
 
         if game_state.player.rect.top < game_state.scroll[1] + scroll_margin_y:
             game_state.scroll[1] = max(0, game_state.player.rect.top - scroll_margin_y)
         elif game_state.player.rect.bottom > game_state.scroll[1] + screen_height - scroll_margin_y:
-            game_state.scroll[1] = min(config.WORLD_SIZE[1] - screen_height, game_state.player.rect.bottom - screen_height + scroll_margin_y)
+            game_state.scroll[1] = min(game_state.world_size[1] - screen_height, game_state.player.rect.bottom - screen_height + scroll_margin_y)
 
-        game_state.scroll[0] = max(0, min(game_state.scroll[0], config.WORLD_SIZE[0] - screen_width))
-        game_state.scroll[1] = max(0, min(game_state.scroll[1], config.WORLD_SIZE[1] - screen_height))
+        game_state.scroll[0] = max(0, min(game_state.scroll[0], game_state.world_size[0] - screen_width))
+        game_state.scroll[1] = max(0, min(game_state.scroll[1], game_state.world_size[1] - screen_height))
 
         try:
             if not game_state.player.death_effect_active:
