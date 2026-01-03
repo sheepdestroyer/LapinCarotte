@@ -55,7 +55,7 @@ jobs:
         run: python build_exe.py
 
       - name: Upload Windows executable artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: lapin-carotte-windows # Artifact name can remain generic
           path: dist/LapinCarotte-${{ needs.determine_tag.outputs.tag }}.exe # Path to the specifically named exe
@@ -105,7 +105,7 @@ jobs:
 
 
       - name: Upload Linux executable artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: lapin-carotte-linux # Artifact name can remain generic
           path: dist/LapinCarotte-${{ needs.determine_tag.outputs.tag }} # Path to the specifically named executable
