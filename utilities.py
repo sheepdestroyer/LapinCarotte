@@ -8,9 +8,11 @@
 # *pour les calculs vectoriels ou la logique de mouvement.*
 
 import math
+import os  # Moved to top as per PEP 8 / *Déplacé en haut conformément à PEP 8*
+import sys  # Moved to top as per PEP 8 / *Déplacé en haut conformément à PEP 8*
+
 import pygame
-import os # Moved to top as per PEP 8 / *Déplacé en haut conformément à PEP 8*
-import sys # Moved to top as per PEP 8 / *Déplacé en haut conformément à PEP 8*
+
 
 def get_direction_vector(start_x, start_y, target_x, target_y):
     """
@@ -36,7 +38,8 @@ def get_direction_vector(start_x, start_y, target_x, target_y):
     dist = math.hypot(dx, dy)
     if dist == 0:
         return (0, 0)
-    return (dx/dist, dy/dist)
+    return (dx / dist, dy / dist)
+
 
 def calculate_movement_towards(source_rect, target_rect, speed, world_bounds):
     """
@@ -68,10 +71,10 @@ def calculate_movement_towards(source_rect, target_rect, speed, world_bounds):
     dx_center = target_rect.centerx - source_rect.centerx
     dy_center = target_rect.centery - source_rect.centery
     dist = math.hypot(dx_center, dy_center)
-    
-    if dist == 0: # Already at the target center / *Déjà au centre de la cible*
+
+    if dist == 0:  # Already at the target center / *Déjà au centre de la cible*
         return (0, 0)
-        
+
     # Normalized direction vector / *Vecteur de direction normalisé*
     norm_dx = dx_center / dist
     norm_dy = dy_center / dist
@@ -79,11 +82,11 @@ def calculate_movement_towards(source_rect, target_rect, speed, world_bounds):
     # Potential movement / *Mouvement potentiel*
     move_x = norm_dx * speed
     move_y = norm_dy * speed
-    
+
     # Calculate new potential top-left position / *Calculer la nouvelle position potentielle en haut à gauche*
     new_x_tl = source_rect.x + move_x
     new_y_tl = source_rect.y + move_y
-    
+
     # Apply world boundaries to the new top-left position
     # *Appliquer les limites du monde à la nouvelle position en haut à gauche*
     final_x_tl = max(0, min(world_bounds[0] - source_rect.width, new_x_tl))
@@ -91,6 +94,7 @@ def calculate_movement_towards(source_rect, target_rect, speed, world_bounds):
 
     # Return the actual delta to apply / *Retourner le delta réel à appliquer*
     return (final_x_tl - source_rect.x, final_y_tl - source_rect.y)
+
 
 def get_asset_path(relative_path):
     """
@@ -114,11 +118,11 @@ def get_asset_path(relative_path):
     # import os  # Now at the top of the file / *Maintenant en haut du fichier*
     # import sys # Now at the top of the file / *Maintenant en haut du fichier*
 
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         # If the application is run as a bundle/frozen executable (e.g., PyInstaller)
         # *Si l'application est exécutée en tant que bundle/exécutable figé (par ex. PyInstaller)*
         base_path = sys._MEIPASS
     else:
         # If run from source code / *Si exécuté depuis le code source*
         base_path = os.path.abspath(".")
-    return os.path.join(base_path, 'Assets', relative_path)
+    return os.path.join(base_path, "Assets", relative_path)
